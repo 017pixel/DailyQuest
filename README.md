@@ -13,11 +13,11 @@ Dein Fortschritt (Level, Gold, Ausrüstung) wird **nur im Browser gespeichert**.
 
 - **Werde stärker:** Jede Übung gibt dir Mana (Erfahrung) und Gold. Steig im Level auf!
 - **Tägliche Missionen:** Du bekommst jeden Tag neue Aufgaben, passend zu deinem Ziel.
-- **Achtung, Strafe!** Wenn du deine Aufgaben nicht machst, verlierst du Stats. Bleib motiviert!
+- **Achtung, Strafe!** Wenn du deine Aufgaben nicht machst, verlierst du Stats und ein Level! 
 - **Bessere Werte:** Kraft, Ausdauer usw. verbessern sich automatisch durchs Training.
-- **Ausrüstung kaufen:** Gib Gold im Shop aus für coole Waffen und Rüstungen.
-- **Inventar:** Gekaufte Sachen landen in deiner Tasche – du kannst sie ausrüsten oder benutzen.
-- **Dein Ziel:** Fokus auf Muskelaufbau, Abnehmen oder was du willst.
+- **Ausrüstung kaufen:** Gib Gold im Shop aus für coole Waffen und Rüstungen. Diese geben dir bessere Werte.
+- **Inventar:** Gekaufte Sachen landen in deiner Tasche – du kannst sie dann ausrüsten oder benutzen.
+- **Dein Ziel:** Wähle dein Ziel in den Einstellungen, Kraftaufbau, Abnehmen oder Ausdauer stärken, für jeden ist was dabei!
 - **Extra-Training:** Trainiere extra für mehr Mana und Gold.
 - **Anleitungen:** Klick auf `?`, wenn du nicht weißt, wie eine Übung geht.
 - **Alles anpassbar:** Ändere deinen Charakternamen, Design (hell/dunkel) und Sprache.
