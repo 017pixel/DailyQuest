@@ -1,4 +1,4 @@
-# 🏋️‍♂️ Werde stärker wie Jinwoo!  
+# 🏋️‍♂️ Werde stärker, sportlicher, einfach besser
 
 Wolltest du schon immer wie Jinwoo aus dem Anime *Solo Leveling* durch tägliches Training stärker werden?  
 **Diese WebApp macht genau das möglich!**  
