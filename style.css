@@ -1,0 +1,591 @@
+/* Grundlegende Styles und Farbvariablen */  
+:root {
+    /* Dark Theme (Standard) */
+    --background-color: #121212;
+    --background-gradient: linear-gradient(180deg, #1f1c24 0%, #121212 100%);
+    --surface-color: #1c1b1f;
+    --surface-container-high: #2a292d;
+    --primary-color: #5f8575;
+    --primary-color-rgb: 95, 133, 117;
+    --secondary-button-color: #4a4458;
+    --on-surface-color: #e6e1e5;
+    --on-primary-color: #ffffff;
+    --outline-color: #49454f;
+    --mana-bar-color: #5b97d4;
+    --mana-bar-background: #2c2f33;
+    /* NEU: Farbe für Strafen */
+    --penalty-color: #cf6679;
+    --popup-bg-dark: #23232a; /* Helleres Dunkelgrau für Popups im Dark Mode */
+    --popup-glow-dark: 0 12px 65px 18px rgba(95,133,117,0.55), 0 2px 64px 0 rgba(0,0,0,0.65);
+    --popup-glow-penalty-dark: 0 12px 65px 18px rgba(207,102,121,0.6), 0 2px 64px 0 rgba(0,0,0,0.65);
+}
+
+html[data-theme='light'] {
+    /* Light Theme Variablen */
+    --background-color: #fef7ff;
+    --background-gradient: linear-gradient(180deg, #f5efff 0%, #fef7ff 100%);
+    --surface-color: #e8e0e9;
+    --surface-container-high: #ded8e1;
+    --primary-color: #4a6559;
+    --primary-color-rgb: 74, 101, 89;
+    --secondary-button-color: #625b71;
+    --on-surface-color: #1c1b1f;
+    --on-primary-color: #ffffff;
+    --outline-color: #79747e;
+    --mana-bar-color: #0061a4;
+    --mana-bar-background: #dbe3eb;
+    --penalty-color: #b3261e;
+    --popup-bg-light: #fffafd; /* Helles Popup im Light Mode */
+    --popup-glow-light: 0 12px 65px 18px rgba(74,101,89,0.35), 0 2px 64px 0 rgba(0,0,0,0.22);
+    --popup-glow-penalty-light: 0 12px 65px 18px rgba(179,38,30,0.35), 0 2px 64px 0 rgba(0,0,0,0.22);
+}
+
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: var(--background-color);
+    background-image: var(--background-gradient);
+    background-attachment: fixed;
+    color: var(--on-surface-color);
+    display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+    transition: color 0.3s;
+}
+
+/* Header Styling */
+#app-header {
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px; background-color: var(--surface-color);
+    border-bottom: 1px solid var(--outline-color);
+    z-index: 10; height: 60px;
+}
+#header-title {
+    font-size: 22px; font-weight: 500; margin: 0;
+    color: var(--on-surface-color);
+}
+.icon-button {
+    background: none; border: none; font-size: 24px;
+    color: var(--on-surface-color); cursor: pointer;
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+}
+.icon-button:hover { background-color: rgba(255, 255, 255, 0.1); }
+
+#app-container {
+    flex-grow: 1; overflow-y: auto; padding: 16px; 
+    padding-top: 76px; padding-bottom: 90px;
+}
+
+/* Seiten-Management */
+.page { display: none; }
+.page.active { display: block; }
+h2 {
+    color: var(--primary-color); text-align: left; font-weight: 500;
+    margin-top: 24px; margin-bottom: 16px; font-size: 22px;
+}
+.content-container { display: flex; flex-direction: column; gap: 8px; }
+
+/* Navigationsleiste */
+#bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; display: flex;
+    justify-content: space-evenly; align-items: stretch;
+    background-color: var(--surface-color); height: 70px;
+    z-index: 10; border-top: 1px solid var(--outline-color);
+}
+.nav-button {
+    background-color: transparent; border: none; color: var(--on-surface-color);
+    cursor: pointer; flex: 1; display: flex; flex-direction: column; 
+    align-items: center; justify-content: center; gap: 0;
+}
+.nav-icon {
+    font-size: 26px; height: 36px; width: 68px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 18px; transition: background-color 0.3s;
+}
+.nav-label { display: none; }
+.nav-button.active .nav-icon {
+    background-color: var(--surface-container-high);
+    color: var(--primary-color);
+}
+
+/* Karten-Styling */
+.card {
+    background-color: var(--surface-color); padding: 16px;
+    border-radius: 16px; border: 1px solid var(--outline-color);
+    position: relative; overflow: hidden;
+}
+.card h2 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    color: var(--on-surface-color);
+    font-size: 22px;
+    font-weight: 500;
+}
+.card h3 {
+    margin: 0 0 12px 0; color: var(--on-surface-color); text-align: left;
+    font-size: 18px; font-weight: 500;
+}
+.card p { margin-bottom: 16px; color: var(--on-surface-color); opacity: 0.8; }
+
+/* Button-Styling */
+.card-button {
+    background-color: var(--primary-color); color: var(--on-primary-color);
+    border: none; padding: 12px 24px; border-radius: 24px; cursor: pointer;
+    font-size: 14px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.5px; transition: background-color 0.3s, filter 0.3s;
+    width: 100%; margin-top: 10px;
+}
+.card-button:hover { filter: brightness(1.1); }
+.card-button:disabled {
+    background-color: var(--outline-color); color: var(--on-surface-color);
+    opacity: 0.5; cursor: not-allowed;
+}
+.secondary-button { background-color: var(--secondary-button-color); }
+.card-button-no-transform {
+    text-transform: none;
+    letter-spacing: normal;
+}
+.card-actions-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+.card-actions-wrapper .card-button {
+    margin-top: 0;
+}
+
+
+/* Kompaktes Design für Übungskarten */
+#exercise-list, #quest-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.exercise-card {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px;
+}
+.quest-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-grow: 1;
+    margin-right: 8px;
+}
+.exercise-card h2 { font-size: 16px; font-weight: 500; margin: 0; color: var(--on-surface-color); text-align: left; }
+.quest-target {
+    font-size: 14px;
+    opacity: 0.7;
+    margin: 2px 0 0 0;
+    padding: 0;
+    color: var(--on-surface-color);
+    line-height: 1.2;
+}
+.exercise-card-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.action-button {
+    border: none; border-radius: 18px; height: 36px;
+    cursor: pointer; font-weight: 500; display: flex;
+    align-items: center; justify-content: center; transition: all 0.2s;
+}
+.action-button:hover { filter: brightness(1.15); }
+.info-button-small {
+    background-color: var(--secondary-button-color); color: var(--on-surface-color);
+    width: 36px; font-size: 16px; font-weight: bold; border-radius: 50%;
+}
+.complete-button-small {
+    background-color: var(--primary-color); color: var(--on-primary-color);
+    padding: 0 16px; font-size: 14px; text-transform: uppercase;
+}
+
+/* Styling für erledigte Quests */
+.exercise-card.completed {
+    opacity: 0.6;
+    background-color: var(--background-color);
+}
+.exercise-card.completed h2 {
+    text-decoration: line-through;
+}
+.exercise-card.completed .action-button {
+    background-color: var(--outline-color);
+    pointer-events: none;
+}
+
+/* --- ÜBERARBEITET: Charakter-Seite Layout --- */
+#character-sheet {
+    margin-bottom: 8px;
+}
+#character-meta-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px; 
+}
+#character-vitals .card {
+    margin-bottom: 0;
+}
+#streak-box {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+#streak-box h2 {
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+#streak-value {
+    font-size: 2.5em;
+}
+
+.stat { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 16px; }
+.stat-label { font-weight: 500; }
+.mana-bar-container { width: 100%; height: 10px; background-color: var(--mana-bar-background); border-radius: 5px; overflow: hidden; margin-top: 5px; }
+.mana-bar { height: 100%; width: 0%; background-color: var(--mana-bar-color); border-radius: 5px; transition: width 0.5s ease-in-out; }
+
+.item-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+/* KORREKTUR: Nur Platzhalter-Karten nehmen die volle Breite ein */
+.item-grid .card.placeholder:only-child { 
+    grid-column: 1 / -1; 
+}
+#equipment-container .card { border-color: var(--primary-color); }
+
+/* Radar Chart & Stat-Liste Styling */
+#character-stats.card {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+}
+#stats-radar-chart {
+    max-width: 100%;
+    height: auto;
+}
+.stat-separator {
+    width: 96%; /* 2% Abstand links und rechts */
+    border: none;
+    border-top: 1px solid var(--outline-color);
+    margin: 16px auto;
+}
+#stats-list-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.stat-item-text {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* Filter Buttons (Shop & Freies Training) */
+#shop-filters, #free-exercise-filters { 
+    display: flex; 
+    gap: 8px; 
+    margin-bottom: 24px; 
+    overflow-x: auto; 
+    padding-bottom: 8px; 
+}
+.filter-button { 
+    background-color: var(--surface-color); 
+    border: 1px solid var(--outline-color); 
+    color: var(--on-surface-color); 
+    padding: 8px 16px; 
+    border-radius: 8px; 
+    font-size: 14px; 
+    cursor: pointer; 
+    transition: background-color 0.3s, color 0.3s; 
+    white-space: nowrap; 
+}
+.filter-button.active { 
+    background-color: var(--primary-color); 
+    color: var(--on-primary-color); 
+    border-color: var(--primary-color); 
+}
+
+/* Popup System Styling */
+#popup-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); opacity: 0;
+    transition: opacity 0.4s ease; z-index: 15; pointer-events: none;
+}
+#popup-overlay.show { opacity: 1; pointer-events: auto; }
+.popup {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background-color: transparent;
+    border-top-left-radius: 24px; border-top-right-radius: 24px;
+    padding: 0 24px 24px 24px; transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1), background-color 0.3s, box-shadow 0.6s ease;
+    z-index: 20; max-height: 80vh; overflow-y: auto; touch-action: none;
+    box-shadow: none;
+}
+.popup.show {
+    background-color: var(--popup-bg-dark);
+    box-shadow: var(--popup-glow-dark);
+    transform: translateY(0);
+}
+html[data-theme='light'] .popup.show {
+    background-color: var(--popup-bg-light);
+    box-shadow: var(--popup-glow-light);
+    transform: translateY(0);
+}
+
+/* Popup Actions (z.B. für Verkaufen) */
+.popup-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+/* Penalty Popup Glow nur wenn offen */
+.popup.penalty.show {
+    box-shadow: var(--popup-glow-penalty-dark);
+    transform: translateY(0);
+}
+html[data-theme='light'] .popup.penalty.show {
+    box-shadow: var(--popup-glow-penalty-light);
+    transform: translateY(0);
+}
+
+.popup-drag-handle { width: 32px; height: 4px; background-color: var(--outline-color); border-radius: 2px; margin: 16px auto; }
+.popup-content h3 { color: var(--primary-color); margin-bottom: 16px; font-size: 22px; text-align: center; }
+.popup-content p { color: var(--on-surface-color); margin-bottom: 12px; font-size: 16px; }
+#notification-popup-content { padding: 16px 0; text-align: center; font-size: 18px; color: var(--on-surface-color); }
+
+/* NEU: Penalty Popup Styling */
+.popup.penalty .popup-content h3 {
+    color: var(--penalty-color);
+}
+.popup.penalty .popup-drag-handle {
+    background-color: var(--penalty-color);
+}
+
+/* Styling für ausklappbare Anleitungen im Popup */
+.popup-content details {
+    margin: 16px 0;
+    background-color: var(--surface-container-high);
+    border-radius: 12px;
+    border: 1px solid var(--outline-color);
+}
+.popup-content summary {
+    padding: 12px 16px;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    list-style: none; /* Marker entfernen */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.popup-content summary::-webkit-details-marker {
+    display: none; /* Marker für Webkit-Browser entfernen */
+}
+.popup-content summary:after {
+    content: '▼'; /* Pfeil-Indikator */
+    transition: transform 0.2s;
+    font-size: 14px;
+}
+.popup-content details[open] summary:after {
+    transform: rotate(180deg);
+}
+.popup-content details p {
+    padding: 0 16px 16px 16px;
+    margin-top: 0;
+    border-top: 1px solid var(--outline-color);
+    padding-top: 16px;
+}
+
+
+/* Styling für Einstellungs-Popup */
+.setting-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 0; border-bottom: 1px solid var(--outline-color);
+}
+.setting-item:last-child { border-bottom: none; }
+.setting-item label { font-size: 16px; }
+.setting-item select, .setting-item input[type="range"] {
+    background-color: var(--surface-container-high); color: var(--on-surface-color);
+    border: 1px solid var(--outline-color); border-radius: 8px; padding: 6px;
+}
+.setting-item input[type="range"] { width: 100px; }
+.toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--secondary-button-color); transition: .4s; border-radius: 28px;
+}
+.slider:before {
+    position: absolute; content: ""; height: 20px; width: 20px;
+    left: 4px; bottom: 4px; background-color: var(--on-surface-color);
+    transition: .4s; border-radius: 50%;
+}
+input:checked + .slider { background-color: var(--primary-color); }
+input:checked + .slider:before { transform: translateX(22px); }
+
+/* Styling für Import/Export in Einstellungen */
+.setting-item input[type="file"] {
+    color: var(--on-surface-color);
+}
+.setting-item input[type="file"]::-webkit-file-upload-button {
+    background-color: var(--secondary-button-color);
+    color: var(--on-surface-color);
+    border: none;
+    padding: 8px 12px;
+    border-radius: 16px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    transition: all 0.2s;
+}
+.setting-item input[type="file"]::-webkit-file-upload-button:hover {
+    filter: brightness(1.1);
+}
+
+/* --- EXTRA-QUEST SEITE (ÜBERARBEITET) --- */
+#page-extra-quest .content-container {
+    align-items: center;
+    text-align: center;
+}
+
+/* Inactive State */
+.extra-quest-prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.extra-quest-icon {
+    font-size: 56px;
+    line-height: 1;
+    opacity: 0.6;
+    text-shadow: 0 0 15px var(--primary-color);
+    margin-bottom: 8px;
+}
+
+.extra-quest-prompt h3 {
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--on-surface-color);
+    margin: 0;
+}
+
+.quest-description {
+    opacity: 0.8;
+    margin: 0;
+    font-size: 16px;
+}
+
+.penalty-card {
+    background-color: var(--surface-container-high);
+    border: 1px solid var(--outline-color);
+    border-radius: 12px;
+    padding: 16px;
+    width: 100%;
+    margin-top: 24px;
+}
+
+.penalty-card h4 {
+    font-weight: 500;
+    color: var(--penalty-color);
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.penalty-details {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.penalty-item {
+    display: flex;
+    align-items: center;
+    text-align: left;
+}
+
+.penalty-icon {
+    font-size: 22px;
+    margin-right: 12px;
+    color: var(--penalty-color);
+    opacity: 0.8;
+}
+
+.penalty-text {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+/* Active Extra-Quest (VERBESSERT) */
+#extra-quest-active.content-container {
+    width: 100%;
+    max-width: 400px; /* Gleiche Breite wie Inactive-Prompt */
+    align-items: center;
+}
+
+#extra-quest-task-panel, #extra-quest-timer-panel {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 20px -5px rgba(var(--primary-color-rgb), 0.5), 
+                inset 0 0 10px -5px rgba(var(--primary-color-rgb), 0.3);
+    text-align: center;
+    padding: 20px;
+    width: 100%; /* Volle Breite innerhalb des Containers */
+}
+
+#extra-quest-task-panel h3, #extra-quest-timer-panel h3 {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    opacity: 0.7;
+    margin: 0 0 12px 0;
+    color: var(--primary-color);
+}
+
+#extra-quest-task {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--on-surface-color);
+    margin: 0;
+    padding: 8px 0;
+}
+
+#extra-quest-countdown {
+    font-size: 3.2em;
+    font-weight: 700;
+    color: var(--on-surface-color);
+    text-shadow: 0 0 8px rgba(var(--primary-color-rgb), 0.6);
+    letter-spacing: 2px;
+    margin: 8px 0 16px 0;
+}
+
+#countdown-progress-bar-container {
+    width: 100%;
+    height: 8px;
+    background-color: var(--mana-bar-background);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--outline-color);
+}
+
+#countdown-progress-bar {
+    height: 100%;
+    width: 100%;
+    background-color: var(--primary-color);
+    border-radius: 4px;
+    transition: width 1s linear, background-color 0.5s ease;
+}
+
+#countdown-progress-bar.warning {
+    background-color: var(--penalty-color);
+}
