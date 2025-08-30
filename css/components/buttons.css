@@ -1,0 +1,68 @@
+/* Button-Styling */
+.card-button {
+    background-color: var(--primary-color); color: var(--on-primary-color);
+    border: none; padding: 12px 24px; border-radius: 24px; cursor: pointer;
+    font-size: 14px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.5px; transition: background-color 0.3s, filter 0.3s;
+    width: 100%; margin-top: 10px;
+}
+.card-button:hover { filter: brightness(1.1); }
+.card-button:disabled {
+    background-color: var(--outline-color); color: var(--on-surface-color);
+    opacity: 0.5; cursor: not-allowed;
+}
+.secondary-button { background-color: var(--secondary-button-color); }
+.card-button-no-transform {
+    text-transform: none;
+    letter-spacing: normal;
+}
+.card-actions-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+.card-actions-wrapper .card-button {
+    margin-top: 0;
+}
+
+.icon-button {
+    background: none; border: none; font-size: 24px;
+    color: var(--on-surface-color); cursor: pointer;
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+}
+.icon-button:hover { background-color: rgba(255, 255, 255, 0.1); }
+
+.action-button {
+    border: none; border-radius: 18px; height: 36px;
+    cursor: pointer; font-weight: 500; display: flex;
+    align-items: center; justify-content: center; transition: all 0.2s;
+}
+.action-button:hover { filter: brightness(1.15); }
+.info-button-small {
+    background-color: var(--secondary-button-color); color: var(--on-surface-color);
+    width: 36px; font-size: 16px; font-weight: bold; border-radius: 50%;
+}
+.complete-button-small {
+    background-color: var(--primary-color); color: var(--on-primary-color);
+    padding: 0 16px; font-size: 14px; text-transform: uppercase;
+}
+
+/* Filter Buttons (Shop & Freies Training) */
+.filter-button { 
+    background-color: var(--surface-color); 
+    border: 1px solid var(--outline-color); 
+    color: var(--on-surface-color); 
+    padding: 8px 16px; 
+    border-radius: 8px; 
+    font-size: 14px; 
+    cursor: pointer; 
+    transition: background-color 0.3s, color 0.3s; 
+    white-space: nowrap; 
+}
+.filter-button.active { 
+    background-color: var(--primary-color); 
+    color: var(--on-primary-color); 
+    border-color: var(--primary-color); 
+}
