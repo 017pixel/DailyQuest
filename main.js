@@ -235,9 +235,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadInitialData() {
         await loadSettings();
         const char = await initializeCharacter();
+        await initializeFreeExercises();
+        await initializeShop();
         await checkForPenaltyAndReset(); 
-        initializeFreeExercises();
-        initializeShop();
         DQ_ACHIEVEMENTS.checkAllAchievements(char); 
         startDailyCheckTimer(); 
     }
@@ -368,14 +368,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         let goal = DQ_CONFIG.userSettings.goal || 'muscle';
         if (goal !== 'sick') {
-            const dayOfWeek = new Date().getDay(); // 0=So, 1=Mo, 2=Di, 3=Mi, 4=Do, 5=Fr, 6=Sa
+            const dayOfWeek = new Date().getDay();
             const numRestDays = DQ_CONFIG.userSettings.restDays || 0;
             let activeRestDays = [];
             switch (parseInt(numRestDays)) {
-                case 1: activeRestDays = [0]; break; // Sonntag
-                // --- GEÄNDERT: Rest-Tage sind jetzt Dienstag und Samstag ---
-                case 2: activeRestDays = [2, 6]; break; // Dienstag, Samstag
-                case 3: activeRestDays = [0, 2, 4]; break; // Sonntag, Dienstag, Donnerstag
+                case 1: activeRestDays = [0]; break;
+                case 2: activeRestDays = [2, 6]; break;
+                case 3: activeRestDays = [0, 2, 4]; break;
             }
             if (activeRestDays.includes(dayOfWeek)) {
                 goal = 'restday';
@@ -420,6 +419,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    // --- GEÄNDERT: Fehlendes "streak"-Achievement hinzugefügt ---
     function initializeCharacter() {
         return new Promise(resolve => {
             const tx = DQ_DB.db.transaction(['character'], 'readwrite');
@@ -436,7 +436,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                         achievements: {
                             level: { tier: 0, claimable: false }, quests: { tier: 0, claimable: false },
                             gold: { tier: 0, claimable: false }, shop: { tier: 0, claimable: false },
-                            strength: { tier: 0, claimable: false }
+                            strength: { tier: 0, claimable: false },
+                            streak: { tier: 0, claimable: false } // DIES HAT GEFEHLT
                         },
                         totalGoldEarned: 200, totalQuestsCompleted: 0, totalItemsPurchased: 0
                     };
@@ -450,24 +451,46 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    function initializeShop() {
-        const tx = DQ_DB.db.transaction(['shop'], 'readwrite');
-        const store = tx.objectStore('shop');
-        
-        const newShopItems = [
-            { id: 101, name: 'Trainings-Schwert 🗡️', description: '+5 Angriff ⚔️', cost: 100, type: 'weapon', bonus: { angriff: 5 } }, { id: 102, name: 'Stahl-Klinge 🔪', description: '+15 Angriff ⚔️', cost: 400, type: 'weapon', bonus: { angriff: 15 } }, { id: 103, name: 'Ninja-Sterne ✨', description: '+25 Angriff ⚔️', cost: 850, type: 'weapon', bonus: { angriff: 25 } }, { id: 104, name: 'Meister-Hantel 💪', description: 'Legendär. +40 Angriff ⚔️', cost: 1500, type: 'weapon', bonus: { angriff: 40 } }, { id: 105, name: 'Magier-Stab 🪄', description: 'Episch. +60 Angriff ⚔️', cost: 2500, type: 'weapon', bonus: { angriff: 60 } }, { id: 106, name: 'Himmels-Speer ☄️', description: 'Mythisch. +85 Angriff ⚔️', cost: 4000, type: 'weapon', bonus: { angriff: 85 } }, { id: 107, name: 'Dämonen-Klinge 🩸', description: 'Verflucht. +120 Angriff ⚔️', cost: 6500, type: 'weapon', bonus: { angriff: 120 } }, { id: 108, name: 'Götter-Hammer ⚡️', description: 'Göttlich. +175 Angriff ⚔️', cost: 10000, type: 'weapon', bonus: { angriff: 175 } },
-            { id: 201, name: 'Leder-Bandagen 🩹', description: '+5 Schutz 🛡️', cost: 100, type: 'armor', bonus: { schutz: 5 } }, { id: 202, name: 'Kettenhemd ⛓️', description: '+15 Schutz 🛡️', cost: 400, type: 'armor', bonus: { schutz: 15 } }, { id: 203, name: 'Spiegel-Schild 💎', description: '+25 Schutz 🛡️', cost: 850, type: 'armor', bonus: { schutz: 25 } }, { id: 204, 'name': 'Titan-Panzer 🦾', description: 'Legendär. +40 Schutz 🛡️', cost: 1500, type: 'armor', bonus: { schutz: 40 } }, { id: 205, name: 'Drachenhaut-Robe 🐉', description: 'Episch. +60 Schutz 🛡️', cost: 2500, type: 'armor', bonus: { schutz: 60 } }, { id: 206, name: 'Runen-Weste 📜', description: 'Mythisch. +85 Schutz 🛡️', cost: 4000, type: 'armor', bonus: { schutz: 85 } }, { id: 207, name: 'Kristall-Harnisch 💠', description: 'Unzerbrechlich. +120 Schutz 🛡️', cost: 6500, type: 'armor', bonus: { schutz: 120 } }, { id: 208, name: 'Unverwundbarkeits-Aura ✨', description: 'Göttlich. +175 Schutz 🛡️', cost: 10000, type: 'armor', bonus: { schutz: 175 } },
-            { id: 301, name: 'Kleiner Mana-Stein 🔹', description: 'Stellt 50 Mana wieder her.', cost: 65, type: 'consumable', effect: { mana: 50 } }, { id: 302, name: 'Mittlerer Mana-Stein 🔸', description: 'Stellt 250 Mana wieder her.', cost: 280, type: 'consumable', effect: { mana: 250 } }, { id: 303, name: 'Großer Mana-Stein 💠', description: 'Stellt 1000 Mana wieder her.', cost: 960, type: 'consumable', effect: { mana: 1000 } }
-        ];
+    function initializeFreeExercises() {
+        return new Promise(resolve => {
+            const tx = DQ_DB.db.transaction(['exercises'], 'readwrite');
+            const store = tx.objectStore('exercises');
+            const defaultExercises = [
+                { id: 1, nameKey: 'push_ups_narrow', type: 'reps', baseValue: 12, manaReward: 20, goldReward: 5, category: 'muscle' }, { id: 2, nameKey: 'weighted_squats', type: 'reps', baseValue: 15, manaReward: 15, goldReward: 3, category: 'muscle' }, { id: 3, nameKey: 'dumbbell_rows', type: 'reps', baseValue: 10, manaReward: 22, goldReward: 7, category: 'muscle' }, { id: 4, nameKey: 'bicep_curls', type: 'reps', baseValue: 10, manaReward: 18, goldReward: 5, category: 'muscle' }, { id: 5, nameKey: 'jumping_jacks', type: 'time', baseValue: 60, manaReward: 25, goldReward: 7, category: 'endurance' }, { id: 6, nameKey: 'general_workout', type: 'check', baseValue: 1, manaReward: 50, goldReward: 50, category: 'muscle' }, { id: 7, nameKey: 'pinterest_workout', type: 'link', baseValue: 1, manaReward: 60, goldReward: 20, category: 'kraft_abnehmen', url: 'https://pin.it/4DkPZ9zHx' }, { id: 8, nameKey: 'plank', type: 'time', baseValue: 30, manaReward: 18, goldReward: 5, category: 'kraft_abnehmen' }, { id: 9, nameKey: 'situps', type: 'reps', baseValue: 20, manaReward: 15, goldReward: 4, category: 'kraft_abnehmen' }, { id: 10, nameKey: 'knee_push_ups', type: 'reps', baseValue: 15, manaReward: 12, goldReward: 3, category: 'kraft_abnehmen' }, { id: 11, nameKey: 'tricep_dips_chair', type: 'reps', baseValue: 12, manaReward: 14, goldReward: 4, category: 'kraft_abnehmen' }, { id: 12, nameKey: 'lunges', type: 'reps', baseValue: 16, manaReward: 15, goldReward: 4, category: 'kraft_abnehmen' }, { id: 13, nameKey: 'sumo_squats', type: 'reps', baseValue: 15, manaReward: 15, goldReward: 4, category: 'kraft_abnehmen' }, { id: 14, nameKey: 'glute_bridges', type: 'reps', baseValue: 18, manaReward: 12, goldReward: 3, category: 'kraft_abnehmen' }, { id: 15, nameKey: 'tricep_extensions', type: 'reps', baseValue: 12, manaReward: 13, goldReward: 3, category: 'kraft_abnehmen' }, { id: 16, nameKey: 'side_plank', type: 'time', baseValue: 20, manaReward: 13, goldReward: 3, category: 'kraft_abnehmen' }, { id: 17, nameKey: 'burpees', type: 'reps', baseValue: 10, manaReward: 18, goldReward: 5, category: 'endurance' }, { id: 18, nameKey: 'mountain_climbers', type: 'time', baseValue: 30, manaReward: 15, goldReward: 4, category: 'fatloss' }, { id: 19, nameKey: 'jump_squats', type: 'reps', baseValue: 12, manaReward: 15, goldReward: 4, category: 'fatloss' }, { id: 20, nameKey: 'high_knees', type: 'time', baseValue: 40, manaReward: 12, goldReward: 3, category: 'endurance' }, { id: 21, nameKey: 'stretch_10min', type: 'check', baseValue: 1, manaReward: 10, goldReward: 5, category: 'restday' }, { id: 22, nameKey: 'walk_30min', type: 'check', baseValue: 1, manaReward: 15, goldReward: 5, category: 'restday' }
+            ];
+            store.count().onsuccess = (e) => {
+                if (e.target.result === 0) {
+                    console.log("Freies Training ist leer. Fülle es mit Standard-Übungen...");
+                    defaultExercises.forEach(ex => store.add(ex));
+                }
+            };
+            tx.oncomplete = () => {
+                DQ_EXERCISES.renderFreeExercisesPage();
+                resolve();
+            };
+        });
+    }
 
-        store.count().onsuccess = (e) => {
-            if (e.target.result !== newShopItems.length) {
-                store.clear().onsuccess = () => {
+    function initializeShop() {
+        return new Promise(resolve => {
+            const tx = DQ_DB.db.transaction(['shop'], 'readwrite');
+            const store = tx.objectStore('shop');
+            const newShopItems = [
+                { id: 101, name: 'Trainings-Schwert 🗡️', description: '+5 Angriff ⚔️', cost: 100, type: 'weapon', bonus: { angriff: 5 } }, { id: 102, name: 'Stahl-Klinge 🔪', description: '+15 Angriff ⚔️', cost: 400, type: 'weapon', bonus: { angriff: 15 } }, { id: 103, name: 'Ninja-Sterne ✨', description: '+25 Angriff ⚔️', cost: 850, type: 'weapon', bonus: { angriff: 25 } }, { id: 104, name: 'Meister-Hantel 💪', description: 'Legendär. +40 Angriff ⚔️', cost: 1500, type: 'weapon', bonus: { angriff: 40 } }, { id: 105, name: 'Magier-Stab 🪄', description: 'Episch. +60 Angriff ⚔️', cost: 2500, type: 'weapon', bonus: { angriff: 60 } }, { id: 106, name: 'Himmels-Speer ☄️', description: 'Mythisch. +85 Angriff ⚔️', cost: 4000, type: 'weapon', bonus: { angriff: 85 } }, { id: 107, name: 'Dämonen-Klinge 🩸', description: 'Verflucht. +120 Angriff ⚔️', cost: 6500, type: 'weapon', bonus: { angriff: 120 } }, { id: 108, name: 'Götter-Hammer ⚡️', description: 'Göttlich. +175 Angriff ⚔️', cost: 10000, type: 'weapon', bonus: { angriff: 175 } },
+                { id: 201, name: 'Leder-Bandagen 🩹', description: '+5 Schutz 🛡️', cost: 100, type: 'armor', bonus: { schutz: 5 } }, { id: 202, name: 'Kettenhemd ⛓️', description: '+15 Schutz 🛡️', cost: 400, type: 'armor', bonus: { schutz: 15 } }, { id: 203, name: 'Spiegel-Schild 💎', description: '+25 Schutz 🛡️', cost: 850, type: 'armor', bonus: { schutz: 25 } }, { id: 204, 'name': 'Titan-Panzer 🦾', description: 'Legendär. +40 Schutz 🛡️', cost: 1500, type: 'armor', bonus: { schutz: 40 } }, { id: 205, name: 'Drachenhaut-Robe 🐉', description: 'Episch. +60 Schutz 🛡️', cost: 2500, type: 'armor', bonus: { schutz: 60 } }, { id: 206, name: 'Runen-Weste 📜', description: 'Mythisch. +85 Schutz 🛡️', cost: 4000, type: 'armor', bonus: { schutz: 85 } }, { id: 207, name: 'Kristall-Harnisch 💠', description: 'Unzerbrechlich. +120 Schutz 🛡️', cost: 6500, type: 'armor', bonus: { schutz: 120 } }, { id: 208, name: 'Unverwundbarkeits-Aura ✨', description: 'Göttlich. +175 Schutz 🛡️', cost: 10000, type: 'armor', bonus: { schutz: 175 } },
+                { id: 301, name: 'Kleiner Mana-Stein 🔹', description: 'Stellt 50 Mana wieder her.', cost: 65, type: 'consumable', effect: { mana: 50 } }, { id: 302, name: 'Mittlerer Mana-Stein 🔸', description: 'Stellt 250 Mana wieder her.', cost: 280, type: 'consumable', effect: { mana: 250 } }, { id: 303, name: 'Großer Mana-Stein 💠', description: 'Stellt 1000 Mana wieder her.', cost: 960, type: 'consumable', effect: { mana: 1000 } }
+            ];
+            store.count().onsuccess = (e) => {
+                if (e.target.result === 0) {
+                    console.log("Shop ist leer. Fülle ihn mit Standard-Artikeln...");
                     newShopItems.forEach(item => store.add(item));
-                };
-            }
-        };
-        tx.oncomplete = () => DQ_SHOP.renderPage();
+                }
+            };
+            tx.oncomplete = () => {
+                DQ_SHOP.renderPage();
+                resolve();
+            };
+        });
     }
 
     function startDailyCheckTimer() {
