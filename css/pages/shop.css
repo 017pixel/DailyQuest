@@ -1,8 +1,0 @@
-/* Filter Container */
-#shop-filters { 
-    display: flex; 
-    gap: 8px; 
-    margin-bottom: 24px; 
-    overflow-x: auto; 
-    padding-bottom: 8px; 
-}
