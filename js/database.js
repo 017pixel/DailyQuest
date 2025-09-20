@@ -9,8 +9,8 @@ const DQ_DB = {
     db: null,
     init: function() {
         return new Promise((resolve, reject) => {
-            // --- VERSION ERHÖHT, UM MIGRATION ZU ERZWINGEN ---
-            const dbName = 'VibeCodenDB', dbVersion = 21; 
+            // --- VERSION ERHÖHT, UM UPDATE FÜR ALLE NUTZER ZU ERZWINGEN ---
+            const dbName = 'VibeCodenDB', dbVersion = 22; 
             const request = indexedDB.open(dbName, dbVersion);
 
             request.onerror = (e) => {
@@ -28,21 +28,20 @@ const DQ_DB = {
                 const transaction = e.target.transaction;
                 const oldVersion = e.oldVersion;
 
-                if (oldVersion < 20) {
-                    console.log("Datenbank-Upgrade auf Version 20: Leere und fülle 'exercises' neu.");
-                    if (db.objectStoreNames.contains('exercises')) {
-                        const exerciseStore = transaction.objectStore('exercises');
-                        exerciseStore.clear().onsuccess = () => {
-                            initializeFreeExercises(transaction);
-                        };
-                    }
-                }
+                console.log(`Datenbank-Upgrade wird durchgeführt von Version ${oldVersion} auf ${dbVersion}...`);
+
+                // --- ROBUSTER UPDATE-PROZESS ---
+                // Dieser Code stellt sicher, dass alle notwendigen Tabellen existieren.
+                // Er wird bei der allerersten Initialisierung und bei jedem Versions-Upgrade ausgeführt.
+
                 if (oldVersion < 21) {
+                    console.log("Upgrade-Schritt: Erstelle 'focus_labels' Object Store.");
                     if (!db.objectStoreNames.contains('focus_labels')) {
                         db.createObjectStore('focus_labels', { keyPath: 'id', autoIncrement: true });
                     }
                 }
-                
+
+                // Sicherheits-Checks, um sicherzustellen, dass alle Tabellen vorhanden sind.
                 if (!db.objectStoreNames.contains('character')) db.createObjectStore('character', { keyPath: 'id' });
                 if (!db.objectStoreNames.contains('exercises')) db.createObjectStore('exercises', { keyPath: 'id' });
                 if (!db.objectStoreNames.contains('shop')) db.createObjectStore('shop', { keyPath: 'id' });
@@ -59,6 +58,8 @@ const DQ_DB = {
                 if (!db.objectStoreNames.contains('vibe_state')) {
                     db.createObjectStore('vibe_state', { keyPath: 'key' });
                 }
+
+                console.log("Datenbank-Upgrade abgeschlossen.");
             };
         });
     }
