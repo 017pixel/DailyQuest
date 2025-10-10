@@ -1,0 +1,188 @@
+/* --- Charakter-Seite Layout --- */
+#character-header-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+#character-sheet-container {
+    grid-column: 1 / -1; /* Nimmt die volle Breite ein */
+}
+#streak-box {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+#streak-box h2 {
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+#streak-value {
+    font-size: 2.5em;
+}
+
+/* --- NEU: Tab-Content Management --- */
+.character-tab-content {
+    display: none; /* Standardmäßig alle Tabs ausblenden */
+}
+.character-tab-content.active {
+    display: block; /* Nur den aktiven Tab anzeigen */
+}
+
+
+.stat { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 16px; }
+.stat-label { font-weight: 500; }
+.mana-bar-container { width: 100%; height: 10px; background-color: var(--mana-bar-background); border-radius: 5px; overflow: hidden; margin-top: 5px; }
+.mana-bar { height: 100%; width: 0%; background-color: var(--mana-bar-color); border-radius: 5px; transition: width 0.5s ease-in-out; }
+
+.item-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.item-grid .card.placeholder:only-child { 
+    grid-column: 1 / -1; 
+}
+#equipment-container .card { border-color: var(--primary-color); }
+
+/* Radar Chart & Stat-Liste Styling */
+#character-stats.card {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+}
+#stats-radar-chart {
+    max-width: 100%;
+    height: auto;
+}
+.stat-separator {
+    width: 96%;
+    border: none;
+    border-top: 1px solid var(--outline-color);
+    margin: 16px auto;
+}
+#stats-list-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.stat-item-text {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* --- FOKUS-STATS STYLING (ÜBERARBEITET) --- */
+#focus-summary-container {
+    display: flex;
+    flex-direction: column; /* Geändert auf Spalten-Layout */
+    gap: 8px; /* Abstand zwischen den Items */
+    margin-bottom: 24px;
+    width: 100%;
+}
+.focus-summary-item {
+    display: flex;
+    justify-content: space-between; /* Items an den Enden ausrichten */
+    align-items: center;
+    font-size: 16px;
+}
+.focus-summary-item .label {
+    opacity: 0.8;
+}
+.focus-summary-item .value {
+    font-weight: 500;
+}
+
+#focus-labels-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+    max-height: 150px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+.focus-label-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--surface-container-high);
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--outline-color);
+}
+.focus-label-item .name {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--on-surface-color);
+}
+.focus-label-item .time {
+    font-size: 14px;
+    opacity: 0.8;
+    white-space: nowrap;
+    font-weight: 400;
+}
+
+
+/* --- GEWICHTS-TRACKING STYLING --- */
+#weight-summary-container {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+    margin-bottom: 24px;
+}
+.weight-summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.weight-summary-item .label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+}
+.weight-summary-item .value {
+    font-size: 22px;
+    font-weight: 500;
+}
+#weight-chart-container {
+    width: 100%;
+    overflow-x: auto;
+    margin: 16px 0;
+}
+#weight-chart {
+    height: 220px;
+    display: block;
+}
+#weight-entries-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+    max-height: 150px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+.weight-entry-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--surface-container-high);
+    padding: 8px 12px;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+.weight-entry-item .date {
+    font-size: 14px;
+    opacity: 0.8;
+    white-space: nowrap;
+}
+.weight-entry-item .weight {
+    font-size: 16px;
+    font-weight: 500;
+}
