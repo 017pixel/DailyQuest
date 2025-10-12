@@ -1,0 +1,309 @@
+/* --- Charakter-Seite Layout --- */
+#character-header-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+#character-sheet-container {
+    grid-column: 1 / -1; /* Nimmt die volle Breite ein */
+    position: relative; /* For player label positioning */
+}
+
+/* --- Player Label Styling --- */
+.player-label {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-color-dark));
+    color: white;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 5;
+    white-space: nowrap;
+    min-width: fit-content;
+}
+
+.player-label:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.player-label:active {
+    transform: translateY(0);
+}
+
+.label-name {
+    display: block;
+    line-height: 1.2;
+}
+
+/* Label color variations */
+.player-label[style*="kraftprotz"], .player-label[style*="#8b5cf6"] {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.player-label[style*="marathoner"], .player-label[style*="#4ecdc4"] {
+    background: linear-gradient(135deg, #4ecdc4, #44a08d);
+}
+
+.player-label[style*="akrobat"], .player-label[style*="#45b7d1"] {
+    background: linear-gradient(135deg, #45b7d1, #3a9bc1);
+}
+
+.player-label[style*="stoiker"], .player-label[style*="#96ceb4"] {
+    background: linear-gradient(135deg, #96ceb4, #7fb069);
+}
+
+.player-label[style*="eiserner_wille"], .player-label[style*="#10b981"] {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.player-label[style*="tank"], .player-label[style*="#ff9ff3"] {
+    background: linear-gradient(135deg, #ff9ff3, #f368e0);
+}
+
+.player-label[style*="allrounder"], .player-label[style*="#636e72"] {
+    background: linear-gradient(135deg, #636e72, #2d3436);
+}
+
+.player-label[style*="neuling"], .player-label[style*="#b2bec3"] {
+    background: linear-gradient(135deg, #b2bec3, #74b9ff);
+}
+
+/* Additional label color variations */
+.player-label[style*="powerlaeufer"], .player-label[style*="#54a0ff"] {
+    background: linear-gradient(135deg, #54a0ff, #2e86de);
+}
+
+.player-label[style*="kraftakrobat"], .player-label[style*="#5f27cd"] {
+    background: linear-gradient(135deg, #5f27cd, #341f97);
+}
+
+.player-label[style*="langlaeufer"], .player-label[style*="#00d2d3"] {
+    background: linear-gradient(135deg, #00d2d3, #01a3a4);
+}
+
+.player-label[style*="praezisionskuenstler"], .player-label[style*="#06b6d4"] {
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+}
+
+.player-label[style*="unermuedlicher"], .player-label[style*="#2ed573"] {
+    background: linear-gradient(135deg, #2ed573, #1dd1a1);
+}
+
+.player-label[style*="sprint_athlet"], .player-label[style*="#3b82f6"] {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.player-label[style*="bergbezwinger"], .player-label[style*="#8b4513"] {
+    background: linear-gradient(135deg, #8b4513, #6c2c0a);
+}
+
+.player-label[style*="konditionshybrid"], .player-label[style*="#8b5cf6"] {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.player-label[style*="agiler_stoiker"], .player-label[style*="#74b9ff"] {
+    background: linear-gradient(135deg, #74b9ff, #0984e3);
+}
+
+.player-label[style*="fokuslaeufer"], .player-label[style*="#a29bfe"] {
+    background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+}
+
+.player-label[style*="kraftmeister"], .player-label[style*="#fd79a8"] {
+    background: linear-gradient(135deg, #fd79a8, #e84393);
+}
+
+.player-label[style*="taktiker"], .player-label[style*="#6c5ce7"] {
+    background: linear-gradient(135deg, #6c5ce7, #5f3dc4);
+}
+
+.player-label[style*="widerstandskuenstler"], .player-label[style*="#059669"] {
+    background: linear-gradient(135deg, #059669, #047857);
+}
+#streak-box {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+#streak-box h2 {
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+#streak-value {
+    font-size: 2.5em;
+}
+
+/* --- NEU: Tab-Content Management --- */
+.character-tab-content {
+    display: none; /* Standardmäßig alle Tabs ausblenden */
+}
+.character-tab-content.active {
+    display: block; /* Nur den aktiven Tab anzeigen */
+}
+
+
+.stat { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 16px; }
+.stat-label { font-weight: 500; }
+.mana-bar-container { width: 100%; height: 10px; background-color: var(--mana-bar-background); border-radius: 5px; overflow: hidden; margin-top: 5px; }
+.mana-bar { height: 100%; width: 0%; background-color: var(--mana-bar-color); border-radius: 5px; transition: width 0.5s ease-in-out; }
+
+.item-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.item-grid .card.placeholder:only-child { 
+    grid-column: 1 / -1; 
+}
+#equipment-container .card { border-color: var(--primary-color); }
+
+/* Radar Chart & Stat-Liste Styling */
+#character-stats.card {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+}
+#stats-radar-chart {
+    max-width: 100%;
+    height: auto;
+}
+.stat-separator {
+    width: 96%;
+    border: none;
+    border-top: 1px solid var(--outline-color);
+    margin: 16px auto;
+}
+#stats-list-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.stat-item-text {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* --- FOKUS-STATS STYLING (ÜBERARBEITET) --- */
+#focus-summary-container {
+    display: flex;
+    flex-direction: column; /* Geändert auf Spalten-Layout */
+    gap: 8px; /* Abstand zwischen den Items */
+    margin-bottom: 24px;
+    width: 100%;
+}
+.focus-summary-item {
+    display: flex;
+    justify-content: space-between; /* Items an den Enden ausrichten */
+    align-items: center;
+    font-size: 16px;
+}
+.focus-summary-item .label {
+    opacity: 0.8;
+}
+.focus-summary-item .value {
+    font-weight: 500;
+}
+
+#focus-labels-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+    max-height: 150px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+.focus-label-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--surface-container-high);
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--outline-color);
+}
+.focus-label-item .name {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--on-surface-color);
+}
+.focus-label-item .time {
+    font-size: 14px;
+    opacity: 0.8;
+    white-space: nowrap;
+    font-weight: 400;
+}
+
+
+/* --- GEWICHTS-TRACKING STYLING --- */
+#weight-summary-container {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+    margin-bottom: 24px;
+}
+.weight-summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.weight-summary-item .label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+}
+.weight-summary-item .value {
+    font-size: 22px;
+    font-weight: 500;
+}
+#weight-chart-container {
+    width: 100%;
+    overflow-x: auto;
+    margin: 16px 0;
+}
+#weight-chart {
+    height: 220px;
+    display: block;
+}
+#weight-entries-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+    max-height: 150px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+.weight-entry-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--surface-container-high);
+    padding: 8px 12px;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+.weight-entry-item .date {
+    font-size: 14px;
+    opacity: 0.8;
+    white-space: nowrap;
+}
+.weight-entry-item .weight {
+    font-size: 16px;
+    font-weight: 500;
+}
