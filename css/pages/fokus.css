@@ -1,0 +1,89 @@
+/* --- FOKUS-SEITE STYLING (ohne Wald) --- */
+
+/* Tab-Management (ein einzelner Container bleibt) */
+.fokus-tab-content {
+    display: none;
+}
+.fokus-tab-content.active {
+    display: flex;
+    flex-direction: column;
+}
+
+#fokus-tab-fokus {
+    height: calc(100vh - 60px - 75px - 48px); /* vh - header - nav - container_padding */
+}
+
+.fokus-screen {
+    padding: 24px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    flex-grow: 1;
+    height: 100%;
+}
+
+/* === Timer-Warnung === */
+#timer-warning-box { margin: 8px 0; text-align: center; justify-content: center; }
+#timer-warning-box p { margin: 0; }
+
+.timer-mode-selector {
+    display: flex;
+    gap: 0;
+    margin-bottom: 16px;
+    background-color: var(--surface-container-high);
+    border-radius: 12px;
+    padding: 4px;
+    border: 1px solid var(--outline-color);
+}
+.mode-button {
+    flex: 1; padding: 10px; border: none; background-color: transparent;
+    color: var(--on-surface-color); font-size: 14px; font-weight: 500; border-radius: 8px; cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+.mode-button.active {
+    background-color: var(--primary-color);
+    color: var(--on-primary-color);
+    box-shadow: 0 2px 8px -2px rgba(var(--primary-color-rgb), 0.5);
+}
+
+.timer-display { font-size: 4.5rem; font-weight: 700; margin: 16px 0; color: var(--on-surface-color); }
+.motivational-quote { font-size: 16px; color: var(--on-surface-color); opacity: 0.7; min-height: 20px; font-style: italic; }
+
+.timer-options { display: flex; justify-content: center; gap: 8px; }
+.time-option {
+    padding: 8px 16px; border: 1px solid var(--outline-color); background-color: var(--surface-color);
+    color: var(--on-surface-color); border-radius: 8px; cursor: pointer; transition: all 0.2s ease;
+}
+.time-option.selected { background-color: var(--primary-color); color: var(--on-primary-color); border-color: var(--primary-color); }
+
+.start-stop-button {
+    padding: 16px 48px; font-size: 18px; border-radius: 28px; border: none; cursor: pointer;
+    background-color: var(--primary-color); color: var(--on-primary-color); font-weight: 600;
+    transition: background-color 0.2s ease, filter 0.2s ease; width: auto;
+}
+.start-stop-button:hover { filter: brightness(1.1); }
+
+/* --- Fokus-Label-Popup Styling --- */
+#focus-label-list { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+
+.label-list-item {
+    display: flex; align-items: center; justify-content: space-between;
+    background-color: var(--surface-container-high); border: 1px solid var(--outline-color);
+    border-radius: 12px; transition: background-color 0.2s, border-color 0.2s; cursor: pointer;
+    padding: 12px 10px 12px 20px;
+}
+.label-list-item:hover { border-color: var(--primary-color); }
+
+.delete-label-button {
+    background: none; border: none; color: var(--on-surface-color); opacity: 0.6; font-size: 22px;
+    padding: 0 10px; cursor: pointer; line-height: 1; flex-shrink: 0;
+}
+.delete-label-button:hover { color: var(--penalty-color); }
+
+.label-text { flex-grow: 1; text-align: left; font-size: 16px; font-weight: 500; }
+
+#add-new-label-button { margin-top: 16px; }
+#new-focus-label-popup input { width: 100%; text-align: left; padding: 12px; }

@@ -1,0 +1,557 @@
+/* Grundlegende Styles und Farbvariablen */
+:root {
+    /* Dark Theme (Standard) */
+    --background-color: #121212;
+    --background-gradient: linear-gradient(180deg, #1f1c24 0%, #121212 100%);
+    --surface-color: #1c1b1f;
+    --surface-container-high: #2a292d;
+    --primary-color: #5f8575;
+    --primary-color-rgb: 95, 133, 117;
+    --secondary-button-color: #4a4458;
+    --on-surface-color: #e6e1e5;
+    --on-primary-color: #ffffff;
+    --outline-color: #49454f;
+    --mana-bar-color: #5b97d4;
+    --mana-bar-background: #2c2f33;
+    --penalty-color: #cf6679;
+    --popup-bg-dark: #23232a;
+    /* Helleres Dunkelgrau für Popups im Dark Mode */
+    --popup-glow-dark: 0 12px 65px 18px rgba(95, 133, 117, 0.55), 0 2px 64px 0 rgba(0, 0, 0, 0.65);
+    --popup-glow-penalty-dark: 0 12px 65px 18px rgba(207, 102, 121, 0.6), 0 2px 64px 0 rgba(0, 0, 0, 0.65);
+}
+
+html[data-theme='light'] {
+    /* Light Theme Variablen */
+    --background-color: #fef7ff;
+    --background-gradient: linear-gradient(180deg, #f5efff 0%, #fef7ff 100%);
+    --surface-color: #e8e0e9;
+    --surface-container-high: #ded8e1;
+    --primary-color: #4a6559;
+    --primary-color-rgb: 74, 101, 89;
+    --secondary-button-color: #625b71;
+    --on-surface-color: #1c1b1f;
+    --on-primary-color: #ffffff;
+    --outline-color: #79747e;
+    --mana-bar-color: #0061a4;
+    --mana-bar-background: #dbe3eb;
+    --penalty-color: #b3261e;
+    --popup-bg-light: #fffafd;
+    /* Helles Popup im Light Mode */
+    --popup-glow-light: 0 12px 65px 18px rgba(74, 101, 89, 0.35), 0 2px 64px 0 rgba(0, 0, 0, 0.22);
+    --popup-glow-penalty-light: 0 12px 65px 18px rgba(179, 38, 30, 0.35), 0 2px 64px 0 rgba(0, 0, 0, 0.22);
+}
+
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: var(--background-color);
+    background-image: var(--background-gradient);
+    background-attachment: fixed;
+    color: var(--on-surface-color);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    transition: color 0.3s;
+    position: relative;
+}
+
+/* Pulsierende Hintergrund-Elemente */
+.background-pulse-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
+    display: none;
+    /* Standardmäßig ausgeblendet */
+}
+
+.background-pulse-container.visible {
+    display: block;
+}
+
+.pulse-circle {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--primary-color), transparent);
+}
+
+.pulse-1 {
+    width: 400px;
+    height: 400px;
+    top: 5%;
+    left: 10%;
+    filter: blur(30px);
+    animation: backgroundPulse1 10s ease-in-out infinite;
+    animation-delay: 0s;
+}
+
+.pulse-2 {
+    width: 350px;
+    height: 350px;
+    top: 50%;
+    right: 15%;
+    filter: blur(25px);
+    animation: backgroundPulse2 6s ease-in-out infinite;
+    animation-delay: 2s;
+}
+
+.pulse-3 {
+    width: 450px;
+    height: 450px;
+    bottom: 10%;
+    left: 5%;
+    filter: blur(35px);
+    animation: backgroundPulse3 10s ease-in-out infinite;
+    animation-delay: 4s;
+}
+
+.pulse-4 {
+    width: 300px;
+    height: 300px;
+    top: 25%;
+    right: 5%;
+    filter: blur(20px);
+    animation: backgroundPulse4 7s ease-in-out infinite;
+    animation-delay: 6s;
+}
+
+@keyframes backgroundPulse1 {
+
+    0%,
+    100% {
+        opacity: 0.032;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.130;
+        transform: scale(1.054);
+    }
+}
+
+@keyframes backgroundPulse2 {
+
+    0%,
+    100% {
+        opacity: 0.027;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.086;
+        transform: scale(1.043);
+    }
+}
+
+@keyframes backgroundPulse3 {
+
+    0%,
+    100% {
+        opacity: 0.016;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.065;
+        transform: scale(1.032);
+    }
+}
+
+@keyframes backgroundPulse4 {
+
+    0%,
+    100% {
+        opacity: 0.011;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.043;
+        transform: scale(1.022);
+    }
+}
+
+/* Nav icon subtle glow pulse */
+@keyframes navIconPulse {
+
+    0%,
+    100% {
+        text-shadow: 0 0 14px rgba(var(--primary-color-rgb), 0.80);
+    }
+
+    50% {
+        text-shadow: 0 0 14px rgba(var(--primary-color-rgb), 0.65);
+    }
+}
+
+/* Verschiedene Puls-Intensitäten für mehr Dynamik */
+.pulse-1 {
+    animation: backgroundPulse1 8s ease-in-out infinite;
+}
+
+.pulse-2 {
+    animation: backgroundPulse2 6s ease-in-out infinite;
+}
+
+.pulse-3 {
+    animation: backgroundPulse3 10s ease-in-out infinite;
+}
+
+.pulse-4 {
+    animation: backgroundPulse4 7s ease-in-out infinite;
+}
+
+/* Globales Custom Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--outline-color);
+    border-radius: 4px;
+    border: 2px solid var(--background-color);
+}
+
+html[data-theme='light'] ::-webkit-scrollbar-thumb {
+    border-color: var(--background-color);
+}
+
+.popup-content::-webkit-scrollbar-thumb {
+    border-color: var(--popup-bg-dark);
+}
+
+html[data-theme='light'] .popup-content::-webkit-scrollbar-thumb {
+    border-color: var(--popup-bg-light);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--primary-color);
+}
+
+
+/* Stile für die Notfall-Anzeige */
+#critical-error-fallback {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+#critical-error-fallback.visible {
+    display: flex;
+}
+
+.fallback-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+}
+
+.fallback-message {
+    position: relative;
+    z-index: 101;
+    background-color: var(--surface-color);
+    color: var(--on-surface-color);
+    padding: 24px;
+    border-radius: 16px;
+    border: 1px solid var(--outline-color);
+    max-width: 400px;
+    text-align: center;
+}
+
+.fallback-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.fallback-message h3 {
+    color: var(--primary-color);
+    margin-bottom: 12px;
+}
+
+.fallback-message p {
+    opacity: 0.8;
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+.fallback-actions {
+    text-align: left;
+    background-color: var(--surface-container-high);
+    padding: 16px;
+    border-radius: 12px;
+}
+
+.fallback-actions strong {
+    display: block;
+    margin-bottom: 12px;
+}
+
+.fallback-actions ol {
+    padding-left: 20px;
+}
+
+.fallback-actions li {
+    margin-bottom: 8px;
+}
+
+
+/* Header Styling */
+#app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: var(--surface-color);
+    border-bottom: 1px solid var(--outline-color);
+    z-index: 10;
+    height: 60px;
+}
+
+#header-title {
+    font-size: 22px;
+    font-weight: 500;
+    margin: 0;
+    color: var(--on-surface-color);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.icon-button {
+    background: transparent;
+    border: none;
+    color: var(--on-surface-color);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.icon-button:hover {
+    background-color: var(--surface-container-high);
+}
+
+.icon-button .icon {
+    width: 22px;
+    height: 22px;
+    line-height: 1;
+}
+
+
+#app-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 16px;
+    padding-top: 76px;
+    padding-bottom: 110px;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+#app-header,
+#bottom-nav {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+/* Seiten-Management */
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+h2 {
+    color: var(--primary-color);
+    text-align: left;
+    font-weight: 500;
+    margin-top: 24px;
+    margin-bottom: 16px;
+    font-size: 22px;
+}
+
+.content-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Navigationsleiste */
+#bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: stretch;
+    background-color: var(--surface-color);
+    height: 75px;
+    z-index: 10;
+    border-top: 1px solid var(--outline-color);
+}
+
+.nav-button {
+    background-color: transparent;
+    border: none;
+    color: var(--on-surface-color);
+    cursor: pointer;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    position: relative;
+    overflow: visible;
+    /* allow glow to extend evenly */
+}
+
+.nav-icon {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+    line-height: 1;
+    font-weight: 400;
+    margin: 0 auto;
+    padding: 0;
+}
+
+.nav-label {
+    display: none;
+}
+
+.nav-button.active .nav-icon {
+    background-color: transparent;
+    color: var(--primary-color);
+    font-weight: 700;
+    box-shadow: none;
+    text-shadow: 0 0 14px rgba(var(--primary-color-rgb), 0.8);
+    animation: navIconPulse 10s ease-in-out infinite;
+}
+
+/* Material Symbols icon font setup */
+.material-symbols-rounded {
+    font-family: 'Material Symbols Rounded';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    /* base icon size */
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+    /* variable font settings */
+    font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24;
+}
+
+/* Sizes for specific placements */
+.icon-button .material-symbols-rounded {
+    font-size: 22px;
+}
+
+.nav-icon.material-symbols-rounded {
+    font-size: 32px;
+}
+
+.handle-icon.material-symbols-rounded {
+    font-size: 24px;
+}
+
+.penalty-icon.material-symbols-rounded {
+    font-size: 16px;
+}
+
+.warning-icon .material-symbols-rounded,
+.warning-icon.material-symbols-rounded {
+    font-size: 20px;
+}
+
+.chip-icon.material-symbols-rounded {
+    font-size: 20px;
+}
+
+.widget-emoji .material-symbols-rounded,
+.planted-emoji .material-symbols-rounded,
+.item-emoji .material-symbols-rounded,
+#emoji-grid-container .emoji-selection-item .material-symbols-rounded {
+    font-size: inherit;
+}
+
+/* Icon accent helpers */
+.icon-accent {
+    color: var(--primary-color);
+    text-shadow: 0 0 12px rgba(var(--primary-color-rgb), 0.55);
+}
+
+.icon-gold {
+    color: #f5c84c;
+    text-shadow: 0 0 10px rgba(245, 200, 76, 0.45);
+}
+
+.icon-mana {
+    color: var(--mana-bar-color);
+    text-shadow: 0 0 10px rgba(91, 151, 212, 0.45);
+}
+
+.icon-attack {
+    color: #ef5350;
+    text-shadow: 0 0 8px rgba(239, 83, 80, 0.35);
+}
+
+.icon-defense {
+    color: #42a5f5;
+    text-shadow: 0 0 8px rgba(66, 165, 245, 0.35);
+}
