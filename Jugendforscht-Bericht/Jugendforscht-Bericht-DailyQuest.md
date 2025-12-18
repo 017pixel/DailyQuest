@@ -85,7 +85,7 @@ Es fehlte eine App, die:
 
 Aus diesen Überlegungen ergab sich meine zentrale Forschungsfrage:
 
-> **„Kann die konsequente Anwendung von Gamification-Prinzipien in einer Progressive Web App die Motivation und Produktivität im Alltag signifikant steigern und nachhaltige positive Verhaltensänderungen bewirken?"**
+> **„Kann die dauerhafte Nutzung von Gamification in einer Progressive Web App die Motivation und Produktivität im Alltag steigern und positive Veränderungen an einem bewirken?"**
 
 Untergeordnete Fragen:
 - Welche Gamification-Elemente sind am wirksamsten?
@@ -743,4 +743,5 @@ Ich möchte mich herzlich bedanken bei:
 **Letzte Aktualisierung:** Dezember 2025
 
 ---
+
 
