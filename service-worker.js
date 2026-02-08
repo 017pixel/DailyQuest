@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dailyquest-cache-v7';
+const CACHE_NAME = 'dailyquest-cache-v8';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -35,7 +35,6 @@ const urlsToCache = [
   '/js/dungeons/page_dungeon_main.js',
   '/js/vibe-fokus/vibe_state.js',
   '/js/vibe-fokus/page_fokus_timer.js',
-  '/js/vibe-fokus/page_fokus_forest.js',
   '/js/vibe-fokus/page_fokus_main.js',
   '/main.js',
   '/js/fallback-check.js',

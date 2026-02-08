@@ -301,7 +301,7 @@ const DQ_EXERCISES = {
                 : allExercises.filter(ex => ex.category === this.currentFreeExerciseFilter);
 
             if (filteredExercises.length === 0) {
-                DQ_UI.elements.exerciseList.innerHTML = `<div class="card"><p>Keine Übungen in dieser Kategorie gefunden. 🤷‍♂️</p></div>`;
+                DQ_UI.elements.exerciseList.innerHTML = `<div class="card"><p>Keine Übungen in dieser Kategorie gefunden. <span class="material-symbols-rounded icon-accent" style="vertical-align: middle;">search_off</span></p></div>`;
                 return;
             }
 

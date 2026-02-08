@@ -211,7 +211,8 @@ Datenschutz ist ein zentrales Merkmal von DailyQuest.
 ### Version 2.2 - "Dungeon Update"
 
 #### 🧊 **Neues Streak-Freeze Feature**
-- **Shop-Item:** Streak Freeze als neue Shop-Kategorie zwischen Rüstung und Mana
+- **Shop-Filter:** Streak Freeze wurde in die Kategorie "Weiteres" verschoben und befindet sich nun hinter dem "Mana"-Filter
+- **Item-Renaming:** "Drachenhaut-Robe" wurde zu "Drachenrobe" und "Unverwundbarkeits-Aura" zu "Götter-Aura" gekürzt
 - **Limit:** Maximal 2 Streak Freezes gleichzeitig im Inventar
 - **Verbrauch:** Bei verpasstem Tag wird 1 Freeze konsumiert und die Streak bleibt erhalten
 

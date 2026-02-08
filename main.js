@@ -371,6 +371,7 @@ async function loadInitialData() {
     const char = await initializeCharacter();
     await DQ_VIBE_STATE.loadState();
     await populateInitialDataIfNeeded(); // NEUER ZENTRALER AUFRUF
+    await migrateItemNames(); // Migration für Namensänderungen
     await checkForPenaltyAndReset();
     if (char) {
         await DQ_ACHIEVEMENTS.checkAllAchievements(char);
@@ -430,7 +431,7 @@ async function populateInitialDataIfNeeded() {
         console.log("Datenbank für 'Shop' ist leer. Fülle sie...");
         const newShopItems = [
             { id: 101, name: 'Trainings-Schwert', description: '+5 Angriff', cost: 100, type: 'weapon', bonus: { angriff: 5 } }, { id: 102, name: 'Stahl-Klinge', description: '+15 Angriff', cost: 400, type: 'weapon', bonus: { angriff: 15 } }, { id: 103, name: 'Ninja-Sterne', description: '+25 Angriff', cost: 850, type: 'weapon', bonus: { angriff: 25 } }, { id: 104, name: 'Meister-Hantel', description: 'Legendär. +40 Angriff', cost: 1500, type: 'weapon', bonus: { angriff: 40 } }, { id: 105, name: 'Magier-Stab', description: 'Episch. +60 Angriff', cost: 2500, type: 'weapon', bonus: { angriff: 60 } }, { id: 106, name: 'Himmels-Speer', description: 'Mythisch. +85 Angriff', cost: 4000, type: 'weapon', bonus: { angriff: 85 } }, { id: 107, name: 'Dämonen-Klinge', description: 'Verflucht. +120 Angriff', cost: 6500, type: 'weapon', bonus: { angriff: 120 } }, { id: 108, name: 'Götter-Hammer', description: 'Göttlich. +175 Angriff', cost: 10000, type: 'weapon', bonus: { angriff: 175 } },
-            { id: 201, name: 'Leder-Bandagen', description: '+5 Schutz', cost: 100, type: 'armor', bonus: { schutz: 5 } }, { id: 202, name: 'Kettenhemd', description: '+15 Schutz', cost: 400, type: 'armor', bonus: { schutz: 15 } }, { id: 203, name: 'Spiegel-Schild', description: '+25 Schutz', cost: 850, type: 'armor', bonus: { schutz: 25 } }, { id: 204, 'name': 'Titan-Panzer', description: 'Legendär. +40 Schutz', cost: 1500, type: 'armor', bonus: { schutz: 40 } }, { id: 205, name: 'Drachenhaut-Robe', description: 'Episch. +60 Schutz', cost: 2500, type: 'armor', bonus: { schutz: 60 } }, { id: 206, name: 'Runen-Weste', description: 'Mythisch. +85 Schutz', cost: 4000, type: 'armor', bonus: { schutz: 85 } }, { id: 207, name: 'Kristall-Harnisch', description: 'Unzerbrechlich. +120 Schutz', cost: 6500, type: 'armor', bonus: { schutz: 120 } }, { id: 208, name: 'Unverwundbarkeits-Aura', description: 'Göttlich. +175 Schutz', cost: 10000, type: 'armor', bonus: { schutz: 175 } },
+            { id: 201, name: 'Leder-Bandagen', description: '+5 Schutz', cost: 100, type: 'armor', bonus: { schutz: 5 } }, { id: 202, name: 'Kettenhemd', description: '+15 Schutz', cost: 400, type: 'armor', bonus: { schutz: 15 } }, { id: 203, name: 'Spiegel-Schild', description: '+25 Schutz', cost: 850, type: 'armor', bonus: { schutz: 25 } }, { id: 204, 'name': 'Titan-Panzer', description: 'Legendär. +40 Schutz', cost: 1500, type: 'armor', bonus: { schutz: 40 } }, { id: 205, name: 'Drachenrobe', description: 'Episch. +60 Schutz', cost: 2500, type: 'armor', bonus: { schutz: 60 } }, { id: 206, name: 'Runen-Weste', description: 'Mythisch. +85 Schutz', cost: 4000, type: 'armor', bonus: { schutz: 85 } }, { id: 207, name: 'Kristall-Harnisch', description: 'Unzerbrechlich. +120 Schutz', cost: 6500, type: 'armor', bonus: { schutz: 120 } }, { id: 208, name: 'Götter-Aura', description: 'Göttlich. +175 Schutz', cost: 10000, type: 'armor', bonus: { schutz: 175 } },
             { id: 301, name: 'Kleiner Mana-Stein', description: 'Stellt 50 Mana wieder her.', cost: 65, type: 'consumable', effect: { mana: 50 } }, { id: 302, name: 'Mittlerer Mana-Stein', description: 'Stellt 250 Mana wieder her.', cost: 280, type: 'consumable', effect: { mana: 250 } }, { id: 303, name: 'Großer Mana-Stein', description: 'Stellt 1000 Mana wieder her.', cost: 960, type: 'consumable', effect: { mana: 1000 } }
         ];
         newShopItems.forEach(item => shopStore.add(item));
@@ -444,6 +445,105 @@ async function populateInitialDataIfNeeded() {
         type: 'streak_freeze',
         iconSymbol: 'ac_unit'
     });
+
+    return new Promise(res => tx.oncomplete = res);
+}
+
+
+async function migrateItemNames() {
+    const db = DQ_DB.db;
+    if (!db) return;
+
+    const migrations = [
+        { id: 205, oldName: 'Drachenhaut-Robe', newName: 'Drachenrobe' },
+        { id: 208, oldName: 'Unverwundbarkeits-Aura', newName: 'Götter-Aura' }
+    ];
+
+    const tx = db.transaction(['shop', 'character'], 'readwrite');
+    const shopStore = tx.objectStore('shop');
+    const charStore = tx.objectStore('character');
+
+    const emojiRegex = /[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]/gu;
+    const stripEmojis = (value) => {
+        if (typeof value !== 'string') return value;
+        return value.replace(emojiRegex, '').replace(/\s{2,}/g, ' ').trim();
+    };
+
+    // 1. Shop-Items aktualisieren
+    shopStore.getAll().onsuccess = (e) => {
+        const items = e.target.result;
+        if (items) {
+            items.forEach(item => {
+                let changed = false;
+                
+                // Bekannte Namensänderungen
+                const migration = migrations.find(m => m.id === item.id);
+                if (migration && item.name === migration.oldName) {
+                    item.name = migration.newName;
+                    changed = true;
+                }
+
+                // Emojis aus Namen entfernen
+                const cleanedName = stripEmojis(item.name);
+                if (cleanedName !== item.name) {
+                    item.name = cleanedName;
+                    changed = true;
+                }
+
+                if (changed) {
+                    shopStore.put(item);
+                    console.log(`Shop-Item ${item.id} aktualisiert/migriert.`);
+                }
+            });
+        }
+    };
+
+    // 2. Charakter-Inventar und Ausrüstung aktualisieren
+    charStore.get(1).onsuccess = (e) => {
+        const char = e.target.result;
+        if (!char) return;
+
+        let changed = false;
+
+        const cleanItem = (item) => {
+            let itemChanged = false;
+            // Bekannte Namensänderungen
+            const migration = migrations.find(m => m.id === item.id);
+            if (migration && item.name === migration.oldName) {
+                item.name = migration.newName;
+                itemChanged = true;
+            }
+            // Emojis entfernen
+            const cleanedName = stripEmojis(item.name);
+            if (cleanedName !== item.name) {
+                item.name = cleanedName;
+                itemChanged = true;
+            }
+            return itemChanged;
+        };
+
+        // Inventar prüfen
+        if (char.inventory && Array.isArray(char.inventory)) {
+            char.inventory.forEach(item => {
+                if (cleanItem(item)) changed = true;
+            });
+        }
+
+        // Ausrüstung prüfen
+        if (char.equipment) {
+            if (char.equipment.armor && cleanItem(char.equipment.armor)) changed = true;
+            if (char.equipment.weapons && Array.isArray(char.equipment.weapons)) {
+                char.equipment.weapons.forEach(weapon => {
+                    if (cleanItem(weapon)) changed = true;
+                });
+            }
+        }
+
+        if (changed) {
+            charStore.put(char);
+            console.log('Charakter-Items (Inventar/Ausrüstung) von Emojis befreit/migriert.');
+        }
+    };
 
     return new Promise(res => tx.oncomplete = res);
 }
