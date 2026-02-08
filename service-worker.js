@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dailyquest-cache-v6'; // --- Cache-Version für Dungeon-Update erhöht ---
+const CACHE_NAME = 'dailyquest-cache-v7';
 const urlsToCache = [
   '/',
   '/index.html',

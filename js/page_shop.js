@@ -64,7 +64,8 @@ const DQ_SHOP = {
                     const card = document.createElement('div');
                     card.className = 'card';
                     const canAfford = character.gold >= item.cost;
-                    card.innerHTML = `<h2>${item.name}</h2><p>${item.description}</p><p class=\"item-price\"><span class=\"label\">Kosten:</span><span class=\"material-symbols-rounded icon-gold\">paid</span><span>${item.cost}</span></p><button class=\"card-button\" data-item-id=\"${item.id}\" ${canAfford ? '' : 'disabled'}>Kaufen</button>`;
+                    const icon = item.iconSymbol ? `<span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 6px;">${item.iconSymbol}</span>` : '';
+                    card.innerHTML = `<h2>${icon}${item.name}</h2><p>${item.description}</p><p class=\"item-price\"><span class=\"label\">Kosten:</span><span class=\"material-symbols-rounded icon-gold\">paid</span><span>${item.cost}</span></p><button class=\"card-button\" data-item-id=\"${item.id}\" ${canAfford ? '' : 'disabled'}>Kaufen</button>`;
                     DQ_UI.elements.shopItemsEquipment.appendChild(card);
                 });
             };
@@ -101,6 +102,13 @@ const DQ_SHOP = {
                 const consumableCount = char.inventory.filter(invItem => invItem.type === 'consumable').length;
                 if (consumableCount >= 5) {
                     DQ_UI.showCustomPopup("Dein Mana-Beutel ist voll! (max. 5)");
+                    return;
+                }
+            }
+            if (item.type === 'streak_freeze') {
+                const freezeCount = char.inventory.filter(invItem => invItem.type === 'streak_freeze').length;
+                if (freezeCount >= 2) {
+                    DQ_UI.showCustomPopup("Du kannst maximal 2 Streak Freezes besitzen!");
                     return;
                 }
             }

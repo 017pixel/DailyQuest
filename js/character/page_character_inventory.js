@@ -69,14 +69,18 @@ const DQ_INVENTORY = {
             char.inventory.forEach((item, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                const buttonText = item.type === 'consumable' ? 'Benutzen' : 'Ausrüsten';
-                const buttonAction = item.type === 'consumable' ? 'use' : 'equip';
+                const icon = item.iconSymbol ? `<span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 6px;">${item.iconSymbol}</span>` : '';
                 card.innerHTML = `
-                    <h3>${item.name}</h3>
+                    <h3>${icon}${item.name}</h3>
                     <p>${item.description}</p>
                     <div class="card-actions-wrapper">
                         <button class="card-button secondary-button card-button-no-transform" data-action="sell" data-inventory-index="${index}">Verkaufen</button>
-                        <button class="card-button secondary-button card-button-no-transform" data-inventory-index="${index}" data-action="${buttonAction}">${buttonText}</button>
+                        ${item.type === 'consumable'
+                        ? `<button class="card-button secondary-button card-button-no-transform" data-inventory-index="${index}" data-action="use">Benutzen</button>`
+                        : item.type === 'streak_freeze'
+                            ? `<button class="card-button secondary-button card-button-no-transform" disabled>Aktiv</button>`
+                            : `<button class="card-button secondary-button card-button-no-transform" data-inventory-index="${index}" data-action="equip">Ausrüsten</button>`
+                    }
                     </div>`;
                 container.appendChild(card);
             });

@@ -204,6 +204,7 @@
                         <button class="filter-button active" data-filter="all" data-lang-key="filter_all">Alle</button>
                         <button class="filter-button" data-filter="weapon" data-lang-key="filter_weapon">Waffen</button>
                         <button class="filter-button" data-filter="armor" data-lang-key="filter_armor">Rüstung</button>
+                        <button class="filter-button" data-filter="streak_freeze" data-lang-key="filter_streak_freeze">Streak Freeze</button>
                         <button class="filter-button" data-filter="consumable" data-lang-key="filter_mana">Mana</button>
                     </div>
                     <div id="shop-items-equipment" class="content-container"></div>
@@ -346,10 +347,13 @@
                     <input type="text" id="character-name-input" placeholder="Unknown Hunter">
                 </div>
                 <div class="setting-item">
-                    <label for="language-select" data-lang-key="language">Sprache</label>
+                    <label for="language-select">
+                        <span data-lang-key="language">Sprache</span>
+                        <span class="beta-tag">BETA</span>
+                    </label>
                     <select id="language-select">
                         <option value="de">Deutsch</option>
-                        <option value="en">English</option>
+                        <option value="en">English (Beta)</option>
                     </select>
                 </div>
                 <div class="setting-item">
@@ -428,7 +432,7 @@
             <div class="settings-section">
                 <h4 class="settings-subtitle">Tutorial</h4>
                 <div class="data-actions">
-                    <button id="reset-tutorial-button" class="card-button secondary-button">
+                    <button id="reset-tutorial-button" class="card-button secondary-button full-width-button">
                         Intro und Tutorial neu starten
                     </button>
                 </div>

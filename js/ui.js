@@ -195,20 +195,42 @@ const DQ_UI = {
     handlePopupTouchMove(e) {
         const topPopup = this.popupStack[this.popupStack.length - 1];
         if (!topPopup) return;
+
         const deltaY = e.touches[0].clientY - this.touchStartY;
-        if (deltaY > 0) {
+        const content = topPopup.querySelector('.popup-content');
+
+        // Nur mitziehen, wenn wir nach unten wischen (deltaY > 0)
+        // UND entweder:
+        // a) der Content ganz oben ist (scrollTop <= 0)
+        // b) oder wir direkt am Handle ziehen (nicht im scrollbaren Content)
+        const isAtTop = !content || content.scrollTop <= 0;
+        const isDraggingHandle = e.target.classList.contains('popup-drag-handle');
+
+        if (deltaY > 0 && (isAtTop || isDraggingHandle)) {
             topPopup.style.transition = 'none';
             topPopup.style.transform = `translateY(${deltaY}px)`;
+        } else {
+            // Wenn wir im Content scrollen, darf sich das Popup nicht mitbewegen
+            topPopup.style.transform = '';
         }
     },
 
     handlePopupTouchEnd(e) {
         const topPopup = this.popupStack[this.popupStack.length - 1];
         if (!topPopup) return;
+
         const deltaY = e.changedTouches[0].clientY - this.touchStartY;
+        const content = topPopup.querySelector('.popup-content');
+        const isAtTop = !content || content.scrollTop <= 0;
+        const isDraggingHandle = e.target.classList.contains('popup-drag-handle');
+
         topPopup.style.transition = '';
         topPopup.style.transform = '';
-        if (deltaY > 100) this.hideTopPopup();
+
+        // Nur schließen, wenn der Wisch weit genug war UND wir am Top waren
+        if (deltaY > 100 && (isAtTop || isDraggingHandle)) {
+            this.hideTopPopup();
+        }
     },
 
     applyTranslations() {

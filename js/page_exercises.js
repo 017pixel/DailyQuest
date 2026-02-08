@@ -164,6 +164,20 @@ const DQ_EXERCISES = {
         }
     },
 
+    formatTargetDisplay(type, value) {
+        if (type === 'reps') return `${value} Reps`;
+        if (type === 'time') {
+            if (value >= 60) {
+                const minutes = Math.floor(value / 60);
+                const seconds = value % 60;
+                if (seconds === 0) return `${minutes} min`;
+                return `${minutes}m ${seconds}s`;
+            }
+            return `${value} Sek.`;
+        }
+        return '';
+    },
+
     renderQuests() {
         const db = DQ_DB.db;
         if (!db) return;
@@ -193,9 +207,7 @@ const DQ_EXERCISES = {
                 card.className = `card exercise-card ${quest.completed ? 'completed' : ''}`;
                 card.dataset.questId = quest.questId;
 
-                let targetDisplay = '';
-                if(quest.type === 'reps') targetDisplay = `${quest.target} Reps`;
-                else if(quest.type === 'time') targetDisplay = `${quest.target} Sek.`;
+                let targetDisplay = this.formatTargetDisplay(quest.type, quest.target);
 
                 const translatedName = (DQ_DATA.translations[lang].exercise_names[quest.nameKey] || quest.nameKey);
                 
@@ -298,9 +310,7 @@ const DQ_EXERCISES = {
                 if (exercise.type !== 'check' && exercise.type !== 'link' && exercise.type !== 'focus') {
                     targetValue = Math.ceil(exercise.baseValue + (exercise.baseValue * 0.4 * (difficulty - 1)));
                 }
-                let targetDisplay = '';
-                if (exercise.type === 'reps') targetDisplay = `${targetValue} Reps`;
-                else if (exercise.type === 'time') targetDisplay = `${targetValue} Sek.`;
+                let targetDisplay = this.formatTargetDisplay(exercise.type, targetValue);
 
                 const translatedName = (DQ_DATA.translations[lang].exercise_names[exercise.nameKey] || exercise.nameKey);
                 
@@ -381,9 +391,7 @@ const DQ_EXERCISES = {
             if (ex.type !== 'check' && ex.type !== 'link' && ex.type !== 'focus') {
                 targetValue = Math.ceil(ex.baseValue + (ex.baseValue * 0.4 * (difficulty - 1)));
             }
-            let targetDisplay = '';
-            if (ex.type === 'reps') targetDisplay = `${targetValue} Reps`;
-            else if (ex.type === 'time') targetDisplay = `${targetValue} Sek.`;
+            let targetDisplay = this.formatTargetDisplay(ex.type, targetValue);
 
             const scaledMana = Math.ceil(ex.manaReward * (1 + 0.2 * (difficulty - 1)));
             const scaledGold = Math.ceil(ex.goldReward * (1 + 0.15 * (difficulty - 1)));
@@ -416,9 +424,7 @@ const DQ_EXERCISES = {
             card.className = `card exercise-card ${quest.completed ? 'completed' : ''}`;
             card.dataset.questId = quest.questId;
 
-            let targetDisplay = '';
-            if(quest.type === 'reps') targetDisplay = `${quest.target} Reps`;
-            else if(quest.type === 'time') targetDisplay = `${quest.target} Sek.`;
+            let targetDisplay = this.formatTargetDisplay(quest.type, quest.target);
 
             const translatedName = (DQ_DATA.translations[lang].exercise_names[quest.nameKey] || quest.nameKey);
             

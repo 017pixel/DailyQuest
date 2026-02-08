@@ -33,6 +33,7 @@ Diese Progressive Web App (PWA) ist mehr als nur ein To-Do-Listen- oder Workout-
 - **🏆 Level-System:** Jede abgeschlossene Aufgabe gibt dir Mana (Erfahrungspunkte). Sammle genug und steige im Level auf, um deine Stärke zu beweisen.
 - **🔥 Tägliche Quests:** Erhalte jeden Tag automatisch generierte Aufgaben, die perfekt auf deine persönlichen Ziele (z.B. Muskelaufbau, Abnehmen) und deine eingestellte Schwierigkeit zugeschnitten sind.
 - **💀 Strafsystem:** Disziplin ist alles! Wenn du deine täglichen Quests nicht erledigst, drohen Konsequenzen wie Level- und Stat-Verluste. Ein mächtiger Anreiz, um am Ball zu bleiben.
+- **🧊 Streak Freezes:** Kaufe im Shop bis zu **2** Streak Freezes (je **3000 Gold**), die deine Streak **einmalig** retten, wenn du einen Tag verpasst.
 - **📜 Extra-Quests:** Stelle dich einmal pro Tag einer zufälligen, besonders schweren Herausforderung mit hohem Risiko, aber auch extrem hoher Belohnung.
 - **🛌 Intelligente Restdays:** Die App erkennt automatisch deine konfigurierten Ruhetage und zeigt dir entspannende Aufgaben mit einer motivierenden Erholungs-Box.
 
@@ -47,7 +48,7 @@ Diese Progressive Web App (PWA) ist mehr als nur ein To-Do-Listen- oder Workout-
 - **🏋️‍♀️ 50+ Übungen:** Komplett überarbeitet für Home-Gym Kompatibilität
 - **📚 Kategorisierte Übungen:**
   - **Kraft:** Bicep Curls, Deadlifts, Pistol Squats, Pike Push-ups, Diamond Push-ups, Single Leg Glute Bridge
-  - **Ausdauer:** Burpees, Dumbbell Swings, Jump Squats, Leg Raises, Russian Twists, Mountain Climbers
+  - **Ausdauer:** Burpees, Dumbbell Swings, Jump Squats, Leg Raises, Russian Twists, Mountain Climbers, Hula Hoop, Treppen Rennen, Joggen, Rennen
   - **Fettverbrennung:** Mountain Climbers, Jump Squats, Interval Sprints, Shadowboxing
   - **Körpergewicht:** Plank, Situps, Push-ups, Lunges, Hollow Body Hold, Reverse Flys
   - **Lernen:** Fokus-Timer für Sprachen, Mathematik, Wissenschaft
@@ -55,7 +56,7 @@ Diese Progressive Web App (PWA) ist mehr als nur ein To-Do-Listen- oder Workout-
   - **Allgemeines Workout:** Komplette Trainingseinheiten mit hohen Belohnungen
 - **🏠 Home-Gym Optimiert:** Alle Übungen funktionieren mit Hanteln, Langhantel oder Körpergewicht
 - **❓ Detaillierte Anleitungen:** Jede Übung hat eine ausführliche Beschreibung mit korrekter Ausführung
-- **🌍 Mehrsprachig:** Vollständige Übersetzungen auf Deutsch und Englisch
+- **🌍 Mehrsprachig:** Deutsch vollständig, Englisch im Beta-Status
 
 ### Fokus & mentale Stärke
 - **🌳 Fokus-Modul:** Ein spezieller Bereich, um deine Konzentration zu trainieren.
@@ -110,6 +111,7 @@ Diese Progressive Web App (PWA) ist mehr als nur ein To-Do-Listen- oder Workout-
 5.  **Stärker werden (🛒 Shop):**
     - Gib dein hart verdientes Gold für bessere Waffen und Rüstungen aus.
     - Kaufe Mana-Steine als Verbrauchsgegenstände für schnelle Mana-Regeneration.
+    - **Neu:** Kaufe Streak Freezes, um deine Streak bei einem verpassten Tag zu retten.
 
 6.  **Konzentration trainieren (🌳 Fokus):**
     - Wähle zwischen Timer und Stoppuhr.
@@ -184,7 +186,7 @@ Datenschutz ist ein zentrales Merkmal von DailyQuest.
 
 ## 📋 Changelog
 
-### Version 2.2 - "Dungeon Update" (Aktuell)
+### Version 2.3 - "Streak Freeze & Balance Update" (Aktuell)
 
 #### 💉 **Neues Dungeon-Feature**
 - **Zufällige Dungeons:** Mit 5% Wahrscheinlichkeit beim App-Start erscheint ein Dungeon-Chip
@@ -205,6 +207,18 @@ Datenschutz ist ein zentrales Merkmal von DailyQuest.
 - **Service Worker v6:** Aktualisierter Cache mit allen Dungeon-Assets
 - **Spawn-Rate Fix:** Dungeons erscheinen jetzt korrekt nur mit 5% Wahrscheinlichkeit pro App-Start
 - **Combat Cache:** Optimierte Charakter-Stats für Kampfberechnungen
+
+### Version 2.2 - "Dungeon Update"
+
+#### 🧊 **Neues Streak-Freeze Feature**
+- **Shop-Item:** Streak Freeze als neue Shop-Kategorie zwischen Rüstung und Mana
+- **Limit:** Maximal 2 Streak Freezes gleichzeitig im Inventar
+- **Verbrauch:** Bei verpasstem Tag wird 1 Freeze konsumiert und die Streak bleibt erhalten
+
+#### ⚖️ **Balancing & UX**
+- **Durchhaltevermögen-Balancing:** Durchhaltevermögen-Gewinne wurden halbiert (Quests + Fokus), damit der Stat langsamer wächst
+- **Zeit-Anzeige:** Zeit-Ziele werden als Minuten statt Sekunden dargestellt (z.B. 2 min statt 120 Sek.)
+- **Mobile Fix:** Einstellungs-Popup schließt beim Scrollen im Content nicht mehr ungewollt
 
 ### Version 2.1 - "Home-Gym Revolution & Enhanced Experience"
 

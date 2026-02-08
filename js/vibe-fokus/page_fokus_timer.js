@@ -220,7 +220,7 @@ const DQ_FOKUS_TIMER = {
 
         const goldEarned = minutes * 4;
         const manaEarned = minutes * 2;
-        const enduranceGained = Math.floor(minutes / 20);
+        const enduranceGained = Math.floor(minutes / 40);
 
         const tx = DQ_DB.db.transaction('character', 'readwrite');
         const store = tx.objectStore('character');

@@ -176,6 +176,20 @@ html[data-theme='light'] .popup.penalty.show {
 
 .setting-item label {
     font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.beta-tag {
+    background-color: var(--primary-color);
+    color: var(--on-primary-color);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    opacity: 0.8;
 }
 
 .setting-item select, .setting-item input[type="text"], .setting-item input[type="number"] {
@@ -298,6 +312,9 @@ input:checked + .slider:before {
     text-transform: none;
     letter-spacing: normal;
     font-size: 15px;
+}
+.data-actions .card-button.full-width-button {
+    width: 100%;
 }
 
 /* --- Styling für Such-Popup-Layout --- */

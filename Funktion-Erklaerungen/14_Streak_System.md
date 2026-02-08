@@ -3,12 +3,24 @@
 ## Übersicht
 Das Streak System trackt die Anzahl aufeinanderfolgender Tage, an denen alle Daily Quests abgeschlossen wurden. Der Streak ist ein wichtiger Motivations-Faktor und schließt direkt an das Achievements-System an.
 
+## Streak Freeze (Feature)
+Ein **Streak Freeze** ist ein Shop-Item, das deine Streak **einmalig** vor dem Verlust schützt, wenn du einen Tag deine Daily Quests nicht vollständig abschließt. Pro Account können **maximal 2** Streak Freezes gleichzeitig im Inventar gehalten werden.
+
+### Regeln
+- Kaufbar im **Shop** in der Kategorie `streak_freeze` (UI-Filter zwischen Rüstung und Mana)
+- Kosten: **3000 Gold**
+- Speicherung: als Item in `character.inventory` (IndexedDB Store `character`)
+- Verbrauch: Bei verpasstem Tag wird **genau 1** Freeze aus dem Inventar entfernt
+- UI: Meldung „Streak gerettet“ statt Penalty-Text; Icon als Material Symbol (`ac_unit`), keine Emojis
+
 ## Relevante Dateien und Ordner
 
 ### Hauptdateien
 - `js/main.js` - Streak-Berechnung und Penalty
 - `js/database.js` - IndexedDB Zugriffe
 - `js/page_exercises.js` - Quest-Completion Events
+- `js/page_shop.js` - Kauf-Logik inkl. Limit (max. 2)
+- `js/character/page_character_inventory.js` - Inventar-Anzeige
 
 ## Wichtige Punkte
 
@@ -33,8 +45,8 @@ function getStreakData() {
   return { streak: 0, lastDate: null };
 }
 
-function saveStreakData(data) {
-  localStorage.setItem(STREAK_KEY, JSON.stringify(data));
+function setStreakData(streak, lastDate) {
+  localStorage.setItem(STREAK_KEY, JSON.stringify({ streak, lastDate }));
 }
 ```
 
@@ -99,22 +111,33 @@ async function checkForPenaltyAndReset() {
   const allCompleted = yesterdaysQuests.length > 0 &&
                       yesterdaysQuests.every(quest => quest.completed);
 
-  if (!allCompleted && streakData.lastDate === yesterday) {
-    // PENALTY: Streak zurücksetzen
-    streakData.streak = 0;
-    streakData.lastDate = today; // Verhindert erneuten Check
-    saveStreakData(streakData);
-
-    // Level -1 Penalty (wenn Level > 1)
+  if (!allCompleted) {
     const character = await DQ_DB.getSingle('character', 1);
-    if (character.level > 1) {
-      character.level -= 1;
-      character.manaToNextLevel = calculateManaThreshold(character.level);
-      await DQ_DB.putSingle('character', character);
-    }
+    const freezeIndex = character.inventory.findIndex(i => i.type === 'streak_freeze');
 
-    // UI Notification
-    showPenaltyNotification('streak_reset');
+    if (freezeIndex !== -1) {
+      // STREAK FREEZE: rette Streak, verbrauche 1 Freeze, keine Penalty
+      character.inventory.splice(freezeIndex, 1);
+      await DQ_DB.putSingle('character', character);
+
+      if (streakData.streak > 0) {
+        setStreakData(streakData.streak, yesterday);
+      }
+
+      showInfo('Streak gerettet');
+    } else if (streakData.lastDate === yesterday) {
+      // PENALTY: Streak zurücksetzen
+      setStreakData(0, null);
+
+      // Level -1 Penalty (wenn Level > 1)
+      if (character.level > 1) {
+        character.level -= 1;
+        character.manaToNextLevel = calculateManaThreshold(character.level);
+        await DQ_DB.putSingle('character', character);
+      }
+
+      showPenaltyNotification('streak_reset');
+    }
   }
 }
 ```
@@ -198,6 +221,11 @@ Value: { streak: number, lastDate: string }
   "streakData": {
     "streak": 5,
     "lastDate": "2026-02-07"
+  },
+  "character": {
+    "inventory": [
+      { "type": "streak_freeze", "cost": 3000 }
+    ]
   }
 }
 ```
@@ -299,7 +327,9 @@ function renderStreakDisplay() { ... }
 - [ ] Streak startet bei 0
 - [ ] Streak incrementiert bei Quest-Completion
 - [ ] Streak bleibt bei gestern completion wenn heute noch nicht
-- [ ] Streak reset bei unvollständigen Quests
+- [ ] Streak reset bei unvollständigen Quests ohne Freeze
+- [ ] Streak bleibt erhalten bei unvollständigen Quests mit Freeze
+- [ ] Freeze wird dabei aus dem Inventar entfernt
 - [ ] Level -1 bei Penalty (wenn Level > 1)
 - [ ] Achievement tier incrementiert
 - [ ] Notification erscheint bei Streak-Increase

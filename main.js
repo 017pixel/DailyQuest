@@ -38,13 +38,16 @@ const DQ_CONFIG = {
 
         const lang = this.userSettings.language || 'de';
         const difficulty = this.userSettings.difficulty || 3;
+        const durchhalteMultiplier = 0.5;
 
         const mainStatThresholds = { 1: 5.5, 2: 5, 3: 4.5, 4: 4, 5: 3.5 };
         const willpowerThresholds = { 1: 4.5, 2: 4, 3: 3.5, 4: 3, 5: 2.5 };
 
         if (exercise.directStatGain) {
             for (const stat in exercise.directStatGain) {
-                char.stats[stat] += exercise.directStatGain[stat];
+                const rawGain = exercise.directStatGain[stat];
+                const gain = stat === 'durchhaltevermoegen' ? rawGain * durchhalteMultiplier : rawGain;
+                char.stats[stat] += gain;
                 const title = DQ_DATA.translations[lang].stat_increase_title;
                 let text = DQ_DATA.translations[lang].stat_increase_text.replace('{statName}', stat);
                 setTimeout(() => DQ_UI.showCustomPopup(`<h3>${title}</h3><p>${text}</p>`), 800);
@@ -57,7 +60,9 @@ const DQ_CONFIG = {
             }
 
             for (const stat in exercise.statPoints) {
-                char.statProgress[stat] = (char.statProgress[stat] || 0) + exercise.statPoints[stat];
+                const rawPoints = exercise.statPoints[stat];
+                const points = stat === 'durchhaltevermoegen' ? rawPoints * durchhalteMultiplier : rawPoints;
+                char.statProgress[stat] = (char.statProgress[stat] || 0) + points;
 
                 const isWillpower = (stat === 'willenskraft');
                 const threshold = isWillpower ? willpowerThresholds[difficulty] : mainStatThresholds[difficulty];
@@ -431,6 +436,15 @@ async function populateInitialDataIfNeeded() {
         newShopItems.forEach(item => shopStore.add(item));
     }
 
+    shopStore.put({
+        id: 401,
+        name: 'Streak Freeze',
+        description: 'Rettet deine Streak einmal, wenn du einen Tag verpasst.',
+        cost: 3000,
+        type: 'streak_freeze',
+        iconSymbol: 'ac_unit'
+    });
+
     return new Promise(res => tx.oncomplete = res);
 }
 
@@ -443,6 +457,10 @@ function updateDifficultySliderStyle(slider) {
 }
 
 function addSettingsListeners(elements) {
+    elements.settingsButton.addEventListener('click', () => {
+        updateSettingsUI();
+    });
+
     elements.languageSelect.addEventListener('change', (e) => saveSetting('language', e.target.value));
     elements.themeToggle.addEventListener('change', (e) => saveSetting('theme', e.target.checked ? 'light' : 'dark'));
     elements.characterNameInput.addEventListener('change', (e) => saveSetting('name', e.target.value));
@@ -790,198 +808,26 @@ async function checkForPenaltyAndReset() {
         const yesterdaysQuests = await new Promise(res => questStore.index('date').getAll(yesterdayStr).onsuccess = e => res(e.target.result));
 
         if (yesterdaysQuests.length > 0 && !yesterdaysQuests.every(q => q.completed)) {
-            DQ_CONFIG.setStreakData(0, null);
-            if (char.level > 1) {
-                char.level -= 1;
-                char.manaToNextLevel = getManaForLevel(char.level);
+            const freezeIndex = Array.isArray(char.inventory)
+                ? char.inventory.findIndex(invItem => invItem && invItem.type === 'streak_freeze')
+                : -1;
+
+            if (freezeIndex !== -1) {
+                char.inventory.splice(freezeIndex, 1);
                 charModified = true;
-                penaltyReason = 'daily';
-            }
-        }
-
-        const extraQuest = await new Promise(res => extraQuestStore.get(1).onsuccess = e => res(e.target.result));
-        if (extraQuest && new Date(extraQuest.deadline) < new Date() && !extraQuest.completed) {
-            if (char.level > 1) char.level -= 1;
-            char.manaToNextLevel = getManaForLevel(char.level);
-            char.gold = Math.max(0, char.gold - 150);
-            Object.keys(char.stats).forEach(key => char.stats[key] = Math.max(1, char.stats[key] - (key === 'willenskraft' ? 3 : 1)));
-            charModified = true;
-            penaltyReason = 'extra';
-            await new Promise(res => extraQuestStore.delete(1).onsuccess = res);
-        }
-
-        if (charModified) {
-            await new Promise(res => charStore.put(char).onsuccess = res);
-        }
-
-        tx.oncomplete = async () => {
-            if (penaltyReason) {
-                const lang = DQ_CONFIG.userSettings.language || 'de';
-                if (penaltyReason === 'daily') {
-                    DQ_UI.showCustomPopup(`<h3>${DQ_DATA.translations[lang].penalty_title}</h3><p>${DQ_DATA.translations[lang].penalty_text}</p>`, 'penalty');
-                } else if (penaltyReason === 'extra') {
-                    DQ_UI.showCustomPopup(`<h3>${DQ_DATA.translations[lang].extra_penalty_title}</h3><p>${DQ_DATA.translations[lang].extra_penalty_text}</p>`, 'penalty');
+                const { streak } = DQ_CONFIG.getStreakData();
+                if (typeof streak === 'number' && streak > 0) {
+                    DQ_CONFIG.setStreakData(streak, yesterdayStr);
                 }
-            }
 
-            await generateDailyQuestsIfNeeded(true);
-            DQ_CHARACTER_MAIN.renderPage();
-            DQ_EXTRA.renderExtraQuestPage();
-            DQ_CONFIG.updateStreakDisplay();
-            resolve();
-        };
-    });
-}
-
-async function exportData() {
-    if (!DQ_DB.db) return;
-    try {
-        const dataToExport = {};
-        const storeNames = Array.from(DQ_DB.db.objectStoreNames);
-        const tx = DQ_DB.db.transaction(storeNames, 'readonly');
-        const promises = storeNames.map(storeName => new Promise((resolve, reject) => {
-            const request = tx.objectStore(storeName).getAll();
-            request.onsuccess = () => resolve({ name: storeName, data: request.result });
-            request.onerror = (event) => reject(new Error(`Error exporting ${storeName}: ${event.target.error}`));
-        }));
-        const results = await Promise.all(promises);
-        results.forEach(result => dataToExport[result.name] = result.data);
-        dataToExport.streakData = DQ_CONFIG.getStreakData();
-
-        const jsonString = JSON.stringify(dataToExport, null, 2);
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `dailyquest-backup-${new Date().toISOString().slice(0, 10)}.json`;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }, 100);
-        DQ_UI.showCustomPopup("Daten erfolgreich exportiert! 💾");
-    } catch (error) {
-        console.error("Export failed:", error);
-        DQ_UI.showCustomPopup(`Datenexport fehlgeschlagen: ${error.message}`, 'penalty');
-    }
-}
-
-function importData(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    if (!confirm("WARNUNG: Dies wird alle Ihre aktuellen Daten überschreiben und die Seite neu laden. Sind Sie sicher?")) {
-        DQ_UI.elements.importDataInput.value = '';
-        return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-        try {
-            const data = JSON.parse(e.target.result);
-            if (!data.character || !data.settings) throw new Error("Ungültige Backup-Datei.");
-
-            if (data.streakData) {
-                let { streak, lastDate } = data.streakData;
-                if (streak > 0 && !lastDate) lastDate = DQ_CONFIG.getYesterdayString();
-                DQ_CONFIG.setStreakData(streak, lastDate);
+                penaltyReason = 'freeze';
             } else {
-                localStorage.removeItem('streakData');
-            }
-
-            const storeNames = Array.from(DQ_DB.db.objectStoreNames);
-            const tx = DQ_DB.db.transaction(storeNames, 'readwrite');
-            tx.oncomplete = () => {
-                alert("Daten erfolgreich importiert! Die App wird jetzt neu geladen.");
-                location.reload();
-            };
-            tx.onerror = (event) => { throw new Error("Fehler beim Schreiben in die Datenbank: " + event.target.error); };
-
-            for (const storeName of storeNames) {
-                await new Promise((resolve, reject) => {
-                    const req = tx.objectStore(storeName).clear();
-                    req.onsuccess = resolve;
-                    req.onerror = () => reject(req.error);
-                });
-                if (data[storeName]) {
-                    for (const item of data[storeName]) {
-                        await new Promise((resolve, reject) => {
-                            const req = tx.objectStore(storeName).put(item);
-                            req.onsuccess = resolve;
-                            req.onerror = () => reject(req.error);
-                        });
-                    }
+                DQ_CONFIG.setStreakData(0, null);
+                if (char.level > 1) {
+                    char.level -= 1;
+                    char.manaToNextLevel = getManaForLevel(char.level);
+                    charModified = true;
                 }
-            }
-        } catch (error) {
-            console.error("Import failed:", error);
-            alert("Import fehlgeschlagen: " + error.message);
-        } finally {
-            DQ_UI.elements.importDataInput.value = '';
-        }
-    };
-    reader.readAsText(file);
-}
-
-async function checkForPenaltyAndReset() {
-    const todayStr = DQ_CONFIG.getTodayString();
-    const lastCheck = localStorage.getItem('lastPenaltyCheck');
-    if (lastCheck === todayStr) {
-        console.log("Tägliche Prüfung für heute bereits abgeschlossen. Überspringe...");
-        await generateDailyQuestsIfNeeded();
-        return;
-    }
-    localStorage.setItem('lastPenaltyCheck', todayStr);
-    console.log("Starte tägliche Prüfung für Strafen und Resets...");
-
-    return new Promise(async (resolve) => {
-        const tx = DQ_DB.db.transaction(['extra_quest', 'character', 'daily_quests'], 'readwrite');
-
-        tx.onerror = () => {
-            console.error("Fehler bei der täglichen Prüfungs-Transaktion.");
-            resolve();
-        };
-
-        const extraQuestStore = tx.objectStore('extra_quest');
-        const charStore = tx.objectStore('character');
-        const questStore = tx.objectStore('daily_quests');
-        let char = await new Promise(res => charStore.get(1).onsuccess = e => res(e.target.result));
-
-        const twoDaysAgo = new Date();
-        twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-        const oldDateStr = twoDaysAgo.toISOString().split('T')[0];
-        const keyRange = IDBKeyRange.upperBound(oldDateStr);
-        questStore.index('date').openKeyCursor(keyRange).onsuccess = event => {
-            const cursor = event.target.result;
-            if (cursor) {
-                questStore.delete(cursor.primaryKey);
-                cursor.continue();
-            }
-        };
-
-
-        if (!char) {
-            tx.oncomplete = async () => {
-                await generateDailyQuestsIfNeeded();
-                resolve();
-            }
-            return;
-        }
-
-        const getManaForLevel = (level) => Math.floor(100 * Math.pow(1.5, level - 1));
-        let charModified = false;
-        let penaltyReason = null;
-
-        const yesterdayStr = DQ_CONFIG.getYesterdayString();
-        const yesterdaysQuests = await new Promise(res => questStore.index('date').getAll(yesterdayStr).onsuccess = e => res(e.target.result));
-
-        if (yesterdaysQuests.length > 0 && !yesterdaysQuests.every(q => q.completed)) {
-            DQ_CONFIG.setStreakData(0, null);
-            if (char.level > 1) {
-                char.level -= 1;
-                char.manaToNextLevel = getManaForLevel(char.level);
-                charModified = true;
                 penaltyReason = 'daily';
             }
         }
@@ -1006,6 +852,10 @@ async function checkForPenaltyAndReset() {
                 const lang = DQ_CONFIG.userSettings.language || 'de';
                 if (penaltyReason === 'daily') {
                     DQ_UI.showCustomPopup(`<h3>${DQ_DATA.translations[lang].penalty_title}</h3><p>${DQ_DATA.translations[lang].penalty_text}</p>`, 'penalty');
+                } else if (penaltyReason === 'freeze') {
+                    const title = DQ_DATA.translations[lang].streak_freeze_saved_title || 'Streak gerettet';
+                    const text = DQ_DATA.translations[lang].streak_freeze_saved_text || 'Ein Streak Freeze hat deine Streak vor dem Verlust bewahrt.';
+                    DQ_UI.showCustomPopup(`<h3>${title}</h3><p><span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 6px;">ac_unit</span>${text}</p>`);
                 } else if (penaltyReason === 'extra') {
                     DQ_UI.showCustomPopup(`<h3>${DQ_DATA.translations[lang].extra_penalty_title}</h3><p>${DQ_DATA.translations[lang].extra_penalty_text}</p>`, 'penalty');
                 }
@@ -1047,7 +897,7 @@ async function exportData() {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }, 100);
-        DQ_UI.showCustomPopup("Daten erfolgreich exportiert! 💾");
+        DQ_UI.showCustomPopup("Daten erfolgreich exportiert!");
     } catch (error) {
         console.error("Export failed:", error);
         DQ_UI.showCustomPopup(`Datenexport fehlgeschlagen: ${error.message}`, 'penalty');

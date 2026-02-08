@@ -65,6 +65,7 @@ DQ_DATA.translations = {
         filter_learning: "Lernen",
         filter_restday: "Erholung",
         filter_general_workout: "Allgemeines Workout",
+        filter_streak_freeze: "Streak Freeze",
         filter_forest: "Wald",
         filter_garden: "Garten",
         filter_creatures: "Kreaturen",
@@ -76,6 +77,8 @@ DQ_DATA.translations = {
         character_name: "Name",
         penalty_title: "STRAFE WIRD VOLLZOGEN",
         penalty_text: "Du warst inaktiv. Deine Nachlässigkeit hat Konsequenzen.",
+        streak_freeze_saved_title: "Streak gerettet",
+        streak_freeze_saved_text: "Ein Streak Freeze hat deine Streak vor dem Verlust bewahrt.",
         extra_penalty_title: "EXTRA-QUEST GESCHEITERT",
         extra_penalty_text: "Du hast die Extra-Quest nicht rechtzeitig abgeschlossen. Die Strafe ist hart, aber gerecht.",
         stat_increase_title: "STAT ERHÖHT!",
@@ -186,7 +189,8 @@ DQ_DATA.translations = {
             take_nap: "Mittagsschlaf", take_medicine: "Medizin",
             learn_new_skill: "Lerne eine neue Fähigkeit", read_for_school: "Schule lesen", learn_language: "Sprache lernen",
             learn_math: "Mathe lernen", learn_science: "Naturwissenschaften",
-            push_ups_normal: "Liegestütze", push_ups_wide: "Breite Liegestütze", squats: "Squats"
+            push_ups_normal: "Liegestütze", push_ups_wide: "Breite Liegestütze", squats: "Squats",
+            hula_hoop: "Hula Hoop Reifen", stair_climbing: "Treppen Rennen", jogging: "Joggen", running: "Rennen"
         },
         extra_quest_names: {
             extra_clean_room: "Ein Zimmer aufräumen", extra_walk_hour: "1 Stunde Spaziergang", extra_learn_hour: "1 Stunde etwas Neues lernen",
@@ -194,6 +198,7 @@ DQ_DATA.translations = {
             extra_do_hobby: "Einem produktiven Hobby nachgehen", extra_meditate: "15 Minuten meditieren", extra_call_friend: "Freund/Familie anrufen",
             extra_digital_detox: "2 Stunden ohne Social Media"
         },
+        settings_save: "Speichern",
         restday_info_box: "Heute ist dein Restday! Genieße den Tag, mach mal keinen Sport, hake entspannt deine Daily Quests ab und gönn dir schöne Dinge, die dir Freude bereiten!"
     },
     en: {
@@ -254,6 +259,7 @@ DQ_DATA.translations = {
         filter_learning: "Learning",
         filter_restday: "Recovery",
         filter_general_workout: "General Workout",
+        filter_streak_freeze: "Streak Freeze",
         filter_forest: "Forest",
         filter_garden: "Garden",
         filter_creatures: "Creatures",
@@ -265,6 +271,8 @@ DQ_DATA.translations = {
         character_name: "Name",
         penalty_title: "PENALTY ENFORCED",
         penalty_text: "You were inactive. Your negligence has consequences.",
+        streak_freeze_saved_title: "Streak saved",
+        streak_freeze_saved_text: "A Streak Freeze saved your streak from being lost.",
         extra_penalty_title: "EXTRA QUEST FAILED",
         extra_penalty_text: "You failed to complete the extra quest in time. The penalty is harsh, but fair.",
         stat_increase_title: "STAT INCREASED!",
@@ -375,7 +383,8 @@ DQ_DATA.translations = {
             take_nap: "Nap", take_medicine: "Medicine",
             learn_new_skill: "New Skill", read_for_school: "School Reading", learn_language: "Language Learning",
             learn_math: "Math Learning", learn_science: "Science Learning",
-            push_ups_normal: "Push-ups", push_ups_wide: "Wide Push-ups", squats: "Squats"
+            push_ups_normal: "Push-ups", push_ups_wide: "Wide Push-ups", squats: "Squats",
+            hula_hoop: "Hula Hoop", stair_climbing: "Stair Climbing", jogging: "Jogging", running: "Running"
         },
         extra_quest_names: {
             extra_clean_room: "Clean a room", extra_walk_hour: "1 hour walk", extra_learn_hour: "Learn something new for 1 hour",
@@ -383,6 +392,7 @@ DQ_DATA.translations = {
             extra_do_hobby: "Engage in a productive hobby", extra_meditate: "Meditate for 15 minutes", extra_call_friend: "Call a friend/family",
             extra_digital_detox: "2 hours without social media"
         },
+        settings_save: "Save",
         restday_info_box: "Today is your rest day! Enjoy your day, take a break from sports, tick off your daily quests and do something that brings you joy!"
     }
 };

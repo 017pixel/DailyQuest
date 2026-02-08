@@ -24,10 +24,11 @@ const DQ_TUTORIAL_STATE = {
 
                 request.onsuccess = () => {
                     const result = request.result;
-                    if (result && result.value === true) {
-                        resolve(true);
+                    if (result) {
+                        // Wenn ein Eintrag existiert (true oder false), respektiere ihn
+                        resolve(result.value === true);
                     } else {
-                        // Wenn nicht explizit fertig, prüfe auf Legacy User
+                        // Nur wenn gar kein Eintrag existiert, prüfe auf Legacy User
                         this.checkAndMigrateLegacyUser().then(isLegacy => {
                             resolve(isLegacy);
                         });
@@ -131,8 +132,22 @@ const DQ_TUTORIAL_STATE = {
                 const tx = DQ_DB.db.transaction(['tutorial_state'], 'readwrite');
                 const store = tx.objectStore('tutorial_state');
 
-                store.delete('completed');
+                // Setze completed auf false statt es zu löschen,
+                // damit die Legacy-Migration nicht erneut triggert
+                store.put({
+                    key: 'completed',
+                    value: false,
+                    timestamp: Date.now()
+                });
                 store.delete('features');
+
+                // Auch LocalStorage-Backups bereinigen
+                try {
+                    localStorage.removeItem('dq_has_equipment');
+                    localStorage.removeItem('dq_training_goal');
+                } catch (e) {
+                    console.warn('Fehler beim Bereinigen des LocalStorage:', e);
+                }
 
                 tx.oncomplete = () => {
                     console.log('Tutorial-Status zurückgesetzt');
