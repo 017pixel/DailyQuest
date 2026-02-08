@@ -39,13 +39,21 @@ const DQ_INVENTORY = {
         const container = DQ_UI.elements.equipmentContainer;
         container.innerHTML = '';
         let hasEquipment = false;
+        const emojiRegex = (() => {
+            try {
+                return /[\p{Extended_Pictographic}\uFE0F\u200D]/gu;
+            } catch {
+                return /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F\u200D]/gu;
+            }
+        })();
+        const cleanName = (value) => (typeof value === 'string' ? value.replace(emojiRegex, '').replace(/\s{2,}/g, ' ').trim() : value);
         
         const createCard = (item, slot, index) => {
             hasEquipment = true;
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
-                <h3>${item.name}</h3>
+                <h3>${cleanName(item.name)}</h3>
                 <p>${item.description}</p>
                 <div class="card-actions-wrapper">
                     <button class="card-button secondary-button card-button-no-transform" data-action="sell" data-equip-slot="${slot}" data-equip-index="${index}">Verkaufen</button>
@@ -66,12 +74,20 @@ const DQ_INVENTORY = {
         const container = DQ_UI.elements.inventoryContainer;
         container.innerHTML = '';
         if (char.inventory.length > 0) {
+            const emojiRegex = (() => {
+                try {
+                    return /[\p{Extended_Pictographic}\uFE0F\u200D]/gu;
+                } catch {
+                    return /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F\u200D]/gu;
+                }
+            })();
+            const cleanName = (value) => (typeof value === 'string' ? value.replace(emojiRegex, '').replace(/\s{2,}/g, ' ').trim() : value);
             char.inventory.forEach((item, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
                 const icon = item.iconSymbol ? `<span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 6px;">${item.iconSymbol}</span>` : '';
                 card.innerHTML = `
-                    <h3>${icon}${item.name}</h3>
+                    <h3>${icon}${cleanName(item.name)}</h3>
                     <p>${item.description}</p>
                     <div class="card-actions-wrapper">
                         <button class="card-button secondary-button card-button-no-transform" data-action="sell" data-inventory-index="${index}">Verkaufen</button>

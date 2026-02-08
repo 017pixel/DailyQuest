@@ -463,7 +463,13 @@ async function migrateItemNames() {
     const shopStore = tx.objectStore('shop');
     const charStore = tx.objectStore('character');
 
-    const emojiRegex = /[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]/gu;
+    const emojiRegex = (() => {
+        try {
+            return /[\p{Extended_Pictographic}\uFE0F\u200D]/gu;
+        } catch {
+            return /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F\u200D]/gu;
+        }
+    })();
     const stripEmojis = (value) => {
         if (typeof value !== 'string') return value;
         return value.replace(emojiRegex, '').replace(/\s{2,}/g, ' ').trim();

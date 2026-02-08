@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dailyquest-cache-v8';
+const CACHE_NAME = 'dailyquest-cache-v9';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -50,6 +50,7 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -71,7 +72,7 @@ self.addEventListener('activate', event => {
           return caches.delete(cacheName);
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });
 

@@ -44,6 +44,14 @@ const DQ_SHOP = {
         const trans = db.transaction(['shop', 'character'], 'readonly');
         const shopStore = trans.objectStore('shop');
         const charStore = trans.objectStore('character');
+        const emojiRegex = (() => {
+            try {
+                return /[\p{Extended_Pictographic}\uFE0F\u200D]/gu;
+            } catch {
+                return /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F\u200D]/gu;
+            }
+        })();
+        const cleanName = (value) => (typeof value === 'string' ? value.replace(emojiRegex, '').replace(/\s{2,}/g, ' ').trim() : value);
         
         charStore.get(1).onsuccess = (e) => {
             const character = e.target.result || { gold: 0 }; 
@@ -65,7 +73,8 @@ const DQ_SHOP = {
                     card.className = 'card';
                     const canAfford = character.gold >= item.cost;
                     const icon = item.iconSymbol ? `<span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 6px;">${item.iconSymbol}</span>` : '';
-                    card.innerHTML = `<h2>${icon}${item.name}</h2><p>${item.description}</p><p class=\"item-price\"><span class=\"label\">Kosten:</span><span class=\"material-symbols-rounded icon-gold\">paid</span><span>${item.cost}</span></p><button class=\"card-button\" data-item-id=\"${item.id}\" ${canAfford ? '' : 'disabled'}>Kaufen</button>`;
+                    const displayName = cleanName(item.name);
+                    card.innerHTML = `<h2>${icon}${displayName}</h2><p>${item.description}</p><p class=\"item-price\"><span class=\"label\">Kosten:</span><span class=\"material-symbols-rounded icon-gold\">paid</span><span>${item.cost}</span></p><button class=\"card-button\" data-item-id=\"${item.id}\" ${canAfford ? '' : 'disabled'}>Kaufen</button>`;
                     DQ_UI.elements.shopItemsEquipment.appendChild(card);
                 });
             };
