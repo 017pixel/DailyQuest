@@ -2,9 +2,9 @@
 
 > Verwandle dein tägliches Training in ein episches Rollenspiel. Steige im Level auf, sammle Ausrüstung und werde zur besten Version deiner selbst.
 
-<p align="center">
+<div align="center">
   <img src="Screenshots%20f%C3%BCr%20README/Main%20Page%20-%20Daily%20Quests.png" alt="Daily Quests Overview" width="380" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-</p>
+</div>
 
 ---
 
@@ -12,7 +12,7 @@
 
 ### 🎮 Core Gameplay
 
-<p align="center">
+<div align="center">
 
 | Feature | Beschreibung |
 |---------|--------------|
@@ -22,30 +22,25 @@
 | **Streak Freezes** | Rette deine Streak bei einem verpassten Tag. |
 | **Extra-Quests** | Tägliche Herausforderung mit hohem Risiko und hoher Belohnung. |
 
-</p>
+</div>
 
 ### 👤 Charakter-System
 
-<p align="center">
-  <img src="Screenshots%20f%C3%BCr%20README/Character%20Seite.png" alt="Character Page" width="320" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 8px;">
-  <img src="Screenshots%20f%C3%BCr%20README/Basis%20Stats%20Nahaufnahme.png" alt="Stats Detail" width="320" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 8px;">
-</p>
+<div align="center">
+  <img src="Screenshots%20f%C3%BCr%20README/Character%20Seite.png" alt="Character Page" width="360" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 8px;">
+</div>
 
-<p align="center">
-
-| Feature | Details |
-|---------|---------|
-| **Dynamische Stats** | Kraft, Ausdauer, Beweglichkeit, Durchhaltevermögen, Willenskraft |
-| **Player-Labels** | Personalisiertes Label basierend auf deinen Stärken |
-| **Ausrüstung** | Waffen und Rüstungen mit Boni |
-
-</p>
+<ul>
+  <li><strong>Dynamische Stats</strong>: Kraft, Ausdauer, Beweglichkeit, Durchhaltevermögen, Willenskraft</li>
+  <li><strong>Player-Labels</strong>: Personalisiertes Label basierend auf deinen Stärken</li>
+  <li><strong>Ausrüstung</strong>: Waffen und Rüstungen mit Boni</li>
+</ul>
 
 ### 💪 Training & Übungen
 
 **50+ Übungen** für Home-Gym optimiert:
 
-<p align="center">
+<div align="center">
 
 | Kategorie | Beispiele |
 |-----------|-----------|
@@ -56,66 +51,72 @@
 | Lernen | Fokus-Timer für Sprachen, Coding |
 | Erholung | Spaziergänge, Dehnen, Lesen |
 
-</p>
+</div>
 
 ### 🌳 Fokus-Modul
 
-<p align="center">
-  <img src="Screenshots%20f%C3%BCr%20README/Fokus%20Timer.png" alt="Focus Timer" width="320" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 8px;">
-</p>
+<div align="center">
+  <img src="Screenshots%20f%C3%BCr%20README/Fokus%20Timer.png" alt="Focus Timer" width="360" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 8px;">
+</div>
 
-- Pomodoro-Timer und Stoppuhr
-- Kategorien-System für Sessions
-- Belohnungen für abgeschlossene Fokus-Zeit
+<ul>
+  <li>Pomodoro-Timer und Stoppuhr</li>
+  <li>Kategorien-System für Sessions</li>
+  <li>Belohnungen für abgeschlossene Fokus-Zeit</li>
+</ul>
 
 ### ⚔️ Dungeons & Kampf
 
 Mit 5% Wahrscheinlichkeit erscheint ein Dungeon beim App-Start:
 
-- **3 Monster-Typen**: Schattenwolf, Höhlenbär, Morast-Zombie
-- **Skalierende Schwierigkeit**: Monster werden stärker mit deinem Level
-- **Strategische Kämpfe**: Persistente HP, Ausrüstungs-Boni
+<ul>
+  <li><strong>3 Monster-Typen</strong>: Schattenwolf, Höhlenbär, Morast-Zombie</li>
+  <li><strong>Skalierende Schwierigkeit</strong>: Monster werden stärker mit deinem Level</li>
+  <li><strong>Strategische Kämpfe</strong>: Persistente HP, Ausrüstungs-Boni</li>
+</ul>
 
 ### 🛒 Shop & 🏆 Erfolge
 
-<p align="center">
+<div align="center">
   <img src="Screenshots%20f%C3%BCr%20README/Shop%20Seite.png" alt="Shop" width="320" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 8px;">
   <img src="Screenshots%20f%C3%BCr%20README/Erfolge%20PopUp.png" alt="Achievements" width="320" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 8px;">
-</p>
+</div>
 
-- Waffen, Rüstungen und Verbrauchsgegenstände
-- Dutzende Achievements für Meilensteine
+<ul>
+  <li>Waffen, Rüstungen und Verbrauchsgegenstände</li>
+  <li>Dutzende Achievements für Meilensteine</li>
+</ul>
 
 ---
 
 ## 🎮 Schnellstart
 
-<p align="center">
+<div align="center">
 
 | Schritt | Aktion |
 |---------|--------|
-| 1 | **Einstellungen** ⚙️ – Charaktername, Trainingsziel, Schwierigkeit |
-| 2 | **Daily Quests** 🏋️ – Aufgaben erledigen und belohnen lassen |
-| 3 | **Charakter** 👤 – Stats beobachten, Ausrüstung verwalten |
-| 4 | **Shop** 🛒 – Gold für bessere Ausrüstung ausgeben |
+| 1 | <strong>Einstellungen</strong> ⚙️ – Charaktername, Trainingsziel, Schwierigkeit |
+| 2 | <strong>Daily Quests</strong> 🏋️ – Aufgaben erledigen und belohnen lassen |
+| 3 | <strong>Charakter</strong> 👤 – Stats beobachten, Ausrüstung verwalten |
+| 4 | <strong>Shop</strong> 🛒 – Gold für bessere Ausrüstung ausgeben |
 
-</p>
+</div>
 
-<p align="center">
-  <img src="Screenshots%20f%C3%BCr%20README/Extra%20Quests.png" alt="Extra Quests" width="320" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 8px;">
-</p>
+<div align="center">
+  <img src="Screenshots%20f%C3%BCr%20README/Extra%20Quests.png" alt="Extra Quests" width="360" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 8px;">
+</div>
 
 ---
 
 ## 🧠 Inspiration
 
-Inspired by **"Solo Leveling"** – dem Webtoon/Anime über einen Protagonisten, der durch tägliche Aufgaben stärker wird.
+Inspired by <strong>"Solo Leveling"</strong> – dem Webtoon/Anime über einen Protagonisten, der durch tägliche Aufgaben stärker wird.
 
 ---
 
 ## 🛠️ Technologien
 
-<p align="center">
+<div align="center">
 
 | Bereich | Technologie |
 |---------|-------------|
@@ -125,32 +126,36 @@ Inspired by **"Solo Leveling"** – dem Webtoon/Anime über einen Protagonisten,
 | Icons | Material Symbols Rounded |
 | Diagramme | Chart.js |
 
-</p>
+</div>
 
 ---
 
 ## 🔒 Datenschutz
 
-- **Kein Account nötig** – sofort loslegen
-- **100% lokal** – alle Daten bleiben auf deinem Gerät
-- **Export & Import** – volle Kontrolle über deine Daten
+<ul>
+  <li><strong>Kein Account nötig</strong> – sofort loslegen</li>
+  <li><strong>100% lokal</strong> – alle Daten bleiben auf deinem Gerät</li>
+  <li><strong>Export & Import</strong> – volle Kontrolle über deine Daten</li>
+</ul>
 
 ---
 
 ## 📋 Changelog
 
-Siehe [CHANGELOG.md](CHANGELOG.md) für alle Änderungen.
+Siehe <a href="CHANGELOG.md">CHANGELOG.md</a> für alle Änderungen.
 
 ---
 
 ## 📱 Installation
 
-1. App im Browser öffnen
-2. "Zum Startbildschirm hinzufügen" wählen
-3. Als native App nutzen
+<ol>
+  <li>App im Browser öffnen</li>
+  <li>"Zum Startbildschirm hinzufügen" wählen</li>
+  <li>Als native App nutzen</li>
+</ol>
 
 ---
 
-<p align="center">
+<div align="center">
   <strong>DailyQuest</strong> – Wo jeder Tag ein Abenteuer ist! 🚀
-</p>
+</div>
