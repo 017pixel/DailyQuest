@@ -3,7 +3,7 @@
 > Verwandle dein tägliches Training in ein episches Rollenspiel. Steige im Level auf, sammle Ausrüstung und werde zur besten Version deiner selbst.
 
 <p align="center">
-  <img src="Screenshots%20f%C3%BCr%20README/Main%20Page%20-%20Daily%20Quests.png" alt="Daily Quests Overview" style="border-radius: 16px; border: 2px solid #333; max-width: 100%; margin: 10px;">
+  <img src="Screenshots%20f%C3%BCr%20README/Main%20Page%20-%20Daily%20Quests.png" alt="Daily Quests Overview" width="380" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
 </p>
 
 ---
@@ -11,6 +11,9 @@
 ## ✨ Features
 
 ### 🎮 Core Gameplay
+
+<p align="center">
+
 | Feature | Beschreibung |
 |---------|--------------|
 | **Level-System** | Jede Aufgabe gibt Mana (XP). Steige auf und beweise deine Stärke. |
@@ -19,20 +22,30 @@
 | **Streak Freezes** | Rette deine Streak bei einem verpassten Tag. |
 | **Extra-Quests** | Tägliche Herausforderung mit hohem Risiko und hoher Belohnung. |
 
+</p>
+
 ### 👤 Charakter-System
 
 <p align="center">
-  <img src="Screenshots%20f%C3%BCr%20README/Character%20Seite.png" alt="Character Page" style="border-radius: 16px; border: 2px solid #333; max-width: 45%; margin: 5px;">
-  <img src="Screenshots%20f%C3%BCr%20README/Basis%20Stats%20Nahaufnahme.png" alt="Stats Detail" style="border-radius: 16px; border: 2px solid #333; max-width: 45%; margin: 5px;">
+  <img src="Screenshots%20f%C3%BCr%20README/Character%20Seite.png" alt="Character Page" width="320" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 8px;">
+  <img src="Screenshots%20f%C3%BCr%20README/Basis%20Stats%20Nahaufnahme.png" alt="Stats Detail" width="320" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 8px;">
 </p>
 
-- **Dynamische Stats**: Kraft, Ausdauer, Beweglichkeit, Durchhaltevermögen, Willenskraft
-- **Player-Labels**: Personalisiertes Label basierend auf deinen Stärken (z.B. "Kraftprotz", "Allrounder")
-- **Ausrüstung & Inventar**: Waffen und Rüstungen mit Boni
+<p align="center">
+
+| Feature | Details |
+|---------|---------|
+| **Dynamische Stats** | Kraft, Ausdauer, Beweglichkeit, Durchhaltevermögen, Willenskraft |
+| **Player-Labels** | Personalisiertes Label basierend auf deinen Stärken |
+| **Ausrüstung** | Waffen und Rüstungen mit Boni |
+
+</p>
 
 ### 💪 Training & Übungen
 
 **50+ Übungen** für Home-Gym optimiert:
+
+<p align="center">
 
 | Kategorie | Beispiele |
 |-----------|-----------|
@@ -43,10 +56,12 @@
 | Lernen | Fokus-Timer für Sprachen, Coding |
 | Erholung | Spaziergänge, Dehnen, Lesen |
 
+</p>
+
 ### 🌳 Fokus-Modul
 
 <p align="center">
-  <img src="Screenshots%20f%C3%BCr%20README/Fokus%20Timer.png" alt="Focus Timer" style="border-radius: 16px; border: 2px solid #333; max-width: 60%; margin: 10px;">
+  <img src="Screenshots%20f%C3%BCr%20README/Fokus%20Timer.png" alt="Focus Timer" width="320" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 8px;">
 </p>
 
 - Pomodoro-Timer und Stoppuhr
@@ -55,7 +70,7 @@
 
 ### ⚔️ Dungeons & Kampf
 
-Mit 5% Wahrscheinlichkeit erscheint ein Dungeon beim App-Start. Besiege Monster durch echte Übungen:
+Mit 5% Wahrscheinlichkeit erscheint ein Dungeon beim App-Start:
 
 - **3 Monster-Typen**: Schattenwolf, Höhlenbär, Morast-Zombie
 - **Skalierende Schwierigkeit**: Monster werden stärker mit deinem Level
@@ -64,8 +79,8 @@ Mit 5% Wahrscheinlichkeit erscheint ein Dungeon beim App-Start. Besiege Monster 
 ### 🛒 Shop & 🏆 Erfolge
 
 <p align="center">
-  <img src="Screenshots%20f%C3%BCr%20README/Shop%20Seite.png" alt="Shop" style="border-radius: 16px; border: 2px solid #333; max-width: 45%; margin: 5px;">
-  <img src="Screenshots%20f%C3%BCr%20README/Erfolge%20PopUp.png" alt="Achievements" style="border-radius: 16px; border: 2px solid #333; max-width: 45%; margin: 5px;">
+  <img src="Screenshots%20f%C3%BCr%20README/Shop%20Seite.png" alt="Shop" width="320" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 8px;">
+  <img src="Screenshots%20f%C3%BCr%20README/Erfolge%20PopUp.png" alt="Achievements" width="320" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 8px;">
 </p>
 
 - Waffen, Rüstungen und Verbrauchsgegenstände
@@ -75,13 +90,19 @@ Mit 5% Wahrscheinlichkeit erscheint ein Dungeon beim App-Start. Besiege Monster 
 
 ## 🎮 Schnellstart
 
-1. **Einstellungen** ⚙️ – Charaktername, Trainingsziel, Schwierigkeit
-2. **Daily Quests** 🏋️ – Aufgaben erledigen und belohnen lassen
-3. **Charakter** 👤 – Stats beobachten, Ausrüstung verwalten
-4. **Shop** 🛒 – Gold für bessere Ausrüstung ausgeben
+<p align="center">
+
+| Schritt | Aktion |
+|---------|--------|
+| 1 | **Einstellungen** ⚙️ – Charaktername, Trainingsziel, Schwierigkeit |
+| 2 | **Daily Quests** 🏋️ – Aufgaben erledigen und belohnen lassen |
+| 3 | **Charakter** 👤 – Stats beobachten, Ausrüstung verwalten |
+| 4 | **Shop** 🛒 – Gold für bessere Ausrüstung ausgeben |
+
+</p>
 
 <p align="center">
-  <img src="Screenshots%20f%C3%BCr%20README/Extra%20Quests.png" alt="Extra Quests" style="border-radius: 16px; border: 2px solid #333; max-width: 60%; margin: 10px;">
+  <img src="Screenshots%20f%C3%BCr%20README/Extra%20Quests.png" alt="Extra Quests" width="320" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 8px;">
 </p>
 
 ---
@@ -94,6 +115,8 @@ Inspired by **"Solo Leveling"** – dem Webtoon/Anime über einen Protagonisten,
 
 ## 🛠️ Technologien
 
+<p align="center">
+
 | Bereich | Technologie |
 |---------|-------------|
 | Frontend | HTML5, CSS3, JavaScript (ES6+) |
@@ -101,6 +124,8 @@ Inspired by **"Solo Leveling"** – dem Webtoon/Anime über einen Protagonisten,
 | PWA | Service Worker, Web App Manifest |
 | Icons | Material Symbols Rounded |
 | Diagramme | Chart.js |
+
+</p>
 
 ---
 
@@ -122,7 +147,7 @@ Siehe [CHANGELOG.md](CHANGELOG.md) für alle Änderungen.
 
 1. App im Browser öffnen
 2. "Zum Startbildschirm hinzufügen" wählen
-3. Als native App nutzen – funktioniert auch offline!
+3. Als native App nutzen
 
 ---
 
