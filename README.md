@@ -88,6 +88,7 @@ Detaillierte Informationen zur Architektur, zum Design und zur Theorie hinter Da
 - [Design Guide](info/design_guide.md) - UI-Prinzipien, Farben und CSS-Struktur.
 - [Gamification-Theorie](info/theories_gamification.md) - Psychologische Grundlagen und Motivationsmodelle.
 - [Funktions-Erklärungen](Funktion-Erklaerungen/) - Detaillierte Beschreibungen einzelner App-Features.
+- [Mathematische Konzepte](Mathematische-Konzepte.md) - Mathematische Prinzipien, Formeln und Algorithmen.
 
 ---
 
