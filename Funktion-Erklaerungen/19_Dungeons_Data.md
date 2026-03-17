@@ -18,7 +18,7 @@ Die Dungeons Data-Datei enthält alle Dungeon-Definitionen, Monster-Daten und Ta
   id: "forest_trial",
   nameKey: "dungeon_forest_trial",
   descriptionKey: "dungeon_forest_trial_desc",
-  icon: "🌲",
+  icon: "",
   backgroundImage: "forest_bg",
   difficulty: 1,           // Basis-Schwierigkeit
   monsters: [...],         // Monster-Array
@@ -33,7 +33,7 @@ Die Dungeons Data-Datei enthält alle Dungeon-Definitionen, Monster-Daten und Ta
 {
   id: "shadow_wolf",
   nameKey: "monster_shadow_wolf",
-  icon: "🐺",
+  icon: "",
   sprite: "wolf_sprite.png",
   baseHp: 30,
   baseDamage: 8,
@@ -61,7 +61,7 @@ Die Dungeons Data-Datei enthält alle Dungeon-Definitionen, Monster-Daten und Ta
 {
   id: "pushups",
   nameKey: "task_pushups",
-  icon: "💪",
+  icon: "",
   baseDamage: 10,
   statScaling: {
     kraft: 0.5,           // +0.5 Schaden pro Kraft-Punkt
@@ -80,7 +80,7 @@ const DUNGEONS = [
     id: "forest_trial",
     nameKey: "dungeon_forest_trial",
     descriptionKey: "dungeon_forest_trial_desc",
-    icon: "🌲",
+    icon: "",
     backgroundImage: "forest_bg",
     difficulty: 1,
     requiredLevel: 1,
@@ -88,7 +88,7 @@ const DUNGEONS = [
       {
         id: "shadow_wolf",
         nameKey: "monster_shadow_wolf",
-        icon: "🐺",
+        icon: "",
         baseHp: 30,
         baseDamage: 8,
         attackSpeed: 1.0,
@@ -97,7 +97,7 @@ const DUNGEONS = [
       {
         id: "giant_rat",
         nameKey: "monster_giant_rat",
-        icon: "🐀",
+        icon: "",
         baseHp: 25,
         baseDamage: 6,
         attackSpeed: 1.5,
@@ -106,7 +106,7 @@ const DUNGEONS = [
       {
         id: "zombie",
         nameKey: "monster_zombie",
-        icon: "🧟",
+        icon: "",
         baseHp: 35,
         baseDamage: 7,
         attackSpeed: 0.8,
@@ -117,21 +117,21 @@ const DUNGEONS = [
       {
         id: "pushups",
         nameKey: "task_pushups",
-        icon: "💪",
+        icon: "",
         baseDamage: 10,
         statScaling: { kraft: 0.5 }
       },
       {
         id: "squats",
         nameKey: "task_squats",
-        icon: "🦵",
+        icon: "",
         baseDamage: 8,
         statScaling: { kraft: 0.4, ausdauer: 0.2 }
       },
       {
         id: "situps",
         nameKey: "task_situps",
-        icon: "🧘",
+        icon: "",
         baseDamage: 6,
         statScaling: { kraft: 0.3 }
       },
@@ -154,7 +154,7 @@ const DUNGEONS = [
     id: "cave_of_darkness",
     nameKey: "dungeon_cave",
     descriptionKey: "dungeon_cave_desc",
-    icon: "🕳️",
+    icon: "️",
     backgroundImage: "cave_bg",
     difficulty: 2,
     requiredLevel: 5,
@@ -162,7 +162,7 @@ const DUNGEONS = [
       {
         id: "cave_bear",
         nameKey: "monster_cave_bear",
-        icon: "🐻",
+        icon: "",
         baseHp: 45,
         baseDamage: 12,
         attackSpeed: 0.9,
@@ -171,7 +171,7 @@ const DUNGEONS = [
       {
         id: "dark_spirit",
         nameKey: "monster_dark_spirit",
-        icon: "👻",
+        icon: "",
         baseHp: 35,
         baseDamage: 15,
         attackSpeed: 1.2,
@@ -180,7 +180,7 @@ const DUNGEONS = [
       {
         id: "goblin",
         nameKey: "monster_goblin",
-        icon: "👺",
+        icon: "",
         baseHp: 38,
         baseDamage: 10,
         attackSpeed: 1.3,
@@ -191,28 +191,28 @@ const DUNGEONS = [
       {
         id: "deadlift",
         nameKey: "task_deadlift",
-        icon: "🏋️",
+        icon: "️",
         baseDamage: 15,
         statScaling: { kraft: 0.6 }
       },
       {
         id: "pullups",
         nameKey: "task_pullups",
-        icon: "💪",
+        icon: "",
         baseDamage: 12,
         statScaling: { kraft: 0.5 }
       },
       {
         id: "lunges",
         nameKey: "task_lunges",
-        icon: "🦵",
+        icon: "",
         baseDamage: 10,
         statScaling: { kraft: 0.3, ausdauer: 0.3 }
       },
       {
         id: "plank",
         nameKey: "task_plank",
-        icon: "🪵",
+        icon: "",
         baseDamage: 8,
         statScaling: { durchhaltevermoegen: 0.5, kraft: 0.2 }
       }
@@ -228,7 +228,7 @@ const DUNGEONS = [
     id: "volcano_forge",
     nameKey: "dungeon_volcano",
     descriptionKey: "dungeon_volcano_desc",
-    icon: "🌋",
+    icon: "",
     backgroundImage: "volcano_bg",
     difficulty: 3,
     requiredLevel: 10,
@@ -236,7 +236,7 @@ const DUNGEONS = [
       {
         id: "fire_golem",
         nameKey: "monster_fire_golem",
-        icon: "🔥",
+        icon: "",
         baseHp: 60,
         baseDamage: 18,
         attackSpeed: 0.7,
@@ -245,7 +245,7 @@ const DUNGEONS = [
       {
         id: "dragon_whelp",
         nameKey: "monster_dragon_whelp",
-        icon: "🐉",
+        icon: "",
         baseHp: 55,
         baseDamage: 20,
         attackSpeed: 1.0,
@@ -254,7 +254,7 @@ const DUNGEONS = [
       {
         id: "lava_elemental",
         nameKey: "monster_lava_elemental",
-        icon: "🌋",
+        icon: "",
         baseHp: 50,
         baseDamage: 16,
         attackSpeed: 1.1,
@@ -265,28 +265,28 @@ const DUNGEONS = [
       {
         id: "bench_press",
         nameKey: "task_bench_press",
-        icon: "🏋️",
+        icon: "️",
         baseDamage: 20,
         statScaling: { kraft: 0.7 }
       },
       {
         id: "overhead_press",
         nameKey: "task_overhead_press",
-        icon: "🙆",
+        icon: "",
         baseDamage: 18,
         statScaling: { kraft: 0.6 }
       },
       {
         id: "burpees",
         nameKey: "task_burpees",
-        icon: "🔥",
+        icon: "",
         baseDamage: 15,
         statScaling: { ausdauer: 0.5, kraft: 0.3 }
       },
       {
         id: "mountain_climbers",
         nameKey: "task_mountain_climbers",
-        icon: "🏔️",
+        icon: "️",
         baseDamage: 12,
         statScaling: { ausdauer: 0.4, beweglichkeit: 0.3 }
       }

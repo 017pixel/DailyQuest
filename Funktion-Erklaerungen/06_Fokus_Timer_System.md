@@ -86,16 +86,16 @@ Folgen dem Quest-Template:
 ### Custom Labels
 ```javascript
 DEFAULT_LABELS = [
-  { id: "reading", nameKey: "label_reading", icon: "📖" },
-  { id: "learning", nameKey: "label_learning", icon: "📚" },
-  { id: "meditating", nameKey: "label_meditating", icon: "🧘" }
+  { id: "reading", nameKey: "label_reading", icon: "" },
+  { id: "learning", nameKey: "label_learning", icon: "" },
+  { id: "meditating", nameKey: "label_meditating", icon: "" }
 ];
 
 // User Labels in focus_labels Store
 {
   id: autoIncrement,
   name: "Custom Label",
-  icon: "🎯"
+  icon: ""
 }
 ```
 
@@ -153,7 +153,7 @@ await DQ_DB.putSingle('vibe_state', {
 // Label hinzufügen
 await DQ_DB.add('focus_labels', {
   name: "Custom",
-  icon: "🎯"
+  icon: ""
 });
 ```
 
@@ -175,7 +175,7 @@ await DQ_DB.add('focus_labels', {
     ]
   },
   "focus_labels": [
-    { "id": 1, "name": "Reading", "icon": "📖" }
+    { "id": 1, "name": "Reading", "icon": "" }
   ]
 }
 ```
@@ -187,7 +187,7 @@ await DQ_DB.add('focus_labels', {
 // In data/achievements.js
 {
   id: "focus_time",
-  icon: "🧠",
+  icon: "",
   tracking: "totalFocusMinutes",
   tiers: [
     { threshold: 60, rewardGold: 100, rewardMana: 100 },
@@ -368,7 +368,7 @@ DQ_FOKUS_TIMER = {
 
   ${linkedQuest ?
     `<div class="linked-quest">
-       🔗 ${t(linkedQuest.nameKey)}
+        ${t(linkedQuest.nameKey)}
      </div>` : ''
   }
 
@@ -385,14 +385,14 @@ DQ_FOKUS_TIMER = {
   <div class="session-list">
     ${sessions.map(session => `
       <div class="session-item">
-        <div class="session-icon">${session.label?.icon || '🧠'}</div>
+        <div class="session-icon">${session.label?.icon || ''}</div>
         <div class="session-info">
           <div class="session-label">${session.label?.name || 'Fokus'}</div>
           <div class="session-duration">${session.duration} min</div>
         </div>
         <div class="session-rewards">
-          +${session.rewards?.mana || 0}⚡
-          +${session.rewards?.gold || 0}💰
+          +${session.rewards?.mana || 0}
+          +${session.rewards?.gold || 0}
         </div>
       </div>
     `).join('')}

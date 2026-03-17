@@ -212,7 +212,7 @@ character.weightDirection = 'lose'; // 'lose' | 'gain' | 'maintain'
 // In data/achievements.js
 {
   id: "strength",
-  icon: "💪",
+  icon: "",
   tracking: "character.stats.kraft",
   tiers: [
     { threshold: 10, rewardGold: 100, rewardMana: 100 },
@@ -454,8 +454,8 @@ function renderWeightChart() {
     <span class="target-label">Ziel:</span>
     <span class="target-value">${targetWeight} kg</span>
     <span class="direction-badge ${weightDirection}">
-      ${weightDirection === 'lose' ? '📉 Abnehmen' :
-        weightDirection === 'gain' ? '📈 Zunehmen' : '⚖️ Halten'}
+      ${weightDirection === 'lose' ? ' Abnehmen' :
+        weightDirection === 'gain' ? ' Zunehmen' : '️ Halten'}
     </span>
   </div>
 

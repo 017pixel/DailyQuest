@@ -329,7 +329,7 @@ async function importTutorialState(state) {
     <h3>${t('export_title')}</h3>
     <p>${t('export_description')}</p>
     <button class="export-btn" onclick="exportData()">
-      📥 ${t('export_button')}
+       ${t('export_button')}
     </button>
   </div>
 
@@ -341,16 +341,16 @@ async function importTutorialState(state) {
            accept=".json"
            onchange="handleImportFile(this)" />
     <label for="import-file" class="import-label">
-      📤 ${t('import_select_file')}
+       ${t('import_select_file')}
     </label>
-    <p class="import-warning">⚠️ ${t('import_warning')}</p>
+    <p class="import-warning">️ ${t('import_warning')}</p>
   </div>
 
   <div class="reset-section">
     <h3>${t('reset_title')}</h3>
     <p>${t('reset_description')}</p>
     <button class="reset-btn" onclick="confirmReset()">
-      🗑️ ${t('reset_button')}
+      ️ ${t('reset_button')}
     </button>
   </div>
 </div>

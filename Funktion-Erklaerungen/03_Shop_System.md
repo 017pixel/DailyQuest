@@ -29,7 +29,7 @@ Das Shop System ermöglicht Spielern Ausrüstung und Items zu kaufen, um ihre St
     protection: 0
   },
   rarity: "common",         // common, rare, epic, legendary
-  icon: "⚔️",
+  icon: "️",
   description: "Eine solide Eisenwaffe für Anfänger."
 }
 ```
@@ -249,7 +249,7 @@ ACCESSORIES = {
       ${renderStats(item.stats)}
     </div>
     <div class="item-cost">
-      <span class="gold-icon">💰</span>
+      <span class="gold-icon"></span>
       ${item.cost}
     </div>
   </div>
@@ -269,7 +269,7 @@ ACCESSORIES = {
   <div class="item-info">
     <div class="item-name">${t(item.nameKey)}</div>
     <div class="item-equip-status">
-      ${isEquipped(item) ? '✓ Ausgerüstet' : ''}
+      ${isEquipped(item) ? ' Ausgerüstet' : ''}
     </div>
   </div>
   ${isEquipped(item) ?

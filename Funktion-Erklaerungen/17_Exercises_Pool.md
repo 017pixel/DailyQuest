@@ -35,55 +35,55 @@ Der Exercises Pool enthält alle verfügbaren Übungen, die für Daily Quests un
 EXERCISE_CATEGORIES = {
   muscle: {
     nameKey: "category_muscle",
-    icon: "💪",
+    icon: "",
     goals: ["muscle"],
     restDay: false
   },
   endurance: {
     nameKey: "category_endurance",
-    icon: "🏃",
+    icon: "",
     goals: ["endurance"],
     restDay: false
   },
   fatloss: {
     nameKey: "category_fatloss",
-    icon: "🔥",
+    icon: "",
     goals: ["fatloss"],
     restDay: false
   },
   kraft_abnehmen: {
     nameKey: "category_kraft_abnehmen",
-    icon: "🏋️",
+    icon: "️",
     goals: ["muscle", "fatloss"],
     restDay: false
   },
   restday: {
     nameKey: "category_restday",
-    icon: "🧘",
+    icon: "",
     goals: ["restday"],
     restDay: true
   },
   learning: {
     nameKey: "category_learning",
-    icon: "📚",
+    icon: "",
     goals: ["learning"],
     restDay: false
   },
   calisthenics: {
     nameKey: "category_calisthenics",
-    icon: "🤸",
+    icon: "",
     goals: ["muscle"],
     restDay: false
   },
   sick: {
     nameKey: "category_sick",
-    icon: "🤒",
+    icon: "",
     goals: ["sick"],
     restDay: true
   },
   general_workout: {
     nameKey: "category_general",
-    icon: "⚡",
+    icon: "",
     goals: ["muscle", "endurance"],
     restDay: false
   }

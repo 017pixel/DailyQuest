@@ -240,8 +240,8 @@ function calculateGoalProgress(currentWeight, targetWeight, direction) {
   ${targetWeight ?
     `<div class="goal-indicator ${weightDirection}">
        Ziel: ${targetWeight} kg
-       ${weightDirection === 'lose' ? '📉 Abnehmen' :
-         weightDirection === 'gain' ? '📈 Zunehmen' : '⚖️ Halten'}
+       ${weightDirection === 'lose' ? ' Abnehmen' :
+         weightDirection === 'gain' ? ' Zunehmen' : '️ Halten'}
      </div>` : ''
   }
 </div>
@@ -266,8 +266,8 @@ function calculateGoalProgress(currentWeight, targetWeight, direction) {
     <div class="stat">
       <span class="label">${t('weight_trend')}</span>
       <span class="value trend-${stats.trend}">
-        ${stats.trend === 'up' ? '📈' :
-          stats.trend === 'down' ? '📉' : '➡️'}
+        ${stats.trend === 'up' ? '' :
+          stats.trend === 'down' ? '' : '️'}
         ${t(`weight_trend_${stats.trend}`)}
       </span>
     </div>
@@ -293,7 +293,7 @@ function calculateGoalProgress(currentWeight, targetWeight, direction) {
        ${t('weight_remaining', { kg: goal.remaining })}
      </div>` :
     `<div class="achieved-badge">
-       🎉 ${t('weight_goal_achieved')}
+        ${t('weight_goal_achieved')}
      </div>`
   }
 </div>

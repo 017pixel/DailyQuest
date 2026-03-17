@@ -347,7 +347,7 @@ if (character.statProgress[stat] >= getStatThreshold()) {
 ```html
 <div class="quest-card" data-quest-id="${questId}">
   <div class="quest-header">
-    <span class="quest-category-icon">💪</span>
+    <span class="quest-category-icon"></span>
     <span class="quest-name">${t(quest.nameKey)}</span>
   </div>
   <div class="quest-progress">
@@ -359,7 +359,7 @@ if (character.statProgress[stat] >= getStatThreshold()) {
     <span class="gold">+${quest.goldReward} Gold</span>
   </div>
   <button class="complete-btn" ${quest.completed ? 'disabled' : ''}>
-    ${quest.completed ? '✓ Erledigt' : 'Abschließen'}
+    ${quest.completed ? ' Erledigt' : 'Abschließen'}
   </button>
 </div>
 ```

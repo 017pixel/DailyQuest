@@ -48,12 +48,12 @@ character.achievements = {
 | ID | Icon | Tracking | Beschreibung |
 |----|------|----------|--------------|
 | `level` | ⭐ | `character.level` | Spieler-Level |
-| `quests` | 🔥 | `character.totalQuestsCompleted` | Abgeschlossene Quests |
-| `gold` | 💰 | `character.totalGoldEarned` | Gesammeltes Gold |
-| `shop` | 🛒 | `character.totalItemsPurchased` | Gekaufte Items |
-| `strength` | 💪 | `character.stats.kraft` | Kraft-Stat |
-| `streak` | 🏆 | `streakData.streak` | Tages-Streak |
-| `focus_time` | 🧠 | `totalFocusMinutes` | Gesammelte Fokus-Minuten |
+| `quests` |  | `character.totalQuestsCompleted` | Abgeschlossene Quests |
+| `gold` |  | `character.totalGoldEarned` | Gesammeltes Gold |
+| `shop` |  | `character.totalItemsPurchased` | Gekaufte Items |
+| `strength` |  | `character.stats.kraft` | Kraft-Stat |
+| `streak` |  | `streakData.streak` | Tages-Streak |
+| `focus_time` |  | `totalFocusMinutes` | Gesammelte Fokus-Minuten |
 
 ### Tier Definitionen
 
@@ -302,9 +302,9 @@ function claimAchievement(achievementId) {
   </div>
   ${achievement.claimable ?
     `<button class="claim-btn" onclick="claimAchievement('${id}')">
-       Claim ${tierDef.rewardGold}💰 ${tierDef.rewardMana}⚡
+       Claim ${tierDef.rewardGold} ${tierDef.rewardMana}
      </button>` :
-    `<div class="achievement-locked">🔒</div>`
+    `<div class="achievement-locked"></div>`
   }
 </div>
 ```

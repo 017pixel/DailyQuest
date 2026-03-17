@@ -255,10 +255,10 @@ function generateQuestsForDifficulty(difficulty) {
       <label>${t('settings_theme')}</label>
       <select onchange="updateSetting('theme', this.value)">
         <option value="dark" ${settings.theme === 'dark' ? 'selected' : ''}>
-          🌙 ${t('theme_dark')}
+           ${t('theme_dark')}
         </option>
         <option value="light" ${settings.theme === 'light' ? 'selected' : ''}>
-          ☀️ ${t('theme_light')}
+          ️ ${t('theme_light')}
         </option>
       </select>
     </div>
@@ -282,16 +282,16 @@ function generateQuestsForDifficulty(difficulty) {
       <label>${t('settings_goal')}</label>
       <select onchange="updateSetting('goal', this.value)">
         <option value="muscle" ${settings.goal === 'muscle' ? 'selected' : ''}>
-          💪 ${t('goal_muscle')}
+           ${t('goal_muscle')}
         </option>
         <option value="endurance" ${settings.goal === 'endurance' ? 'selected' : ''}>
-          🏃 ${t('goal_endurance')}
+           ${t('goal_endurance')}
         </option>
         <option value="fatloss" ${settings.goal === 'fatloss' ? 'selected' : ''}>
-          🔥 ${t('goal_fatloss')}
+           ${t('goal_fatloss')}
         </option>
         <option value="restday" ${settings.goal === 'restday' ? 'selected' : ''}>
-          🧘 ${t('goal_restday')}
+           ${t('goal_restday')}
         </option>
       </select>
     </div>

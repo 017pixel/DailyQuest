@@ -42,7 +42,7 @@ character.equipment = {
   id: "iron_sword_01",
   type: "weapon",           // weapon, armor, accessory
   nameKey: "shop_iron_sword",
-  icon: "⚔️",
+  icon: "️",
   rarity: "common",         // common, rare, epic, legendary
   stats: {
     attack: 5,
@@ -358,9 +358,9 @@ function unequipItem(itemId) {
 <div class="inventory-page">
   <div class="inventory-tabs">
     <button class="tab active" data-tab="all">${t('inventory_all')}</button>
-    <button class="tab" data-tab="weapons">⚔️ ${t('inventory_weapons')}</button>
-    <button class="tab" data-tab="armor">🛡️ ${t('inventory_armor')}</button>
-    <button class="tab" data-tab="accessories">💍 ${t('inventory_accessories')}</button>
+    <button class="tab" data-tab="weapons">️ ${t('inventory_weapons')}</button>
+    <button class="tab" data-tab="armor">️ ${t('inventory_armor')}</button>
+    <button class="tab" data-tab="accessories"> ${t('inventory_accessories')}</button>
   </div>
 
   <div class="inventory-grid">
@@ -375,9 +375,9 @@ function unequipItem(itemId) {
       ${renderEquipmentSlot('accessories', character.equipment.accessories)}
     </div>
     <div class="combat-stats-preview">
-      <span>⚔️ ${totalAttack}</span>
-      <span>🛡️ ${totalProtection}%</span>
-      <span>❤️ ${hpMax}</span>
+      <span>️ ${totalAttack}</span>
+      <span>️ ${totalProtection}%</span>
+      <span>️ ${hpMax}</span>
     </div>
   </div>
 </div>
@@ -396,8 +396,8 @@ function unequipItem(itemId) {
     <div class="item-rarity rarity-${item.rarity}">${t(`rarity_${item.rarity}`)}</div>
   </div>
   <div class="item-stats-preview">
-    ${item.stats.attack ? `<span>⚔️${item.stats.attack}</span>` : ''}
-    ${item.stats.protection ? `<span>🛡️${item.stats.protection}</span>` : ''}
+    ${item.stats.attack ? `<span>️${item.stats.attack}</span>` : ''}
+    ${item.stats.protection ? `<span>️${item.stats.protection}</span>` : ''}
   </div>
   <div class="item-actions">
     ${item.equipped ?
@@ -418,7 +418,7 @@ function unequipItem(itemId) {
   <h4>${t('equipment_worn')}</h4>
 
   <div class="equipment-slot" data-slot="weapons">
-    <span class="slot-label">⚔️</span>
+    <span class="slot-label">️</span>
     <div class="slot-items">
       ${character.equipment.weapons.map(item => `
         <div class="equipped-item" onclick="showItemDetails('${item.id}')">
@@ -429,7 +429,7 @@ function unequipItem(itemId) {
   </div>
 
   <div class="equipment-slot" data-slot="armor">
-    <span class="slot-label">🛡️</span>
+    <span class="slot-label">️</span>
     <div class="slot-items">
       ${character.equipment.armor ?
         `<div class="equipped-item" onclick="showItemDetails('${character.equipment.armor.id}')">
@@ -442,15 +442,15 @@ function unequipItem(itemId) {
 
   <div class="combat-stats">
     <div class="stat">
-      <span class="stat-icon">⚔️</span>
+      <span class="stat-icon">️</span>
       <span class="stat-value">${combatStats.attack}</span>
     </div>
     <div class="stat">
-      <span class="stat-icon">🛡️</span>
+      <span class="stat-icon">️</span>
       <span class="stat-value">${combatStats.protection}%</span>
     </div>
     <div class="stat">
-      <span class="stat-icon">❤️</span>
+      <span class="stat-icon">️</span>
       <span class="stat-value">${combatStats.hpMax}</span>
     </div>
   </div>

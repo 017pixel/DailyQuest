@@ -52,27 +52,27 @@ function analyzeStats(stats) {
 SINGLE_STAT_LABELS = {
   kraft: {
     label: "Kraftprotz",
-    icon: "💪",
+    icon: "",
     description: "Besonders stark trainiert"
   },
   ausdauer: {
     label: "Marathoner",
-    icon: "🏃",
+    icon: "",
     description: "Hervorragende Ausdauer"
   },
   beweglichkeit: {
     label: "Akrobat",
-    icon: "🤸",
+    icon: "",
     description: "Besonders beweglich"
   },
   durchhaltevermoegen: {
     label: "Stoiker",
-    icon: "🗿",
+    icon: "",
     description: "Unerschütterliches Durchhaltevermögen"
   },
   willenskraft: {
     label: "Eiserner Wille",
-    icon: "🧠",
+    icon: "",
     description: "Unbeirrbare Willenskraft"
   }
 };
@@ -83,37 +83,37 @@ SINGLE_STAT_LABELS = {
 TWO_STAT_LABELS = {
   "kraft-ausdauer": {
     label: "Powerläufer",
-    icon: "🔥",
+    icon: "",
     description: "Kraft und Ausdauer kombiniert"
   },
   "kraft-beweglichkeit": {
     label: "Kampfsportler",
-    icon: "🥊",
+    icon: "",
     description: "Kraft und Beweglichkeit vereint"
   },
   "kraft-willenskraft": {
     label: "Tank",
-    icon: "🛡️",
+    icon: "️",
     description: "Unaufhaltsame Kraft"
   },
   "ausdauer-beweglichkeit": {
     label: "Leichtfuß",
-    icon: "🦶",
+    icon: "",
     description: "Schnell und ausdauernd"
   },
   "ausdauer-durchhaltevermoegen": {
     label: "Langläufer",
-    icon: "⛰️",
+    icon: "️",
     description: "Für lange Strecken gemacht"
   },
   "beweglichkeit-willenskraft": {
     label: "Präzisionskünstler",
-    icon: "🎯",
+    icon: "",
     description: "Fokussierte Beweglichkeit"
   },
   "durchhaltevermoegen-willenskraft": {
     label: "Mentor",
-    icon: "📚",
+    icon: "",
     description: "Mentale Stärke und Ausdauer"
   }
 };
@@ -124,17 +124,17 @@ TWO_STAT_LABELS = {
 SPECIAL_LABELS = {
   balanced: {
     label: "Allrounder",
-    icon: "🌟",
+    icon: "",
     description: "Gut in allen Bereichen"
   },
   beginner: {
     label: "Neuling",
-    icon: "🌱",
+    icon: "",
     description: "Noch am Anfang der Reise"
   },
   master: {
     label: "Meister",
-    icon: "👑",
+    icon: "",
     description: "Alle Stats auf hohem Niveau"
   }
 };
@@ -201,7 +201,7 @@ Labels sind Teil des Character-Objekts:
   // ... andere Felder
   currentLabel: {
     label: "Kraftprotz",
-    icon: "💪",
+    icon: "",
     description: "Besonders stark trainiert"
   }
 }
@@ -216,7 +216,7 @@ Labels sind Teil des Character-Objekts:
     // ... andere Felder
     "currentLabel": {
       "label": "Kraftprotz",
-      "icon": "💪",
+      "icon": "",
       "description": "Besonders stark trainiert"
     }
   }

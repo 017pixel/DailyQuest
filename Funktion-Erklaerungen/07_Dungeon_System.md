@@ -315,7 +315,7 @@ TASKS = {
 ### Spawn Chip
 ```html
 <div class="dungeon-spawn-chip floating">
-  <div class="monster-icon">🐺</div>
+  <div class="monster-icon"></div>
   <div class="spawn-text">${t('dungeon_spawn_message')}</div>
   <button class="enter-btn">${t('dungeon_enter')}</button>
   <button class="ignore-btn">${t('dungeon_ignore')}</button>
@@ -337,12 +337,12 @@ TASKS = {
       </div>
       <div class="hp-text">${playerHp} / ${playerHpMax}</div>
       <div class="player-stats-detail">
-        ⚔️ ${character.combat.attack} | 🛡️ ${character.combat.protection}
+        ️ ${character.combat.attack} | ️ ${character.combat.protection}
       </div>
     </div>
 
     <div class="monster-display">
-      <div class="monster-sprite">🐺</div>
+      <div class="monster-sprite"></div>
       <div class="monster-name">${currentMonster.name}</div>
       <div class="hp-bar monster-hp">
         <div class="hp-fill" style="width: ${monsterHpPercent}%"></div>
@@ -357,7 +357,7 @@ TASKS = {
       ${tasks.map(task => `
         <button class="task-btn" data-task="${task.id}">
           <span class="task-label">${t(task.label)}</span>
-          <span class="task-damage">⚔️ ${calculateDamage(task)}</span>
+          <span class="task-damage">️ ${calculateDamage(task)}</span>
         </button>
       `).join('')}
     </div>
@@ -374,15 +374,15 @@ TASKS = {
 ### Victory Screen
 ```html
 <div class="dungeon-victory">
-  <div class="victory-icon">🎉</div>
+  <div class="victory-icon"></div>
   <h2>${t('dungeon_victory')}</h2>
   <div class="rewards">
     <div class="reward-item">
-      <span class="icon">✨</span>
+      <span class="icon"></span>
       <span class="value">+${rewards.xp} XP</span>
     </div>
     <div class="reward-item">
-      <span class="icon">💎</span>
+      <span class="icon"></span>
       <span class="value">+${rewards.manaStones} Mana-Stones</span>
     </div>
   </div>

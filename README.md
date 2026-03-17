@@ -1,4 +1,4 @@
-# DailyQuest 🏋️‍♂️
+# DailyQuest
 
 > Verwandle dein tägliches Training in ein episches Rollenspiel. Steige im Level auf, sammle Ausrüstung und werde zur besten Version deiner selbst.
 
@@ -8,37 +8,44 @@
 
 ---
 
-## ✨ Features
+## Über das Projekt
 
-### 🎮 Core Gameplay
+DailyQuest ist eine Progressive Web App (PWA), die darauf abzielt, die Motivation für Sport und produktive Gewohnheiten durch konsequente Gamification zu steigern. Das Projekt wurde im Rahmen von **Jugend forscht 2026** entwickelt und kombiniert moderne Webtechnologien mit psychologischen Motivationsmodellen.
+
+Die Kernidee basiert auf dem "System"-Konzept aus dem Webtoon Solo Leveling: Alltägliche Aufgaben werden in Quests verwandelt, die Erfahrungspunkte (Mana), Gold und Charakterfortschritt bringen.
+
+---
+
+## Kernfunktionen
+
+### Gameplay-Mechanik
 
 <div align="center">
 
 | Feature | Beschreibung |
 |---------|--------------|
-| **Level-System** | Jede Aufgabe gibt Mana (XP). Steige auf und beweise deine Stärke. |
-| **Tägliche Quests** | Automatisch generierte Aufgaben, angepasst an deine Ziele. |
-| **Strafsystem** | Verpasste Quests haben Konsequenzen – Disziplin ist alles! |
-| **Streak Freezes** | Rette deine Streak bei einem verpassten Tag. |
-| **Extra-Quests** | Tägliche Herausforderung mit hohem Risiko und hoher Belohnung. |
+| **Level-System** | Jede Aufgabe gibt Mana (XP). Steige auf und verbessere deine Werte. |
+| **Tägliche Quests** | Automatisch generierte Aufgaben, angepasst an deine Ziele und Schwierigkeit. |
+| **Strafsystem** | Verpasste Quests haben Konsequenzen für Level und Stats - Disziplin wird belohnt. |
+| **Streak-System** | Tägliche Nutzung wird getrackt. Streak Freezes retten deine Serie in Notfällen. |
+| **Extra-Quests** | Tägliche Herausforderungen mit hohem Risiko und hohen Belohnungen. |
 
 </div>
 
-### 👤 Charakter-System
+### Charakter-System
 
 <div align="center">
   <img src="Screenshots%20f%C3%BCr%20README/Character%20Seite.png" alt="Character Page" width="360" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 8px;">
 </div>
 
-<ul>
-  <li><strong>Dynamische Stats</strong>: Kraft, Ausdauer, Beweglichkeit, Durchhaltevermögen, Willenskraft</li>
-  <li><strong>Player-Labels</strong>: Personalisiertes Label basierend auf deinen Stärken</li>
-  <li><strong>Ausrüstung</strong>: Waffen und Rüstungen mit Boni</li>
-</ul>
+- **Dynamische Stats**: Kraft, Ausdauer, Beweglichkeit, Durchhaltevermögen, Willenskraft.
+- **Player-Labels**: Über 20 personalisierte Titel basierend auf deinen individuellen Stärken.
+- **Ausrüstung**: Erwerbe Waffen und Rüstungen im Shop, um Boni für Kämpfe zu erhalten.
+- **Fortschrittsvisualisierung**: Radar-Diagramme für Stats und Linien-Diagramme für Gewichtsverlauf.
 
-### 💪 Training & Übungen
+### Training und Übungen
 
-**50+ Übungen** für Home-Gym optimiert:
+Über **50 Übungen** sind für das Home-Gym und Eigengewichtstraining optimiert:
 
 <div align="center">
 
@@ -48,114 +55,66 @@
 | Ausdauer | Burpees, Joggen, Hula Hoop |
 | Fettverbrennung | Mountain Climbers, Shadowboxing |
 | Körpergewicht | Push-ups, Plank, Hollow Body Hold |
-| Lernen | Fokus-Timer für Sprachen, Coding |
+| Fokus | Lernen, Sprachen, Coding (Timer-basiert) |
 | Erholung | Spaziergänge, Dehnen, Lesen |
 
 </div>
 
-### 🌳 Fokus-Modul
+### Fokus-Modul
 
 <div align="center">
   <img src="Screenshots%20f%C3%BCr%20README/Fokus%20Timer.png" alt="Focus Timer" width="360" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 8px;">
 </div>
 
-<ul>
-  <li>Pomodoro-Timer und Stoppuhr</li>
-  <li>Kategorien-System für Sessions</li>
-  <li>Belohnungen für abgeschlossene Fokus-Zeit</li>
-</ul>
+- Pomodoro-Timer und Stoppuhr für produktive Phasen.
+- Kategorien-System zur Einordnung der Sessions.
+- Belohnungen für abgeschlossene Fokus-Zeit zur Steigerung der Konzentration.
 
-### ⚔️ Dungeons & Kampf
+### Dungeons und Kampf
 
-Mit 5% Wahrscheinlichkeit erscheint ein Dungeon beim App-Start:
+Mit einer Wahrscheinlichkeit von 5% erscheint beim App-Start ein Dungeon:
 
-<ul>
-  <li><strong>3 Monster-Typen</strong>: Schattenwolf, Höhlenbär, Morast-Zombie</li>
-  <li><strong>Skalierende Schwierigkeit</strong>: Monster werden stärker mit deinem Level</li>
-  <li><strong>Strategische Kämpfe</strong>: Persistente HP, Ausrüstungs-Boni</li>
-</ul>
-
-### 🛒 Shop & 🏆 Erfolge
-
-<div align="center">
-  <img src="Screenshots%20f%C3%BCr%20README/Shop%20Seite.png" alt="Shop" width="320" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 8px;">
-  <img src="Screenshots%20f%C3%BCr%20README/Erfolge%20PopUp.png" alt="Achievements" width="320" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 8px;">
-</div>
-
-<ul>
-  <li>Waffen, Rüstungen und Verbrauchsgegenstände</li>
-  <li>Dutzende Achievements für Meilensteine</li>
-</ul>
+- **Monster-Typen**: Schattenwolf, Höhlenbär, Morast-Zombie mit skalierender Stärke.
+- **Aktives Kampfsystem**: Besiege Gegner durch das Absolvieren realer physischer Übungen.
+- **Strategie**: Nutze Ausrüstungs-Boni und verwalte deine persistenten HP.
 
 ---
 
-## 🎮 Schnellstart
+## Dokumentation
 
-<div align="center">
+Detaillierte Informationen zur Architektur, zum Design und zur Theorie hinter DailyQuest findest du hier:
 
-| Schritt | Aktion |
-|---------|--------|
-| 1 | <strong>Einstellungen</strong> ⚙️ – Charaktername, Trainingsziel, Schwierigkeit |
-| 2 | <strong>Daily Quests</strong> 🏋️ – Aufgaben erledigen und belohnen lassen |
-| 3 | <strong>Charakter</strong> 👤 – Stats beobachten, Ausrüstung verwalten |
-| 4 | <strong>Shop</strong> 🛒 – Gold für bessere Ausrüstung ausgeben |
-
-</div>
-
-<div align="center">
-  <img src="Screenshots%20f%C3%BCr%20README/Extra%20Quests.png" alt="Extra Quests" width="360" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 8px;">
-</div>
+- [Technische Dokumentation](info/technical_documentation.md) - Architektur, PWA und IndexedDB.
+- [Design Guide](info/design_guide.md) - UI-Prinzipien, Farben und CSS-Struktur.
+- [Gamification-Theorie](info/theories_gamification.md) - Psychologische Grundlagen und Motivationsmodelle.
+- [Funktions-Erklärungen](Funktion-Erklaerungen/) - Detaillierte Beschreibungen einzelner App-Features.
 
 ---
 
-## 🧠 Inspiration
+## Technologien und Sicherheit
 
-Inspired by <strong>"Solo Leveling"</strong> – dem Webtoon/Anime über einen Protagonisten, der durch tägliche Aufgaben stärker wird.
-
----
-
-## 🛠️ Technologien
-
-<div align="center">
-
-| Bereich | Technologie |
-|---------|-------------|
-| Frontend | HTML5, CSS3, JavaScript (ES6+) |
-| Datenbank | IndexedDB (lokal) |
-| PWA | Service Worker, Web App Manifest |
-| Icons | Material Symbols Rounded |
-| Diagramme | Chart.js |
-
-</div>
+- **Frontend**: HTML5, CSS3, Vanilla JavaScript (ES6+).
+- **Datenbank**: IndexedDB für 100% lokale Datenspeicherung im Browser.
+- **PWA**: Offline-Funktionalität durch Service Worker und Web App Manifest.
+- **Visualisierung**: Chart.js für dynamische Diagramme.
+- **Datenschutz**: Keine Accounts, kein Tracking, keine Cloud - alle Daten bleiben auf deinem Gerät.
 
 ---
 
-## 🔒 Datenschutz
+## Installation
 
-<ul>
-  <li><strong>Kein Account nötig</strong> – sofort loslegen</li>
-  <li><strong>100% lokal</strong> – alle Daten bleiben auf deinem Gerät</li>
-  <li><strong>Export & Import</strong> – volle Kontrolle über deine Daten</li>
-</ul>
+1. Öffne die App im Browser.
+2. Wähle im Browser-Menü "Zum Startbildschirm hinzufügen".
+3. Nutze DailyQuest als native App auf deinem Gerät.
 
 ---
 
-## 📋 Changelog
+## Changelog
 
-Siehe <a href="CHANGELOG.md">CHANGELOG.md</a> für alle Änderungen.
-
----
-
-## 📱 Installation
-
-<ol>
-  <li>App im Browser öffnen</li>
-  <li>"Zum Startbildschirm hinzufügen" wählen</li>
-  <li>Als native App nutzen</li>
-</ol>
+Die vollständige Historie der Änderungen findest du in der [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
 <div align="center">
-  <strong>DailyQuest</strong> – Wo jeder Tag ein Abenteuer ist! 🚀
+  <strong>DailyQuest</strong> - Wo jeder Tag ein Abenteuer ist!
 </div>

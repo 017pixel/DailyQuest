@@ -299,7 +299,7 @@ DQ_TUTORIAL_PROGRESSIVE = {
   <div class="tutorial-popover" id="tutorial-popover">
     <div class="tutorial-header">
       <h3>${t(tutorial.titleKey)}</h3>
-      <button class="skip-btn" onclick="DQ_TUTORIAL.skipTutorial()">✕</button>
+      <button class="skip-btn" onclick="DQ_TUTORIAL.skipTutorial()"></button>
     </div>
 
     <div class="tutorial-content">
@@ -340,7 +340,7 @@ DQ_TUTORIAL_PROGRESSIVE = {
       <div class="tutorial-dot ${isCompleted(phase.id) ? 'completed' : ''}
                           ${isCurrent(phase.id) ? 'current' : ''}
                           ${isLocked(phase.id) ? 'locked' : ''}">
-        ${isCompleted(phase.id) ? '✓' : i + 1}
+        ${isCompleted(phase.id) ? '' : i + 1}
       </div>
     `).join('')}
   </div>

@@ -1,85 +1,72 @@
-# Changelog
+# Changelog - DailyQuest
 
-> ⚠️ **Hinweis:** Nicht alle Änderungen wurden dokumentiert. Dieser Changelog enthält die wichtigsten Updates und Features.
-
----
-
-## Version 2.3 - "Streak Freeze & Balance Update" (Aktuell)
-
-### 💉 Neues Dungeon-Feature
-- **Zufällige Dungeons:** Mit 5% Wahrscheinlichkeit beim App-Start erscheint ein Dungeon-Chip
-- **Kampfsystem:** Besiege Monster durch das Absolvieren von Übungen (Liegestütze, Squats, Sit-Ups)
-- **Skalierung:** Monster werden mit jedem besiegten Dungeon stärker
-- **Belohnungen:** Erhalte Mana und Mana-Steine bei Sieg
-- **Persistente HP:** Deine Lebenspunkte bleiben zwischen Kämpfen erhalten
-- **Drei Monster-Typen:** Schattenwolf, Höhlenbär und Morast-Zombie mit individuellen Stats
-
-### 🎨 Design-Verbesserungen
-- **Material Symbols Integration:** Alle Icons nutzen nun Material Symbols Rounded statt Emojis
-- **Dungeon-Animationen:** Flüssige Kampf-Animationen mit Monster-Hit und Gegenschlag-Effekten
-- **Screen Damage Overlay:** Visuelles Feedback bei erlittenem Schaden
-- **Floating Dungeon-Chip:** Elegantes Design für die Dungeon-Benachrichtigung
-
-### 🔧 Technische Updates
-- **Datenbank Version 27:** Neue `dungeon_progress` Tabelle für Dungeon-Fortschritt
-- **Service Worker v9:** Aktualisierter Cache mit allen Dungeon-Assets
-- **Spawn-Rate Fix:** Dungeons erscheinen jetzt korrekt nur mit 5% Wahrscheinlichkeit pro App-Start
-- **Combat Cache:** Optimierte Charakter-Stats für Kampfberechnungen
+Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlichen Updates der Anwendung.
 
 ---
 
-## Version 2.2 - "Dungeon Update"
+## Version 2.3 - Streak Freeze & Balance Update (Aktuell)
 
-### 🧊 Neues Streak-Freeze Feature
-- **Shop-Filter:** Streak Freeze wurde in die Kategorie "Weiteres" verschoben
-- **Item-Renaming:** "Drachenhaut-Robe" → "Drachenrobe", "Unverwundbarkeits-Aura" → "Götter-Aura"
-- **Limit:** Maximal 2 Streak Freezes gleichzeitig im Inventar
-- **Verbrauch:** Bei verpasstem Tag wird 1 Freeze konsumiert und die Streak bleibt erhalten
+### Dungeon-Feature Erweiterung
+- **Zufällige Dungeons**: Implementierung einer 5% Wahrscheinlichkeit beim App-Start für ein Dungeon-Erscheinen.
+- **Kampfsystem**: Gegner werden durch physische Übungen (Liegestütze, Squats, Sit-Ups) besiegt.
+- **Skalierung**: Einführung dynamischer Monster-Stats, die mit dem Spieler-Level wachsen.
+- **Belohnungen**: Mana-Steine und Mana (XP) als Belohnung für erfolgreiche Kämpfe.
+- **Persistente HP**: Lebenspunkte werden zwischen Kämpfen gespeichert, was strategisches Vorgehen erfordert.
+- **Monster-Typen**: Einführung von Schattenwolf, Höhlenbär und Morast-Zombie mit individuellen Eigenschaften.
 
-### ⚖️ Balancing & UX
-- **Durchhaltevermögen-Balancing:** Gewinne wurden halbiert
-- **Zeit-Anzeige:** Zeit-Ziele als Minuten statt Sekunden dargestellt
-- **Mobile Fix:** Einstellungs-Popup schließt beim Scrollen nicht mehr ungewollt
+### Design und UX
+- **Material Symbols**: Vollständige Umstellung aller Icons auf Material Symbols Rounded für ein professionelles Design.
+- **Animationen**: Neue Kampf-Animationen und visuelles Treffer-Feedback.
+- **Screen Damage**: Visueller Effekt bei erlittenem Schaden zur Steigerung der Immersion.
 
----
-
-## Version 2.1 - "Home-Gym Revolution & Enhanced Experience"
-
-### 🏠 Home-Gym Optimierung
-- Komplett überarbeitete Übungsbibliothek für Hanteln, Langhantel oder Körpergewicht
-- Keine speziellen Geräte mehr nötig
-
-### 🏷️ Verbessertes Player-Label System
-- 20 verschiedene Labels basierend auf deinen Stärken
-- Intelligente Analyse und adaptive Farbgebung
-- Interaktive Tooltips
-
-### 🎨 UI/UX Verbesserungen
-- Verstärkte Hintergrund-Animation
-- Verbesserte Responsivität auf allen Bildschirmgrößen
-- Intelligente Restday-Erkennung
-
-### 🔧 Technische Verbesserungen
-- Automatische Updates für neue Übungen
-- Verbesserte Datenbank-Migration (DB Version 23)
-- Service Worker Optimierung (v5)
+### Technische Updates
+- **Datenbank Version 27**: Neue Tabelle 'dungeon_progress' für die Speicherung des Fortschritts.
+- **Service Worker v9**: Optimierter Cache für alle neuen Dungeon-Grafiken und Assets.
+- **Spawn-Logik**: Fix der Zufallsberechnung für Dungeon-Erscheinungen.
 
 ---
 
-## Version 2.0 - "Player Labels & Enhanced Training"
+## Version 2.2 - Dungeon Update
 
-- Neues Player-Label System mit 20 verschiedenen Labels
-- Erweiterte Übungsbibliothek mit 10+ neuen Übungen
-- Verbesserte Restday-Erfahrung
-- Technische Verbesserungen und Performance-Optimierungen
+### Streak-Freeze Feature
+- **Shop-Kategorisierung**: Streak Freezes wurden in die neue Kategorie 'Weiteres' verschoben.
+- **Item-Überarbeitung**: Umbenennung von Items für bessere Konsistenz (z.B. Drachenrobe, Götter-Aura).
+- **Inventar-Limit**: Begrenzung auf maximal 2 Streak Freezes gleichzeitig.
+- **Automatischer Verbrauch**: Schutz der Streak bei verpassten Tagen durch automatische Nutzung.
+
+### Balancing
+- **Durchhaltevermögen**: Anpassung der Stat-Gewinne für besseres Langzeit-Balancing.
+- **Zeit-Anzeige**: Umstellung von Sekunden auf Minuten in der Benutzeroberfläche für bessere Lesbarkeit.
+- **Mobile Fixes**: Korrektur von Darstellungsfehlern in den Einstellungen auf Mobilgeräten.
 
 ---
 
-## Version 1.0 - "Foundation"
+## Version 2.1 - Home-Gym Revolution & Enhanced Experience
 
-- Grundlegendes Level- und Quest-System
-- Basis-Charakter-Stats und Ausrüstung
-- Fokus-Modul mit Timer
-- Gewichts-Tracking
-- Erfolge-System
-- Export/Import-Funktionalität
+### Übungs-Bibliothek
+- **Home-Gym Optimierung**: Komplette Überarbeitung der Übungen für die Nutzung mit Hanteln oder Eigengewicht.
+- **Geräteunabhängigkeit**: Fokus auf Übungen, die keine komplexen Studiogeräte erfordern.
+
+### Player-Label System
+- **Adaptive Labels**: Einführung von 20 individuellen Titeln basierend auf den Spieler-Stärken.
+- **Analyse-Logik**: Intelligente Vergabe von Labels wie 'Marathoner' oder 'Kraftprotz'.
+- **Interaktive UI**: Tooltips zur Erklärung der verschiedenen Labels.
+
+---
+
+## Version 2.0 - Player Labels & Enhanced Training
+
+- Erstmalige Einführung des Player-Label Systems.
+- Erweiterung der Übungsbibliothek um über 10 neue Bewegungsformen.
+- Optimierung der Restday-Erkennung und Anzeige.
+- Performance-Verbesserungen bei der initialen Datenbank-Migration.
+
+---
+
+## Version 1.0 - Foundation
+
+- Implementierung des Kern-Quest-Systems.
+- Charakter-Stats und Ausrüstungs-Management.
+- Fokus-Modul mit Pomodoro-Timer und Stoppuhr.
+- Lokale Datenspeicherung mittels IndexedDB.
+- Export- und Import-Funktion zur Datensicherung.

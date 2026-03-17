@@ -325,10 +325,10 @@ EXTRA_QUEST_TEMPLATES = [
   </div>
 
   <div class="quest-rewards">
-    <span class="mana">⚡ +${quest.manaReward}</span>
-    <span class="gold">💰 +${quest.goldReward}</span>
+    <span class="mana"> +${quest.manaReward}</span>
+    <span class="gold"> +${quest.goldReward}</span>
     ${quest.statBonus ?
-      `<span class="stats">📈 +${formatStats(quest.statBonus)}</span>` : ''}
+      `<span class="stats"> +${formatStats(quest.statBonus)}</span>` : ''}
   </div>
 
   <button class="complete-btn" onclick="DQ_EXTRA.completeQuest()">
@@ -337,7 +337,7 @@ EXTRA_QUEST_TEMPLATES = [
 
   ${isNearDeadline() ?
     `<div class="deadline-warning">
-       ⚠️ ${t('extra_quest_deadline_warning')}
+       ️ ${t('extra_quest_deadline_warning')}
      </div>` : ''
   }
 </div>
@@ -346,7 +346,7 @@ EXTRA_QUEST_TEMPLATES = [
 ### No Active Quest
 ```html
 <div class="extra-quest-empty">
-  <div class="empty-icon">🎯</div>
+  <div class="empty-icon"></div>
   <div class="empty-title">${t('extra_quest_no_active')}</div>
   <div class="empty-desc">${t('extra_quest_no_active_desc')}</div>
 

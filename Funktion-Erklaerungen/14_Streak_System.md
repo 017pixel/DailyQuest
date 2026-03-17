@@ -175,7 +175,7 @@ function updateStreakAchievement() {
 // In data/achievements.js
 {
   id: "streak",
-  icon: "🏆",
+  icon: "",
   tracking: "streakData.streak",
   tiers: [
     { threshold: 10, rewardGold: 100, rewardMana: 100 },
@@ -275,7 +275,7 @@ function renderStreakDisplay() { ... }
 ### Streak Display
 ```html
 <div class="streak-display ${streak > 0 ? 'active' : ''}">
-  <span class="streak-icon">🔥</span>
+  <span class="streak-icon"></span>
   <span class="streak-count">${streak}</span>
   <span class="streak-label">${t('streak_days')}</span>
   ${streak >= 7 ?
@@ -288,7 +288,7 @@ function renderStreakDisplay() { ... }
 ```html
 <div class="streak-notification">
   <div class="notification-content">
-    <span class="icon">🔥</span>
+    <span class="icon"></span>
     <div class="text">
       <h4>${t('streak_increased')}</h4>
       <p>${t('streak_now', { count: streak })}</p>
@@ -309,15 +309,15 @@ function renderStreakDisplay() { ... }
 ```html
 <div class="penalty-notification">
   <div class="notification-content">
-    <span class="icon">💔</span>
+    <span class="icon"></span>
     <div class="text">
       <h4>${t('streak_reset_title')}</h4>
       <p>${t('streak_reset_message')}</p>
     </div>
   </div>
   <div class="penalty-details">
-    <span>🔥 → 0</span>
-    ${levelDecreased ? `<span>📉 Level -1</span>` : ''}
+    <span> → 0</span>
+    ${levelDecreased ? `<span> Level -1</span>` : ''}
   </div>
 </div>
 ```

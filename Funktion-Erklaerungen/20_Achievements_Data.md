@@ -64,7 +64,7 @@ Die Achievements Data-Datei enthält alle Achievement-Definitionen mit ihren Tra
 ```javascript
 {
   id: "quests",
-  icon: "🔥",
+  icon: "",
   nameKey: "achievement_quests",
   descriptionKey: "achievement_quests_desc",
   tracking: "character.totalQuestsCompleted",
@@ -92,7 +92,7 @@ Die Achievements Data-Datei enthält alle Achievement-Definitionen mit ihren Tra
 ```javascript
 {
   id: "gold",
-  icon: "💰",
+  icon: "",
   nameKey: "achievement_gold",
   descriptionKey: "achievement_gold_desc",
   tracking: "character.totalGoldEarned",
@@ -120,7 +120,7 @@ Die Achievements Data-Datei enthält alle Achievement-Definitionen mit ihren Tra
 ```javascript
 {
   id: "shop",
-  icon: "🛒",
+  icon: "",
   nameKey: "achievement_shop",
   descriptionKey: "achievement_shop_desc",
   tracking: "character.totalItemsPurchased",
@@ -148,7 +148,7 @@ Die Achievements Data-Datei enthält alle Achievement-Definitionen mit ihren Tra
 ```javascript
 {
   id: "strength",
-  icon: "💪",
+  icon: "",
   nameKey: "achievement_strength",
   descriptionKey: "achievement_strength_desc",
   tracking: "character.stats.kraft",
@@ -176,7 +176,7 @@ Die Achievements Data-Datei enthält alle Achievement-Definitionen mit ihren Tra
 ```javascript
 {
   id: "streak",
-  icon: "🏆",
+  icon: "",
   nameKey: "achievement_streak",
   descriptionKey: "achievement_streak_desc",
   tracking: "streakData.streak",
@@ -204,7 +204,7 @@ Die Achievements Data-Datei enthält alle Achievement-Definitionen mit ihren Tra
 ```javascript
 {
   id: "focus_time",
-  icon: "🧠",
+  icon: "",
   nameKey: "achievement_focus_time",
   descriptionKey: "achievement_focus_time_desc",
   tracking: "totalFocusMinutes",
@@ -336,15 +336,15 @@ function getAchievementProgress(achievement) {
              onclick="claimAchievement('${achievement.id}')">
        ${t('achievement_claim')}
        <span class="rewards">
-         +${currentTierReward.rewardGold}💰
-         +${currentTierReward.rewardMana}⚡
+         +${currentTierReward.rewardGold}
+         +${currentTierReward.rewardMana}
        </span>
      </button>` :
     `<div class="achievement-status">
        ${progress.isMaxTier ?
-         '🏆 MAX' :
+         ' MAX' :
          progress.currentValue >= progress.nextThreshold ?
-           '✅' : '🔒'}
+           '' : ''}
      </div>`
   }
 </div>
