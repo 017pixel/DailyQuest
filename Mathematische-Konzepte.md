@@ -1,6 +1,6 @@
 # Mathematische Konzepte in DailyQuest
 
-Diese Dokumentation erklärt die Mathematik hinter DailyQuest in einfacher Sprache.
+Diese Dokumentation erklärt die Mathematik hinter DailyQuest.
 
 ---
 
