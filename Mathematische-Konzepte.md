@@ -312,5 +312,3 @@ const enduranceGained = Math.floor(minutes / 40);
 | **Rundungsfunktionen** | Alle Berechnungen | floor(), ceil(), round() |
 
 ---
-
-*Diese Dokumentation basiert auf der Analyse der DailyQuest-Codebase (Stand: März 2026).*
