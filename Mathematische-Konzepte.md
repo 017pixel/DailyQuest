@@ -196,12 +196,6 @@ Deine 5 Stats werden als Fünfeck angezeigt:
 - Alle Ecken sind gleich weit vom Mittelpunkt entfernt (72° auseinander)
 - Je höher der Stat, desto weiter außen liegt der Punkt
 
-**Berechnung der Position:**
-```
-X = Mittelpunkt_X + Radius × cos(Winkel)
-Y = Mittelpunkt_Y + Radius × sin(Winkel)
-```
-
 Das ergibt ein schönes rundes Diagramm.
 
 ---
