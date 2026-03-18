@@ -17,7 +17,6 @@ DailyQuest nutzt PWA-Features, um eine App-ähnliche Erfahrung im Browser zu bie
 
 - **Service Worker**: Ermöglicht Offline-Fähigkeit durch Caching aller statischen Assets (HTML, CSS, JS, Bilder). Verwendet eine "Cache First"-Strategie.
 - **Web App Manifest**: Definiert Name, Icons und Startverhalten für die Installation auf dem Startbildschirm.
-- **Offline-First**: Die App funktioniert nach dem ersten Laden komplett ohne Internetverbindung.
 
 ## 3. Datenpersistenz mit IndexedDB
 
