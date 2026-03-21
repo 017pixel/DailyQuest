@@ -350,7 +350,7 @@ const DQ_EXERCISES = {
                 </div>
 
                 <div class="info-section">
-                    <details class="info-details" open>
+                    <details class="info-details">
                         <summary>${trans.show_instructions}</summary>
                         <div class="info-explanation">${explanation}</div>
                     </details>
