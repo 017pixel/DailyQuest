@@ -10,7 +10,7 @@ const DQ_DB = {
     init: function () {
         return new Promise((resolve, reject) => {
             // --- VERSION ERHÖHT, UM UPDATE FÜR ALLE NUTZER ZU ERZWINGEN ---
-            const dbName = 'VibeCodenDB', dbVersion = 28;
+            const dbName = 'VibeCodenDB', dbVersion = 29;
             const request = indexedDB.open(dbName, dbVersion);
 
             request.onerror = (e) => {
