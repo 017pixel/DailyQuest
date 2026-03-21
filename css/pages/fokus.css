@@ -87,3 +87,99 @@
 
 #add-new-label-button { margin-top: 16px; }
 #new-focus-label-popup input { width: 100%; text-align: left; padding: 12px; }
+
+/* --- Querformat-Optimierung (Landscape Mode) --- */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+    #fokus-tab-fokus {
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background-color: var(--background-color);
+        z-index: 1000; /* Überlagert Navigation im Querformat für maximalen Fokus */
+        padding: 0;
+    }
+
+    .fokus-screen {
+        flex-direction: row;
+        justify-content: space-evenly;
+        padding: 10px 20px;
+        gap: 10px;
+    }
+
+    .fokus-main-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .timer-display {
+        font-size: 5rem; /* Größer im Querformat */
+        margin: 5px 0;
+    }
+
+    .timer-mode-selector, .timer-options {
+        transform: scale(0.85); /* Etwas kleiner um Platz zu sparen */
+    }
+
+    .start-stop-button {
+        padding: 10px 30px;
+        font-size: 16px;
+    }
+
+    /* Info-Panel rechts */
+    .fokus-landscape-info {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        flex: 1;
+        padding-left: 20px;
+        border-left: 1px solid var(--outline-color);
+        text-align: left;
+    }
+
+    .landscape-focused-on {
+        margin-bottom: 20px;
+    }
+
+    .landscape-label-title {
+        display: block;
+        font-size: 12px;
+        opacity: 0.6;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .landscape-label-name {
+        display: block;
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .landscape-quote {
+        display: block !important;
+        opacity: 0.8;
+        font-size: 14px;
+    }
+
+    /* Portrait Elemente ausblenden */
+    .portrait-quote {
+        display: none !important;
+    }
+}
+
+/* Portrait Standard (Quote unten) */
+@media screen and (orientation: portrait) {
+    .fokus-landscape-info {
+        display: none;
+    }
+    .portrait-quote {
+        display: block;
+    }
+}

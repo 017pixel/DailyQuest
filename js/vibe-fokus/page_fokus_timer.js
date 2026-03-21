@@ -22,13 +22,16 @@ const DQ_FOKUS_TIMER = {
         const lang = DQ_CONFIG.userSettings.language || 'de';
         const screen = document.createElement('div');
         screen.className = 'fokus-screen';
-        screen.innerHTML = `
+
+        // --- Linke Spalte: Timer-Controls ---
+        const mainCol = document.createElement('div');
+        mainCol.className = 'fokus-main-col';
+        mainCol.innerHTML = `
             <div class="timer-mode-selector">
                 <button class="mode-button ${isPomodoro ? 'active' : ''}" data-mode="pomodoro" data-lang-key="fokus_mode_timer">${DQ_DATA.translations[lang].fokus_mode_timer}</button>
                 <button class="mode-button ${!isPomodoro ? 'active' : ''}" data-mode="stopwatch" data-lang-key="fokus_mode_stopwatch">${DQ_DATA.translations[lang].fokus_mode_stopwatch}</button>
             </div>
             <div class="timer-display">${this.formatTime(timeToDisplay)}</div>
-            <div class="motivational-quote"></div>
             <div class="timer-options" style="display: ${isPomodoro ? 'flex' : 'none'}">
                 ${[15, 25, 50].map(min => `
                     <button class="time-option ${state.timer.pomodoroDuration === min * 60 ? 'selected' : ''}" data-minutes="${min}">${min} min</button>
@@ -36,6 +39,27 @@ const DQ_FOKUS_TIMER = {
             </div>
             <button class="start-stop-button" id="start-stop-btn" data-lang-key="${state.isSessionActive ? 'fokus_stop' : 'fokus_start'}">${state.isSessionActive ? DQ_DATA.translations[lang].fokus_stop : DQ_DATA.translations[lang].fokus_start}</button>
         `;
+
+        // --- Rechte Spalte: Info-Panel (Im Querformat sichtbar) ---
+        const infoCol = document.createElement('div');
+        infoCol.className = 'fokus-landscape-info';
+        const currentLabel = state.currentSessionLabel || (state.linkedQuest ? (DQ_DATA.translations[lang].exercise_names?.[state.linkedQuest?.labelKey] || state.linkedQuest?.nameKey || '') : '');
+        
+        infoCol.innerHTML = `
+            <div class="landscape-focused-on">
+                <span class="landscape-label-title">Ich fokussiere auf</span>
+                <span class="landscape-label-name">${currentLabel || '—'}</span>
+            </div>
+            <div class="motivational-quote landscape-quote"></div>
+        `;
+
+        // Portrait Quote (unten sichtbar wenn NICHT im Querformat)
+        const portraitQuote = document.createElement('div');
+        portraitQuote.className = 'motivational-quote portrait-quote';
+
+        screen.appendChild(mainCol);
+        screen.appendChild(infoCol);
+        screen.appendChild(portraitQuote);
         container.appendChild(screen);
 
         this.addListeners();
@@ -48,11 +72,9 @@ const DQ_FOKUS_TIMER = {
             if (state.isSessionActive) {
                 const elapsedMinutes = Math.floor(state.timer.elapsedSeconds / 60);
                 
-                // --- KORRIGIERTE LOGIK: Belohnung für Stoppuhr ab 2 Minuten ---
                 if (state.timer.mode === 'stopwatch' && elapsedMinutes >= 2) {
                     this.completeSession(elapsedMinutes);
                 } else {
-                    // Stoppt den Timer (Pomodoro) manuell ohne Belohnung oder die Stoppuhr, wenn die Zeit unter 2 Minuten liegt.
                     this.stopTimer();
                 }
             } else {
@@ -167,17 +189,19 @@ const DQ_FOKUS_TIMER = {
     },
 
     updateMotivationalQuote() {
-        const quoteEl = document.querySelector('#fokus-tab-fokus .motivational-quote');
+        const quoteElements = document.querySelectorAll('#fokus-tab-fokus .motivational-quote');
         const lang = DQ_CONFIG.userSettings.language || 'de';
         const quotes = {
             de: ["Jeder Schritt zählt.", "Konzentration ist der Schlüssel.", "Bleib dran, du schaffst das!", "Eine Minute nach der anderen.", "Wachstum braucht Zeit und Fokus."],
             en: ["Every step counts.", "Concentration is the key.", "Keep going, you can do it!", "One minute at a time.", "Growth needs time and focus."]
         };
-        if (quoteEl) {
-            quoteEl.textContent = DQ_VIBE_STATE.state.isSessionActive 
+        const text = DQ_VIBE_STATE.state.isSessionActive 
                 ? quotes[lang][Math.floor(Math.random() * quotes[lang].length)]
                 : '';
-        }
+        
+        quoteElements.forEach(el => {
+            el.textContent = text;
+        });
     },
     
     async prepareSession(durationInMinutes, questData) {
@@ -200,7 +224,6 @@ const DQ_FOKUS_TIMER = {
 
         this.stopTimer();
 
-        // Session speichern (ohne Wald/Emoji)
         DQ_VIBE_STATE.state.sessions.push({
             date: new Date().toISOString(),
             duration: minutes,
@@ -208,12 +231,10 @@ const DQ_FOKUS_TIMER = {
         });
 
         if (linkedQuest) {
-            // Für Quest-Belohnungen wird das generische Popup verwendet, da die Belohnungen variieren
             const { type, id } = linkedQuest;
             if (type === 'quest') await DQ_EXERCISES.completeQuest(id);
             else if (type === 'free') await DQ_EXERCISES.completeFreeExercise(id);
             
-            // Session bereits gespeichert, nur noch Vibe-State speichern
             await DQ_VIBE_STATE.saveState();
             return;
         }
@@ -242,7 +263,6 @@ const DQ_FOKUS_TIMER = {
         await DQ_VIBE_STATE.saveState();
         await new Promise(res => tx.oncomplete = res);
 
-        // --- NEU: Ruft das spezifische Fokus-Popup auf ---
         DQ_UI.showFocusRewardPopup({
             minutes: minutes,
             gold: goldEarned,
@@ -294,7 +314,7 @@ const DQ_FOKUS_TIMER = {
                 e.stopPropagation();
                 if (confirm(`Möchtest du das Label "${label.name}" wirklich löschen?`)) {
                     await this.deleteLabel(label.id);
-                    this.promptForLabel(); // Re-render the list
+                    this.promptForLabel();
                 }
             };
             list.appendChild(item);
