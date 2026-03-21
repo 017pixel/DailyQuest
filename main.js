@@ -572,7 +572,20 @@ function addSettingsListeners(elements) {
     });
 
     elements.languageSelect.addEventListener('change', (e) => saveSetting('language', e.target.value));
-    elements.themeToggle.addEventListener('change', (e) => saveSetting('theme', e.target.checked ? 'light' : 'dark'));
+    // Light-Theme Toggle: Wenn ausgeschaltet, auf dark (nicht oled) zurück
+    elements.themeToggle.addEventListener('change', (e) => {
+        saveSetting('theme', e.target.checked ? 'light' : 'dark');
+        // OLED-Toggle zurücksetzen wenn auf light
+        const oledToggle = document.getElementById('oled-toggle');
+        if (oledToggle && e.target.checked) oledToggle.checked = false;
+    });
+    // OLED Toggle
+    const oledToggle = document.getElementById('oled-toggle');
+    if (oledToggle) {
+        oledToggle.addEventListener('change', (e) => {
+            saveSetting('theme', e.target.checked ? 'oled' : 'dark');
+        });
+    }
     elements.characterNameInput.addEventListener('change', (e) => saveSetting('name', e.target.value));
 
     elements.difficultySlider.addEventListener('input', (e) => {

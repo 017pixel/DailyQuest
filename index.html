@@ -27,7 +27,7 @@
 
     <!-- PWA Manifest & Theme -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#5f8575">
+    <meta name="theme-color" content="#1c1b1f" id="meta-theme-color">
 
     <!-- Optimierte Icon-Links -->
     <link rel="icon" href="icon.png" type="image/png" sizes="any">
@@ -361,6 +361,16 @@
                     <div class="toggle-switch">
                         <input type="checkbox" id="theme-toggle">
                         <label for="theme-toggle" class="slider"></label>
+                    </div>
+                </div>
+                <div class="setting-item" id="oled-setting-item">
+                    <label for="oled-toggle">
+                        <span>OLED Dark Mode</span>
+                        <small style="display:block;opacity:0.6;font-size:11px;">Ultra-schwarz für AMOLED Displays</small>
+                    </label>
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="oled-toggle">
+                        <label for="oled-toggle" class="slider"></label>
                     </div>
                 </div>
             </div>

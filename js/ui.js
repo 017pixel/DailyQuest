@@ -247,8 +247,35 @@ const DQ_UI = {
     },
 
     applyTheme() {
-        document.documentElement.setAttribute('data-theme', DQ_CONFIG.userSettings.theme || 'dark');
-        this.elements.themeToggle.checked = (DQ_CONFIG.userSettings.theme === 'light');
+        const theme = DQ_CONFIG.userSettings.theme || 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+
+        // Status-Bar Farbe dynamisch anpassen
+        const metaThemeColor = document.getElementById('meta-theme-color');
+        if (metaThemeColor) {
+            if (theme === 'light') {
+                metaThemeColor.setAttribute('content', '#f5efff');
+            } else if (theme === 'oled') {
+                metaThemeColor.setAttribute('content', '#000000');
+            } else {
+                metaThemeColor.setAttribute('content', '#1c1b1f');
+            }
+        }
+
+        // OLED-Setting nur im Dark/OLED Mode anzeigen
+        const oledSettingItem = document.getElementById('oled-setting-item');
+        if (oledSettingItem) {
+            oledSettingItem.style.display = (theme === 'light') ? 'none' : 'flex';
+        }
+
+        // Toggle-Zustände aktualisieren
+        if (this.elements.themeToggle) {
+            this.elements.themeToggle.checked = (theme === 'light');
+        }
+        const oledToggle = document.getElementById('oled-toggle');
+        if (oledToggle) {
+            oledToggle.checked = (theme === 'oled');
+        }
     },
 
     // --- DUNGEON: Floating spawn chip with 5% spawn probability and persistence ---

@@ -41,6 +41,26 @@ html[data-theme='light'] {
     --popup-glow-penalty-light: 0 12px 65px 18px rgba(179, 38, 30, 0.35), 0 2px 64px 0 rgba(0, 0, 0, 0.22);
 }
 
+/* OLED Dark Mode – echte Schwarz-Töne für AMOLED-Displays */
+html[data-theme='oled'] {
+    --background-color: #000000;
+    --background-gradient: linear-gradient(180deg, #000000 0%, #000000 100%);
+    --surface-color: #0a0a0a;
+    --surface-container-high: #141414;
+    --primary-color: #5f8575;
+    --primary-color-rgb: 95, 133, 117;
+    --secondary-button-color: #1a1a2e;
+    --on-surface-color: #e6e1e5;
+    --on-primary-color: #ffffff;
+    --outline-color: #222222;
+    --mana-bar-color: #5b97d4;
+    --mana-bar-background: #111111;
+    --penalty-color: #cf6679;
+    --popup-bg-dark: #0d0d0d;
+    --popup-glow-dark: 0 12px 65px 18px rgba(95, 133, 117, 0.45), 0 2px 64px 0 rgba(0, 0, 0, 0.9);
+    --popup-glow-penalty-dark: 0 12px 65px 18px rgba(207, 102, 121, 0.5), 0 2px 64px 0 rgba(0, 0, 0, 0.9);
+}
+
 
 * {
     box-sizing: border-box;

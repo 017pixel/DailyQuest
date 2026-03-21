@@ -5,7 +5,7 @@
     "start_url": "./index.html",
     "display": "standalone",
     "background_color": "#121212",
-    "theme_color": "#5f8575",
+    "theme_color": "#1c1b1f",
     "description": "Gamify your daily workouts and build your character.",
     "orientation": "portrait",
     "categories": ["fitness", "health", "games"],
