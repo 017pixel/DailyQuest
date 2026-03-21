@@ -82,7 +82,10 @@ const DQ_CONFIG = {
     },
 
     levelUpCheck(char) {
-        const getManaForLevel = (level) => Math.floor(100 * Math.pow(1.5, level - 1));
+        // Level 20 beim Mana-Cap – ab Level 20 bleibt das Mana-Requirement konstant
+        const MAX_MANA_LEVEL_CAP = 20;
+        const getManaForLevel = (level) => Math.floor(100 * Math.pow(1.5, Math.min(level, MAX_MANA_LEVEL_CAP) - 1));
+
 
         let leveledUp = false;
         while (char.mana >= char.manaToNextLevel) {
