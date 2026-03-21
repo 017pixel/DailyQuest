@@ -72,7 +72,29 @@ const DQ_EXTRA = {
         this.countdownInterval = setInterval(update, 1000);
     },
 
-    startExtraQuest() {
+    async startExtraQuest() {
+        // --- COOLDOWN LOGIC START ---
+        const char = await DQ_CONFIG.getCharacter();
+        if (char && char.lastExtraQuestCompletionTime) {
+            const lastCompletionDate = new Date(char.lastExtraQuestCompletionTime);
+            const now = new Date();
+            const timeDiffMs = now - lastCompletionDate;
+            const cooldownMs = 60 * 60 * 1000; // 1 hour
+
+            if (timeDiffMs < cooldownMs) {
+                const remainingMs = cooldownMs - timeDiffMs;
+                const remainingMin = Math.ceil(remainingMs / (1000 * 60));
+                
+                const lang = DQ_CONFIG.userSettings.language || 'de';
+                const warningMsg = (DQ_DATA.translations[lang].extra_quest_cooldown || "Warte bitte noch {time} Min.")
+                                    .replace('{time}', remainingMin);
+                
+                DQ_UI.showCustomPopup(warningMsg, 'penalty');
+                return;
+            }
+        }
+        // --- COOLDOWN LOGIC END ---
+
         const tx = DQ_DB.db.transaction(['extra_quest'], 'readwrite');
         const store = tx.objectStore('extra_quest');
 
@@ -126,6 +148,10 @@ const DQ_EXTRA = {
         const questTemplate = DQ_DATA.extraQuestPool.find(q => q.nameKey === quest.nameKey);
         char = await DQ_CONFIG.processStatGains(char, questTemplate);
         char = DQ_CONFIG.levelUpCheck(char);
+        
+        // --- BUGFIX: Setze Cooldown-Zeitpunkt ---
+        char.lastExtraQuestCompletionTime = new Date().toISOString();
+        
         await new Promise(res => charStore.put(char).onsuccess = res);
 
         tx.oncomplete = () => {

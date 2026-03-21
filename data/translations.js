@@ -100,7 +100,25 @@ DQ_DATA.translations = {
         extra_quest_task_title: "AUFGABE",
         extra_quest_timer_title: "ZEITLIMIT",
         complete_extra_quest: "Quest abschließen",
+        extra_quest_cooldown: "Du machst aber schnelle Extra Quests! Warte bitte noch {time} Minuten, um eine neue Extra Quest anzunehmen!",
+        has_equipment: "Equipment vorhanden (Hanteln/Langhantel)",
         start_task_button: "Los",
+        muscle_groups_label: "Muskelgruppen",
+        training_plans_label: "Trainingspläne",
+        base_stats_label: "Status-Bonus",
+        // Muskelgruppen
+        muscle_biceps: "Bizeps",
+        muscle_triceps: "Trizeps",
+        muscle_shoulders: "Schultern",
+        muscle_back: "Rücken",
+        muscle_legs: "Beine",
+        muscle_abs: "Bauch",
+        muscle_chest: "Brust",
+        muscle_glutes: "Gesäß",
+        muscle_full_body: "Ganzkörper",
+        muscle_mind: "Geist & Mental",
+        muscle_diet: "Ernährung",
+        muscle_arms: "Arme",
 
         // --- GEWICHTS-TRACKING ---
         weight_history: "Gewichtsverlauf",
@@ -294,6 +312,8 @@ DQ_DATA.translations = {
         extra_quest_task_title: "TASK",
         extra_quest_timer_title: "TIME LIMIT",
         complete_extra_quest: "Complete Quest",
+        extra_quest_cooldown: "You're doing extra quests fast! Please wait {time} minutes to accept a new Extra Quest!",
+        has_equipment: "Equipment available (Dumbbells/Barbell)",
         start_task_button: "Start",
 
         // --- WEIGHT TRACKING ---

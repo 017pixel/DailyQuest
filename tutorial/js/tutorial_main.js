@@ -414,10 +414,12 @@ const DQ_TUTORIAL_MAIN = {
                             restDays: 1,
                             language: 'de',
                             theme: 'dark',
-                            weightTracking: false
+                            weightTracking: false,
+                            hasEquipment: this.hasEquipment
                         };
                     } else {
                         settings.goal = finalGoal;
+                        settings.hasEquipment = this.hasEquipment;
                     }
                     settingsStore.put(settings);
 

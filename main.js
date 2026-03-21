@@ -270,6 +270,7 @@ async function initializeApp() {
             goalSelect: document.getElementById('goal-select'),
             restdaysSelect: document.getElementById('restdays-select'),
             characterNameInput: document.getElementById('character-name-input'),
+            equipmentToggle: document.getElementById('equipment-toggle'),
             exportDataButton: document.getElementById('export-data-button'),
             importDataInput: document.getElementById('import-data-input'),
             resetTutorialButton: document.getElementById('reset-tutorial-button'),
@@ -594,6 +595,12 @@ function addSettingsListeners(elements) {
         DQ_EXERCISES.renderQuests();
     });
 
+    elements.equipmentToggle.addEventListener('change', async (e) => {
+        await saveSetting('hasEquipment', e.target.checked);
+        await generateDailyQuestsIfNeeded(true);
+        DQ_EXERCISES.renderQuests();
+    });
+
     elements.weightTrackingToggle.addEventListener('change', (e) => {
         saveSetting('weightTrackingEnabled', e.target.checked);
         elements.weightTrackingOptions.style.display = e.target.checked ? 'block' : 'none';
@@ -696,7 +703,7 @@ function saveSetting(key, value) {
                         setTimeout(() => updateDifficultySliderStyle(difficultySlider), 50);
                     }
                 }
-                if (key === 'difficulty') DQ_EXERCISES.renderFreeExercisesPage();
+                if (key === 'difficulty' || key === 'hasEquipment') DQ_EXERCISES.renderFreeExercisesPage();
                 resolve();
             };
         }
@@ -710,7 +717,7 @@ function loadSettings() {
             if (e.target.result) {
                 DQ_CONFIG.userSettings = e.target.result;
             } else {
-                DQ_CONFIG.userSettings = { id: 1, language: 'de', theme: 'dark', difficulty: 3, goal: 'muscle', restDays: 2 };
+                DQ_CONFIG.userSettings = { id: 1, language: 'de', theme: 'dark', difficulty: 3, goal: 'muscle', restDays: 2, hasEquipment: true };
                 tx.objectStore('settings').add(DQ_CONFIG.userSettings);
             }
             updateSettingsUI();
@@ -729,6 +736,9 @@ function updateSettingsUI() {
     elements.difficultyValue.textContent = DQ_CONFIG.userSettings.difficulty || 3;
     elements.goalSelect.value = DQ_CONFIG.userSettings.goal || 'muscle';
     elements.restdaysSelect.value = DQ_CONFIG.userSettings.restDays || 2;
+    
+    // Default zu true, wenn nicht gesetzt
+    elements.equipmentToggle.checked = DQ_CONFIG.userSettings.hasEquipment !== false;
 
     updateDifficultySliderStyle(elements.difficultySlider);
 
@@ -753,6 +763,21 @@ async function generateDailyQuestsIfNeeded(forceRegenerate = false) {
     const questsToday = await new Promise(res => index.getAll(todayStr).onsuccess = e => res(e.target.result));
 
     if (questsToday.length > 0 && !forceRegenerate) {
+        // --- MIGRATION/RECOVERY: Falls Quests bereits existieren, aber das neue System (z.B. muscles) nutzen sollen ---
+        // Wir prüfen, ob eine Quest bereits abgeschlossen ist. Wenn nicht, aktualisieren wir sie ggf. mit Template-Daten.
+        const allTemplates = Object.values(DQ_DATA.exercisePool).flat();
+        let changed = false;
+        for (const quest of questsToday) {
+            const template = allTemplates.find(t => t.nameKey === quest.nameKey);
+            if (template && !quest.bonusInfoSynced) { // bonusInfoSynced ist ein Flag für uns
+                quest.manaReward = Math.ceil(template.mana * (1 + 0.2 * (DQ_CONFIG.userSettings.difficulty - 1)));
+                quest.goldReward = Math.ceil(template.gold * (1 + 0.15 * (DQ_CONFIG.userSettings.difficulty - 1)));
+                quest.bonusInfoSynced = true; 
+                store.put(quest);
+                changed = true;
+            }
+        }
+        if (changed) console.log("Bestehende Daily Quests wurden mit neuen Belohnungen/Daten synchronisiert.");
         return;
     }
 
@@ -778,7 +803,13 @@ async function generateDailyQuestsIfNeeded(forceRegenerate = false) {
     }
 
     console.log(`Generiere neue Quests für das Ziel: ${goal}`);
-    const pool = [...(DQ_DATA.exercisePool[goal] || DQ_DATA.exercisePool['muscle'])];
+    let pool = [...(DQ_DATA.exercisePool[goal] || DQ_DATA.exercisePool['muscle'])];
+    
+    // --- FILTER: Hanteln filtern ---
+    if (DQ_CONFIG.userSettings.hasEquipment === false) {
+        pool = pool.filter(ex => !ex.needsEquipment);
+    }
+    
     for (let i = pool.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [pool[i], pool[j]] = [pool[j], pool[i]];
