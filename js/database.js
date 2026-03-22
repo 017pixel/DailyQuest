@@ -10,7 +10,7 @@ const DQ_DB = {
     init: function () {
         return new Promise((resolve, reject) => {
             // --- VERSION ERHÖHT, UM UPDATE FÜR ALLE NUTZER ZU ERZWINGEN ---
-            const dbName = 'VibeCodenDB', dbVersion = 32;
+            const dbName = 'VibeCodenDB', dbVersion = 33;
             const request = indexedDB.open(dbName, dbVersion);
 
             request.onerror = (e) => {
@@ -66,6 +66,15 @@ const DQ_DB = {
                 }
                 if (!db.objectStoreNames.contains('tutorial_dynamic_state')) {
                     db.createObjectStore('tutorial_dynamic_state', { keyPath: 'key' });
+                }
+                if (!db.objectStoreNames.contains('training_plan_state')) {
+                    db.createObjectStore('training_plan_state', { keyPath: 'key' });
+                }
+                if (!db.objectStoreNames.contains('training_activity_log')) {
+                    const logStore = db.createObjectStore('training_activity_log', { keyPath: 'id', autoIncrement: true });
+                    logStore.createIndex('date', 'date', { unique: false });
+                    logStore.createIndex('goal', 'goal', { unique: false });
+                    logStore.createIndex('type', 'type', { unique: false });
                 }
 
                 console.log("Datenbank-Upgrade abgeschlossen.");

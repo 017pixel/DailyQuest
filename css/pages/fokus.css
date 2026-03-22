@@ -1,4 +1,4 @@
-/* --- FOKUS-SEITE STYLING (ohne Wald) --- */
+﻿/* --- FOKUS-SEITE STYLING (ohne Wald) --- */
 
 /* Tab-Management (ein einzelner Container bleibt) */
 .fokus-tab-content {
@@ -13,6 +13,11 @@
     height: calc(100vh - 60px - 75px - 48px); /* vh - header - nav - container_padding */
 }
 
+#page-fokus {
+    height: calc(100vh - 60px - 75px - 32px);
+    min-height: calc(100vh - 60px - 75px - 32px);
+}
+
 .fokus-screen {
     padding: 24px;
     text-align: center;
@@ -20,9 +25,17 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 24px;
+    gap: 20px;
     flex-grow: 1;
-    height: 100%;
+    min-height: 100%;
+}
+
+.fokus-main-col {
+    width: min(360px, 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-block: auto;
 }
 
 /* === Timer-Warnung === */
@@ -32,7 +45,7 @@
 .timer-mode-selector {
     display: flex;
     gap: 0;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
     background-color: var(--surface-container-high);
     border-radius: 12px;
     padding: 4px;
@@ -53,6 +66,9 @@
 .motivational-quote { font-size: 16px; color: var(--on-surface-color); opacity: 0.7; min-height: 20px; font-style: italic; }
 
 .timer-options { display: flex; justify-content: center; gap: 8px; }
+.timer-options {
+    margin-bottom: 16px;
+}
 .time-option {
     padding: 8px 16px; border: 1px solid var(--outline-color); background-color: var(--surface-color);
     color: var(--on-surface-color); border-radius: 8px; cursor: pointer; transition: all 0.2s ease;
@@ -110,6 +126,7 @@
 
     .fokus-main-col {
         flex: 1;
+        width: auto;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -176,6 +193,41 @@
 
 /* Portrait Standard (Quote unten) */
 @media screen and (orientation: portrait) {
+    #fokus-tab-fokus {
+        height: 100%;
+        min-height: calc(100vh - 60px - 75px - 32px);
+    }
+
+    .fokus-screen {
+        justify-content: center;
+        align-items: center;
+        padding: 20px 16px 24px;
+        gap: 18px;
+    }
+
+    .timer-display {
+        font-size: 4rem;
+        margin: 8px 0;
+    }
+
+    .timer-mode-selector,
+    .timer-options {
+        width: 100%;
+        max-width: 320px;
+    }
+
+    .timer-mode-selector {
+        max-width: 288px;
+    }
+
+    .timer-options {
+        margin-bottom: 16px;
+    }
+
+    .start-stop-button {
+        width: min(208px, 100%);
+    }
+
     .fokus-landscape-info {
         display: none;
     }
@@ -183,3 +235,4 @@
         display: block;
     }
 }
+

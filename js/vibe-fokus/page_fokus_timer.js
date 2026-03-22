@@ -1,4 +1,4 @@
-const DQ_FOKUS_TIMER = {
+﻿const DQ_FOKUS_TIMER = {
     DEFAULT_LABELS: [
         { key: 'focus_label_reading', text: 'Lesen' },
         { key: 'focus_label_learning', text: 'Lernen' },
@@ -304,7 +304,7 @@ const DQ_FOKUS_TIMER = {
             item.className = 'label-list-item';
             item.innerHTML = `
                 <span class="label-text">${label.name}</span>
-                <button class="delete-label-button" data-id="${label.id}">×</button>
+                <button class="delete-label-button" data-id="${label.id}">&times;</button>
             `;
             item.querySelector('.label-text').onclick = () => {
                 DQ_UI.hideTopPopup();
@@ -353,3 +353,4 @@ const DQ_FOKUS_TIMER = {
         DQ_UI.showPopup(popup);
     }
 };
+

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="de" data-theme="dark">
 
 <head>
@@ -92,6 +92,7 @@
 
             <div id="daily-quest-container" class="hero-quests">
                 <h2 data-lang-key="daily_quests">Daily Quests</h2>
+                <div id="training-phase-banner"></div>
                 <div id="quest-list" class="content-container">
                     <!-- Quests werden hier dynamisch eingefügt -->
                 </div>
@@ -347,6 +348,10 @@
                     <input type="text" id="character-name-input" placeholder="Unknown Hunter">
                 </div>
                 <div class="setting-item">
+                    <label for="character-age-input" data-lang-key="age">Alter</label>
+                    <input type="number" id="character-age-input" min="1" max="100" step="1" placeholder="34">
+                </div>
+                <div class="setting-item">
                     <label for="language-select">
                         <span data-lang-key="language">Sprache</span>
                         <span class="beta-tag">BETA</span>
@@ -426,6 +431,7 @@
                         <option value="fatloss" data-lang-key="goal_fatloss">Abnehmen</option>
                         <option value="kraft_abnehmen" data-lang-key="goal_kraft_abnehmen">Kraft + Abnehmen</option>
                         <option value="calisthenics" data-lang-key="goal_calisthenics">Calisthenics</option>
+                        <option value="senior" data-lang-key="goal_senior">Senioren-Training</option>
                         <option value="sick" data-lang-key="goal_sick">Krank</option>
                     </select>
                 </div>
@@ -445,12 +451,23 @@
                         <label for="equipment-toggle" class="slider"></label>
                     </div>
                 </div>
+                <div class="setting-item phase-controls-item">
+                    <div class="phase-controls-copy">
+                        <strong data-lang-key="training_phase_controls_title">Phase</strong>
+                        <small data-lang-key="training_phase_controls_hint">Ändert nur die aktive Phase, nicht den Basisplan.</small>
+                    </div>
+                    <div class="phase-controls-buttons">
+                        <button type="button" id="phase-repeat-button" class="card-button secondary-button" data-lang-key="training_phase_repeat">Wiederholen</button>
+                        <button type="button" id="phase-skip-button" class="card-button secondary-button" data-lang-key="training_phase_skip">Überspringen</button>
+                        <button type="button" id="phase-extend-button" class="card-button secondary-button" data-lang-key="training_phase_extend">Verlängern</button>
+                    </div>
+                </div>
             </div>
             <div class="settings-section">
                 <h4 class="settings-subtitle">Tutorial</h4>
                 <div class="data-actions">
-                    <button id="reset-tutorial-button" class="card-button secondary-button full-width-button">
-                        Intro und Tutorial neu starten
+                    <button type="button" id="reset-tutorial-button" class="card-button secondary-button full-width-button" data-lang-key="restart_training_button">
+                        Einen Neuanfang beginnen
                     </button>
                 </div>
             </div>
@@ -562,12 +579,55 @@
         </div>
     </div>
 
+    <div id="endurance-entry-popup" class="popup">
+        <div class="popup-drag-handle"></div>
+        <div class="popup-content">
+            <h3 data-lang-key="endurance_entry_title">Ausdauer eintragen</h3>
+            <div class="settings-warning-box">
+                <span class="warning-icon"><span class="material-symbols-rounded" style="font-size:20px;">directions_run</span></span>
+                <p data-lang-key="endurance_entry_hint">Trage Strecke, Zeit und dein Belastungsgefühl ein.</p>
+            </div>
+            <div class="setting-item">
+                <label for="endurance-distance-input" data-lang-key="distance">Strecke</label>
+                <input type="number" id="endurance-distance-input" min="0" step="0.1" placeholder="5.0">
+            </div>
+            <div class="setting-item">
+                <label for="endurance-duration-input" data-lang-key="duration">Zeit</label>
+                <input type="number" id="endurance-duration-input" min="1" step="1" placeholder="30">
+            </div>
+            <div class="setting-item">
+                <label for="endurance-power-input" data-lang-key="power">Power</label>
+                <input type="number" id="endurance-power-input" min="1" max="10" step="1" placeholder="6">
+            </div>
+            <div class="setting-item">
+                <label for="endurance-notes-input" data-lang-key="notes">Notizen</label>
+                <input type="text" id="endurance-notes-input" maxlength="120" placeholder="Wie war die Einheit?">
+            </div>
+            <div class="popup-actions">
+                <button id="endurance-entry-cancel-button" class="card-button secondary-button" data-lang-key="cancel">Abbrechen</button>
+                <button id="endurance-entry-save-button" class="card-button" data-lang-key="endurance_entry_button">Eintragen</button>
+            </div>
+        </div>
+    </div>
+
 
     <script>
         if (location.protocol.startsWith('http') && 'serviceWorker' in navigator) {
             window.addEventListener('load', () => {
+                const isLocalDevHost = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
+                if (isLocalDevHost) {
+                    navigator.serviceWorker.getRegistrations()
+                        .then(registrations => Promise.all(registrations.map(reg => reg.unregister())))
+                        .then(() => console.log('ServiceWorker unregistered for local development.'))
+                        .catch(err => console.log('ServiceWorker unregister failed: ', err));
+                    return;
+                }
+
                 navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => console.log('ServiceWorker registration successful with scope: ', registration.scope))
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                        registration.update();
+                    })
                     .catch(err => console.log('ServiceWorker registration failed: ', err));
             });
         }
@@ -576,20 +636,24 @@
     <!-- Skripte -->
     <script src="tutorial/js/tutorial_state.js"></script>
     <script src="tutorial/js/tutorial_main.js"></script>
+    <script src="tutorial/js/tutorial_onboarding.js"></script>
     <script src="tutorial/js/tutorial_progressive.js"></script>
     <script src="tutorial/js/tutorial_triggers.js"></script>
     <script src="data/translations.js"></script>
     <script src="data/exercises.js"></script>
+    <script src="data/training_plans.js"></script>
     <script src="data/achievements.js"></script>
     <script src="data/dungeons.js"></script>
     <script src="js/dungeons/dungeon_combat.js"></script>
     <script src="js/database.js"></script>
+    <script src="js/training_system.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/character/page_character_stats.js"></script>
     <script src="js/character/page_character_inventory.js"></script>
     <script src="js/character/page_character_labels.js"></script>
     <script src="js/character/page_character_main.js"></script>
     <script src="js/page_exercises.js"></script>
+    <script src="js/page_exercises_training.js"></script>
     <script src="js/page_shop.js"></script>
     <script src="js/page_extra_quest.js"></script>
     <script src="js/page_achievements.js"></script>
@@ -605,3 +669,4 @@
 </body>
 
 </html>
+

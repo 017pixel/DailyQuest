@@ -30,6 +30,10 @@
     pointer-events: none;
 }
 
+.hidden {
+    display: none !important;
+}
+
 #tutorial-overlay.reveal {
     animation: slideUpReveal 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
@@ -253,6 +257,85 @@
 }
 
 /* ===========================
+   ALTERSABFRAGE
+   =========================== */
+
+.tutorial-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    max-width: 520px;
+    margin: 0 auto;
+    animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.tutorial-panel.fade-out {
+    animation: fadeOutDown 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.tutorial-age-row {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    color: #ffffff;
+}
+
+.tutorial-age-label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+#tutorial-age-value {
+    font-size: 1.5rem;
+    color: #8bc9a8;
+}
+
+#tutorial-age-slider {
+    width: 100%;
+    accent-color: #5f8575;
+    height: 8px;
+}
+
+.tutorial-age-help {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.98rem;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.tutorial-age-note {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: rgba(95, 133, 117, 0.15);
+    border: 1px solid rgba(95, 133, 117, 0.4);
+    color: #ffffff;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.tutorial-normal-mode-link {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: #d2f0dc;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+}
+
+.tutorial-normal-mode-link:hover {
+    color: #ffffff;
+}
+
+/* ===========================
    EQUIPMENT & GOAL SELECTION
    =========================== */
 
@@ -289,6 +372,14 @@
 .tutorial-choice-btn .material-symbols-rounded {
     color: rgba(95, 133, 117, 0.9);
     transition: all 0.3s ease;
+}
+
+.tutorial-choice-btn[data-goal="senior"] {
+    border-color: rgba(139, 201, 168, 0.35);
+}
+
+.tutorial-choice-btn[data-goal="senior"] .material-symbols-rounded {
+    color: rgba(139, 201, 168, 0.95);
 }
 
 .tutorial-choice-btn .choice-description {

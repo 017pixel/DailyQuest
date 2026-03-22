@@ -1,4 +1,4 @@
-const DQ_FOKUS_MAIN = {
+﻿const DQ_FOKUS_MAIN = {
     init() {
         // Keine Tabs mehr – nur Timer-Ansicht
     },
@@ -7,3 +7,4 @@ const DQ_FOKUS_MAIN = {
         DQ_FOKUS_TIMER.renderTimerScreen();
     },
 };
+

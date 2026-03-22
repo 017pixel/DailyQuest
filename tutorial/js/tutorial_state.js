@@ -129,7 +129,11 @@ const DQ_TUTORIAL_STATE = {
                     return;
                 }
 
-                const tx = DQ_DB.db.transaction(['tutorial_state'], 'readwrite');
+                const stores = ['tutorial_state'];
+                if (DQ_DB.db.objectStoreNames.contains('tutorial_dynamic_state')) {
+                    stores.push('tutorial_dynamic_state');
+                }
+                const tx = DQ_DB.db.transaction(stores, 'readwrite');
                 const store = tx.objectStore('tutorial_state');
 
                 // Setze completed auf false statt es zu löschen,
@@ -141,10 +145,16 @@ const DQ_TUTORIAL_STATE = {
                 });
                 store.delete('features');
 
+                if (DQ_DB.db.objectStoreNames.contains('tutorial_dynamic_state')) {
+                    tx.objectStore('tutorial_dynamic_state').clear();
+                }
+
                 // Auch LocalStorage-Backups bereinigen
                 try {
                     localStorage.removeItem('dq_has_equipment');
                     localStorage.removeItem('dq_training_goal');
+                    localStorage.removeItem('dq_character_age');
+                    localStorage.removeItem('tutorial_reset_pending');
                 } catch (e) {
                     console.warn('Fehler beim Bereinigen des LocalStorage:', e);
                 }

@@ -1,4 +1,4 @@
-const DQ_UI = {
+﻿const DQ_UI = {
     elements: {},
     touchStartY: 0,
     popupStack: [],
@@ -52,14 +52,20 @@ const DQ_UI = {
         if (currentActive) currentActive.classList.remove('active');
         button.classList.add('active');
         const targetPageId = button.dataset.page;
-        this.elements.pages.forEach(page => page.classList.toggle('active', page.id === targetPageId));
+        this.elements.pages.forEach(page => {
+            const isTarget = page.id === targetPageId;
+            page.classList.toggle('active', isTarget);
+            page.hidden = !isTarget;
+            if (isTarget) {
+                page.style.display = '';
+            } else {
+                page.style.display = 'none';
+            }
+        });
         this.updateHeaderTitle(targetPageId);
 
         switch (targetPageId) {
             case 'page-exercises':
-                // Scroll-Position beim Öffnen zurücksetzen, damit Hero voll sichtbar ist
-                const container = document.getElementById('app-container');
-                if (container) container.scrollTo({ top: 0, behavior: 'instant' });
                 DQ_EXERCISES.renderQuests();
                 DQ_EXERCISES.renderFreeExercisesPage();
                 break;
@@ -76,6 +82,12 @@ const DQ_UI = {
                 DQ_EXTRA.renderExtraQuestPage();
                 break;
         }
+
+        const container = document.getElementById('app-container');
+        if (container) {
+            container.scrollTop = 0;
+        }
+
         // Beim Seitenwechsel ggf. Dungeon-Spawn-Chip erneut montieren (z.B. nach Niederlage)
         this.mountDungeonSpawnChipIfNeeded();
 
@@ -157,15 +169,6 @@ const DQ_UI = {
             }
             this.elements.notificationPopupContent.innerHTML = content.replace(/\n/g, '<br>');
             this.showPopup(this.elements.notificationPopup);
-
-            if (type !== 'penalty') {
-                setTimeout(() => {
-                    const topPopup = this.popupStack[this.popupStack.length - 1];
-                    if (topPopup === this.elements.notificationPopup && topPopup.classList.contains('show')) {
-                        this.hideTopPopup();
-                    }
-                }, 3000);
-            }
         }
     },
 
@@ -373,3 +376,4 @@ const DQ_UI = {
         try { localStorage.setItem('dq_dungeon_spawn_prob', String(prob)); } catch { }
     }
 };
+
