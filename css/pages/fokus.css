@@ -76,7 +76,7 @@
 .time-option.selected { background-color: var(--primary-color); color: var(--on-primary-color); border-color: var(--primary-color); }
 
 .start-stop-button {
-    padding: 16px 48px; font-size: 18px; border-radius: 28px; border: none; cursor: pointer;
+    padding: 14px 41px; font-size: 18px; border-radius: 28px; border: none; cursor: pointer;
     background-color: var(--primary-color); color: var(--on-primary-color); font-weight: 600;
     transition: background-color 0.2s ease, filter 0.2s ease; width: auto;
 }
@@ -140,11 +140,11 @@
     }
 
     .timer-mode-selector, .timer-options {
-        transform: scale(0.85); /* Etwas kleiner um Platz zu sparen */
+        transform: scale(0.70); /* Etwas kleiner um Platz zu sparen */
     }
 
     .start-stop-button {
-        padding: 10px 30px;
+        padding: 10px 25px;
         font-size: 16px;
     }
 
@@ -225,7 +225,7 @@
     }
 
     .start-stop-button {
-        width: min(208px, 100%);
+        width: min(177px, 100%);
     }
 
     .fokus-landscape-info {
