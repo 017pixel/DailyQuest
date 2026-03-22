@@ -48,8 +48,6 @@ DQ_DATA.exercisePool = {
         { id: 507, nameKey: 'glute_bridges', type: 'reps', baseValue: 15, mana: 18, gold: 5, statPoints: { kraft: 0.5 }, muscles: ['glutes', 'back'] },
         { id: 508, nameKey: 'tricep_extensions', type: 'reps', baseValue: 12, mana: 20, gold: 7, statPoints: { kraft: 1 }, needsEquipment: true, muscles: ['triceps'] },
         { id: 509, nameKey: 'side_plank', type: 'time', baseValue: 20, mana: 22, gold: 7, statPoints: { durchhaltevermoegen: 1 }, muscles: ['abs'] },
-        { id: 510, nameKey: 'dead_bug', type: 'reps', baseValue: 10, mana: 18, gold: 6, statPoints: { beweglichkeit: 1, durchhaltevermoegen: 0.5 }, muscles: ['abs', 'core'] },
-        { id: 511, nameKey: 'bird_dog', type: 'reps', baseValue: 10, mana: 18, gold: 6, statPoints: { beweglichkeit: 1, durchhaltevermoegen: 0.5 }, muscles: ['core', 'back'] },
         { id: 512, nameKey: 'wall_sit', type: 'time', baseValue: 45, mana: 20, gold: 7, statPoints: { durchhaltevermoegen: 1 }, muscles: ['legs', 'glutes'] },
         { id: 513, nameKey: 'bicycle_crunch', type: 'reps', baseValue: 20, mana: 18, gold: 7, statPoints: { kraft: 0.5, durchhaltevermoegen: 0.5 }, muscles: ['abs'] },
         { id: 514, nameKey: 'reverse_flys', type: 'reps', baseValue: 12, mana: 17, gold: 21, statPoints: { kraft: 0.5 }, needsEquipment: true, muscles: ['back', 'shoulders'] }
@@ -80,8 +78,7 @@ DQ_DATA.exercisePool = {
         { id: 609, nameKey: 'plank', type: 'time', baseValue: 30, mana: 25, gold: 8, statPoints: { durchhaltevermoegen: 1 }, muscles: ['abs', 'shoulders', 'full_body'] },
         { id: 610, nameKey: 'side_plank', type: 'time', baseValue: 20, mana: 22, gold: 7, statPoints: { durchhaltevermoegen: 1 }, muscles: ['abs'] },
         { id: 611, nameKey: 'leg_raises', type: 'reps', baseValue: 12, mana: 26, gold: 34, statPoints: { kraft: 1, beweglichkeit: 1 }, muscles: ['abs'] },
-        { id: 612, nameKey: 'dead_bug', type: 'reps', baseValue: 10, mana: 18, gold: 6, statPoints: { beweglichkeit: 1, durchhaltevermoegen: 0.5 }, muscles: ['abs', 'core'] },
-        { id: 613, nameKey: 'bird_dog', type: 'reps', baseValue: 10, mana: 18, gold: 6, statPoints: { beweglichkeit: 1, durchhaltevermoegen: 0.5 }, muscles: ['core', 'back'] },
+
         { id: 614, nameKey: 'wall_sit', type: 'time', baseValue: 45, mana: 20, gold: 7, statPoints: { durchhaltevermoegen: 1 }, muscles: ['legs', 'glutes'] }
     ],
     sick: [
@@ -142,12 +139,11 @@ DQ_DATA.exerciseExplanations = {
         shadowboxing: "Stelle dich in eine Boxer-Stellung und simuliere Schläge gegen einen unsichtbaren Gegner. Wechsle zwischen verschiedenen Schlagkombinationen und bewege dich dabei. Halte deine Hände hoch und deine Ellenbogen nah am Körper. Diese Übung trainiert Koordination, Ausdauer und Kraft.",
         step_ups: "Stelle einen Fuß auf eine stabile Erhöhung wie eine Bank oder Treppenstufe. Drücke dich kontrolliert hoch, strecke das Standbein vollständig und steige wieder ab. Wechsle anschließend die Seite. Halte den Oberkörper aufrecht und nutze die Beine, nicht den Schwung.",
         wall_sit: "Lehne deinen Rücken an eine Wand und rutsche so weit nach unten, bis deine Knie etwa im 90-Grad-Winkel sind. Die Füße stehen hüftbreit vor dir. Halte die Position ruhig und mit angespanntem Rumpf.",
-        dead_bug: "Lege dich auf den Rücken, strecke die Arme zur Decke und hebe die Beine an. Senke abwechselnd einen Arm und das gegenüberliegende Bein, ohne den unteren Rücken vom Boden zu lösen. Führe die Bewegung langsam und kontrolliert aus.",
-        bird_dog: "Gehe in den Vierfüßlerstand. Strecke abwechselnd einen Arm und das gegenüberliegende Bein aus, ohne das Becken zu kippen. Halte kurz die Spannung und wechsle dann die Seite.",
+
         bicycle_crunch: "Lege dich auf den Rücken, hebe die Beine an und führe Ellenbogen und gegenüberliegendes Knie abwechselnd zusammen. Drehe dabei den Oberkörper leicht mit. Die Bewegung bleibt kontrolliert und nicht zu schnell.",
-        walk_30min: "Ein zügiger 30-minütiger Spaziergang, idealerweise an der frischen Luft. Halte ein Tempo, bei dem dein Puls leicht erhöht ist, du dich aber noch unterhalten kannst. Eine großartige aktive Erholung für Körper und Geist.",
+        walk_30min: "Ein zügiger Spaziergang, idealerweise an der frischen Luft. Halte ein Tempo, bei dem dein Puls leicht erhöht ist, du dich aber noch unterhalten kannst. Eine großartige aktive Erholung für Körper und Geist.",
         read_15pages: "Nimm dir bewusst Zeit, um mindestens 15 Seiten in einem Buch deiner Wahl zu lesen. Dies trainiert nicht nur deinen Geist, sondern fördert auch Konzentration und Willenskraft. Schalte Ablenkungen aus und tauche in die Geschichte ein.",
-        healthy_snack: "Statt zu verarbeiteten Snacks zu greifen, bereite dir eine gesunde Alternative zu. Das kann Obst, Gemüse mit Hummus, eine Handvoll Nüsse oder ein griechischer Joghurt sein. Eine bewusste Entscheidung für deine Gesundheit.",
+        healthy_snack: "Greife zu einer gesunden Alternative statt zu verarbeiteten Snacks. Obst, Gemüse, Nüsse oder andere unverarbeitete Lebensmittel zählen. Eine bewusste Entscheidung für deine Gesundheit.",
         stretch_10min: "Führe eine sanfte Dehnungsroutine für deine Hauptmuskelgruppen durch. Halte jede Dehnung für etwa 20-30 Sekunden, ohne zu wippen. Atme tief ein und aus, um die Entspannung zu fördern. Perfekt nach dem Training oder zur Regeneration.",
         learn_something: "Fordere deinen Geist heraus, indem du etwas Neues lernst. Das kann eine Vokabel in einer neuen Sprache, ein interessanter wissenschaftlicher Fakt oder das Anschauen eines kurzen Tutorials zu einer neuen Fähigkeit sein. Wissen ist Macht!",
         general_workout: "Dies ist deine Chance, ein komplettes Workout nach deinem eigenen Plan durchzuführen. Ob im Fitnessstudio oder zu Hause – wärme dich gut auf, gib dein Bestes und vergiss das Cool-down nicht. Markiere diese Quest als erledigt, wenn du mit deiner Einheit fertig bist.",
@@ -211,12 +207,11 @@ DQ_DATA.exerciseExplanations = {
         shadowboxing: "Stand in a boxer's stance and simulate punches against an invisible opponent. Alternate between different punch combinations while moving around. Keep your hands up and your elbows close to your body. This exercise trains coordination, endurance, and strength.",
         step_ups: "Place one foot on a stable elevated surface such as a bench or stair. Push yourself up in a controlled way, fully extend the standing leg, then step back down. Switch sides after each set. Keep your torso upright and drive through the leg, not momentum.",
         wall_sit: "Lean your back against a wall and slide down until your knees are around a 90-degree angle. Your feet stay hip-width in front of you. Hold the position steadily with your core engaged.",
-        dead_bug: "Lie on your back, extend your arms toward the ceiling and lift your legs. Lower one arm and the opposite leg at a time without letting your lower back leave the floor. Move slowly and with control.",
-        bird_dog: "Get into an all-fours position. Extend one arm and the opposite leg at the same time without letting your hips rotate. Hold briefly, then switch sides.",
+
         bicycle_crunch: "Lie on your back, lift your legs and alternately bring elbow and opposite knee together. Rotate your upper body slightly with the movement. Keep the motion controlled rather than fast.",
-        walk_30min: "A brisk 30-minute walk, ideally in the fresh air. Maintain a pace that slightly elevates your heart rate but still allows you to hold a conversation. A great form of active recovery for body and mind.",
+        walk_30min: "A brisk walk, ideally in the fresh air. Maintain a pace that slightly elevates your heart rate but still allows you to hold a conversation. A great form of active recovery for body and mind.",
         read_15pages: "Consciously take the time to read at least 15 pages in a book of your choice. This not only trains your mind but also improves concentration and willpower. Turn off distractions and immerse yourself in the story.",
-        healthy_snack: "Instead of reaching for processed snacks, prepare a healthy alternative. This could be fruit, vegetables with hummus, a handful of nuts, or Greek yogurt. A conscious decision for your health.",
+        healthy_snack: "Reach for a healthy alternative instead of processed snacks. Fruit, vegetables, nuts, or other unprocessed foods count. A conscious decision for your health.",
         stretch_10min: "Perform a gentle stretching routine for your main muscle groups. Hold each stretch for about 20-30 seconds without bouncing. Breathe deeply in and out to promote relaxation. Perfect for after a workout or for recovery.",
         learn_something: "Challenge your mind by learning something new. This could be a vocabulary word in a new language, an interesting scientific fact, or watching a short tutorial on a new skill. Knowledge is power!",
         general_workout: "This is your chance to complete a full workout according to your own plan. Whether at the gym or at home—warm up properly, give it your all, and don't forget to cool down. Mark this quest as done when you've finished your session.",
