@@ -311,8 +311,8 @@
         }
 
         if (quest.type === 'time') return `${quest.target} s`;
-        if (quest.type === 'focus') return `${quest.target} min`;
-        if (quest.type === 'check') return 'Check';
+        if (quest.type === 'focus') return `${quest.timerDuration || quest.target} min`;
+        if (quest.type === 'check') return null;
         return `${quest.target} ${this.t('reps_label', 'Wdh.')}`;
     },
 
