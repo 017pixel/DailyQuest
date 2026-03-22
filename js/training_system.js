@@ -151,8 +151,10 @@
         return { stageIndex, stage, stageWeek, stageWeeks, progress, shiftedWeek };
     },
 
-    pickCandidate(slot, recentExerciseKeys, hasEquipment) {
-        const goalExercises = Object.values(DQ_DATA.exercisePool).flat();
+    pickCandidate(slot, recentExerciseKeys, hasEquipment, pickedToday = []) {
+        const exercisePool = DQ_DATA.exercisePool;
+        const nonSeniorPools = Object.keys(exercisePool).filter(k => k !== 'senior');
+        const goalExercises = nonSeniorPools.flatMap(k => exercisePool[k]);
         const candidates = (slot.candidates || [])
             .map(nameKey => goalExercises.find(ex => ex.nameKey === nameKey))
             .filter(Boolean);
@@ -160,9 +162,11 @@
         const pool = hasEquipment === false
             ? (filtered.length > 0 ? filtered : goalExercises.filter(ex => !ex.needsEquipment))
             : (filtered.length > 0 ? filtered : candidates);
-        if (pool.length === 0) return null;
+        const available = pool.filter(ex => !pickedToday.includes(ex.nameKey));
+        const finalPool = available.length > 0 ? available : pool;
+        if (finalPool.length === 0) return null;
 
-        const scored = pool.map(ex => {
+        const scored = finalPool.map(ex => {
             let score = 1;
             if (recentExerciseKeys.includes(ex.nameKey)) score -= 0.7;
             if (ex.needsEquipment && hasEquipment === false) score -= 0.5;
@@ -275,7 +279,7 @@
 
         for (let i = 0; i < 6; i++) {
             const slot = plan.slots[i] || plan.slots[plan.slots.length - 1];
-            const template = this.pickCandidate(slot, recent, hasEquipment) || this.pickCandidate({ candidates: ['walk_30min', 'stretch_10min'] }, recent, hasEquipment);
+            const template = this.pickCandidate(slot, recent, hasEquipment, questIds) || this.pickCandidate({ candidates: ['walk_30min', 'stretch_10min'] }, recent, hasEquipment, questIds);
             if (!template) continue;
             const quest = this.buildQuest(goal, plan, state, stageContext, slot, template, todayStr, i, difficulty, hasEquipment);
             questIds.push(quest.nameKey);
@@ -294,7 +298,7 @@
     },
 
     formatQuestTarget(quest) {
-        if (quest.completionMode === 'log') {
+        if (quest.completionMode === 'log' && quest.nameKey !== 'walk_30min') {
             const summary = quest.targetSummary || {};
             const duration = summary.duration || quest.target || 20;
             const distance = summary.distance || 0;

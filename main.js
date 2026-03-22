@@ -1095,7 +1095,7 @@ async function generateDailyQuestsIfNeeded(forceRegenerate = false) {
             [pool[i], pool[j]] = [pool[j], pool[i]];
         }
 
-        const questCount = 6;
+        const questCount = 5;
         const newQuests = [];
         for (let i = 0; i < questCount; i++) {
             const template = pool[i % Math.max(1, pool.length)];
