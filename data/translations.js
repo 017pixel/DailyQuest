@@ -289,7 +289,7 @@ DQ_DATA.translations = {
         restart_training_warning: "Dabei gehen dein Tutorial-Fortschritt und der Intro-Status verloren.",
         restart_training_notice: "Deine eigentlichen Spieldaten bleiben erhalten.",
         restart_training_confirm: "Neuanfang beginnen",
-        restday_info_box: "Heute Restday. Erholung zuerst."
+        restday_info_box: "Heute ist ein Restday. Erhole dich heute!"
     },
     en: {
         // --- MAIN NAVIGATION & PAGE TITLES ---
