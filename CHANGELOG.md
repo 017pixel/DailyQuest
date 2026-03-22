@@ -4,7 +4,7 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
-## Version 2.3 - Streak Freeze & Balance Update (Aktuell)
+## Version 2.4 - Training Flow & Fokus Fixes (Aktuell)
 
 ### Dungeon-Feature Erweiterung
 - **Zufällige Dungeons**: Implementierung einer 5% Wahrscheinlichkeit beim App-Start für ein Dungeon-Erscheinen.

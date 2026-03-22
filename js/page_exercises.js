@@ -1,11 +1,18 @@
-const DQ_EXERCISES = {
+﻿const DQ_EXERCISES = {
     currentFreeExerciseFilter: 'all',
+    pendingEnduranceQuestId: null,
 
     init(elements) {
         elements.pageExercises.addEventListener('click', (event) => this.handleExerciseClick(event));
         elements.freeExerciseFilters.addEventListener('click', (event) => this.handleFilterClick(event));
         elements.searchExerciseButton.addEventListener('click', () => this.openSearchPopup());
         elements.searchExerciseConfirmButton.addEventListener('click', () => this.executeSearch());
+        if (elements.enduranceEntrySaveButton) {
+            elements.enduranceEntrySaveButton.addEventListener('click', () => this.saveEnduranceEntry());
+        }
+        if (elements.enduranceEntryCancelButton) {
+            elements.enduranceEntryCancelButton.addEventListener('click', () => this.closeEndurancePopup());
+        }
 
         // Smooth Scroll für Reveal-Handle
         const revealBtn = document.getElementById('reveal-free-training');
@@ -46,7 +53,7 @@ const DQ_EXERCISES = {
             if (action === 'info') {
                 this.showQuestInfo(questId);
             } else if (action === 'complete') {
-                this.completeQuest(questId);
+                await this.completeQuest(questId);
             } else if (action === 'start-focus') {
                 const quest = await new Promise(res => DQ_DB.db.transaction('daily_quests').objectStore('daily_quests').get(questId).onsuccess = e => res(e.target.result));
                 if (quest) {
@@ -165,7 +172,10 @@ const DQ_EXERCISES = {
     },
 
     formatTargetDisplay(type, value) {
-        if (type === 'reps') return `${value} Reps`;
+        const lang = DQ_CONFIG.userSettings.language || 'de';
+        const repsLabel = (DQ_DATA.translations[lang] && DQ_DATA.translations[lang].reps_label) || 'Reps';
+        const secondsLabel = lang === 'en' ? 'sec.' : 'Sek.';
+        if (type === 'reps') return `${value} ${repsLabel}`;
         if (type === 'time') {
             if (value >= 60) {
                 const minutes = Math.floor(value / 60);
@@ -173,410 +183,9 @@ const DQ_EXERCISES = {
                 if (seconds === 0) return `${minutes} min`;
                 return `${minutes}m ${seconds}s`;
             }
-            return `${value} Sek.`;
+            return `${value} ${secondsLabel}`;
         }
         return '';
     },
-
-    renderQuests() {
-        const db = DQ_DB.db;
-        if (!db) return;
-        const store = db.transaction(['daily_quests'], 'readonly').objectStore('daily_quests');
-        const questList = DQ_UI.elements.questList;
-        questList.innerHTML = '';
-        const lang = DQ_CONFIG.userSettings.language || 'de';
-        const userGoal = DQ_CONFIG.userSettings.goal || 'muscle';
-
-        // Restday-Box Logik überarbeitet
-        const mainQuestSection = document.getElementById('daily-quest-container');
-        const existingRestdayBox = mainQuestSection.querySelector('.restday-info-box');
-        if (existingRestdayBox) {
-            existingRestdayBox.remove();
-        }
-
-        // Prüfe ob heute ein Rest Day ist
-        const isRestDay = this.checkIfRestDay();
-
-        store.index('date').getAll(DQ_CONFIG.getTodayString()).onsuccess = e => {
-            const questsToday = e.target.result;
-            if (questsToday.length === 0) {
-                return;
-            }
-            questsToday.forEach(quest => {
-                const card = document.createElement('div');
-                card.className = `card exercise-card ${quest.completed ? 'completed' : ''}`;
-                card.dataset.questId = quest.questId;
-
-                let targetDisplay = this.formatTargetDisplay(quest.type, quest.target);
-
-                const translatedName = (DQ_DATA.translations[lang].exercise_names[quest.nameKey] || quest.nameKey);
-                
-                const isFocusQuest = quest.type === 'focus';
-                const buttonAction = isFocusQuest ? 'start-focus' : 'complete';
-                const buttonText = isFocusQuest ? (DQ_DATA.translations[lang].start_task_button || 'Los') : 'OK';
-
-                card.innerHTML = `
-                    <div class="quest-info">
-                        <h2>${translatedName}</h2>
-                        ${targetDisplay ? `<p class="quest-target">${targetDisplay}</p>` : ''}
-                    </div>
-                    <div class="exercise-card-actions">
-                        <button class="action-button info-button-small" data-action="info" aria-label="Info">?</button>
-                        <button class="action-button complete-button-small" data-action="${buttonAction}" aria-label="Absolvieren" ${quest.completed ? 'disabled' : ''}>
-                            ${quest.completed ? '<span class="material-symbols-rounded">check</span>' : buttonText}
-                        </button>
-                    </div>
-                `;
-                questList.appendChild(card);
-            });
-            
-            // Füge Rest Day Info Box nach den Quests hinzu, wenn es ein Rest Day ist
-            if (isRestDay) {
-                const box = document.createElement('div');
-                box.className = 'restday-info-box';
-                box.innerHTML = DQ_DATA.translations[lang].restday_info_box;
-                
-                // Füge die Box nach der Quest-Liste ein
-                questList.insertAdjacentElement('afterend', box);
-            }
-        };
-    },
-
-    async completeQuest(questId) {
-        try {
-            const updatedChar = await DQ_CONFIG.performQuestCompletion(questId);
-
-            const quest = await new Promise(resolve => {
-                 DQ_DB.db.transaction('daily_quests', 'readonly').objectStore('daily_quests').get(questId).onsuccess = e => resolve(e.target.result);
-            });
-
-            if (quest) {
-                 DQ_UI.showCustomPopup(`Sehr gut! <span class=\"material-symbols-rounded icon-accent\">thumb_up</span><br>+${quest.manaReward} Mana <span class=\"material-symbols-rounded icon-mana\">auto_awesome</span> | +${quest.goldReward} Gold <span class=\"material-symbols-rounded icon-gold\">paid</span>`);
-            }
-            
-            DQ_CONFIG.checkStreakCompletion();
-            
-            this.renderQuests();
-            DQ_CHARACTER_MAIN.renderPage();
-            DQ_ACHIEVEMENTS.checkAllAchievements(updatedChar);
-
-        } catch (error) {
-            console.error("Quest-Abschluss fehlgeschlagen (UI-Ebene):", error);
-            DQ_UI.showCustomPopup("Speichern fehlgeschlagen. Bitte versuche es erneut.", 'penalty');
-        }
-    },
-
-    showQuestInfo(questId) {
-        DQ_DB.db.transaction(['daily_quests'], 'readonly').objectStore('daily_quests').get(questId).onsuccess = (e) => {
-            const quest = e.target.result;
-            if (!quest) return;
-            this.renderExerciseInfoPopup(quest, true);
-        };
-    },
-
-    /**
-     * ZENTRALE FUNKTION FÜR DAS ÜBUNGS-INFO-POPUP
-     * Wird sowohl für Daily Quests als auch für Freies Training genutzt.
-     */
-    renderExerciseInfoPopup(exercise, isQuest) {
-        const lang = DQ_CONFIG.userSettings.language || 'de';
-        const trans = DQ_DATA.translations[lang];
-        const difficulty = DQ_CONFIG.userSettings.difficulty || 3;
-
-        // Finde das Template für Muskelgruppen und Stats
-        const template = Object.values(DQ_DATA.exercisePool).flat().find(t => t.nameKey === exercise.nameKey);
-        if (!template) return;
-
-        const translatedName = (trans.exercise_names[exercise.nameKey] || exercise.nameKey);
-        const explanation = (DQ_DATA.exerciseExplanations[lang][exercise.nameKey] || 'Keine Beschreibung verfügbar.');
-        
-        // Ziel & Belohnung berechnen
-        let targetValue = exercise.target || exercise.baseValue;
-        // Bei Quests ist der Target-Wert bereits fest in der DB, bei freiem Training muss er ggf. berechnet werden
-        if (!isQuest && exercise.type !== 'check' && exercise.type !== 'link' && exercise.type !== 'focus') {
-            targetValue = Math.ceil(exercise.baseValue + (exercise.baseValue * 0.4 * (difficulty - 1)));
-        }
-        let targetDisplay = this.formatTargetDisplay(exercise.type, targetValue);
-
-        // Belohnungen (bei Quests aus dem Quest-Objekt, sonst berechnet)
-        const scaledMana = isQuest ? exercise.manaReward : Math.ceil(exercise.manaReward * (1 + 0.2 * (difficulty - 1)));
-        const scaledGold = isQuest ? exercise.goldReward : Math.ceil(exercise.goldReward * (1 + 0.15 * (difficulty - 1)));
-
-        // Finde alle Kategorien (Trainingspläne)
-        const categories = [];
-        for (const [catName, list] of Object.entries(DQ_DATA.exercisePool)) {
-            if (list.some(item => item.nameKey === exercise.nameKey)) {
-                categories.push(trans[`filter_${catName}`] || catName);
-            }
-        }
-
-        // HTML Generierung
-        const muscleTags = (template.muscles || []).map(m => `<span class="info-badge muscle-badge">${trans[`muscle_${m}`] || m}</span>`).join('');
-        const categoryTags = categories.map(c => `<span class="info-badge cat-badge">${c}</span>`).join('');
-
-        let statsHtml = '';
-        if (template.statPoints) {
-            statsHtml = Object.entries(template.statPoints).map(([stat, val]) => {
-                const statName = stat.charAt(0).toUpperCase() + stat.slice(1);
-                return `<div class="info-stat-row"><span class="material-symbols-rounded icon-accent" style="font-size:16px;">add_circle</span> ${val} ${statName}</div>`;
-            }).join('');
-        }
-        if (template.directStatGain) {
-            statsHtml += Object.entries(template.directStatGain).map(([stat, val]) => {
-                const statName = stat.charAt(0).toUpperCase() + stat.slice(1);
-                return `<div class="info-stat-row"><span class="material-symbols-rounded icon-accent" style="font-size:16px;">bolt</span> ${val} ${statName} (Sofort)</div>`;
-            }).join('');
-        }
-
-        const content = `
-            <div class="enhanced-info-popup">
-                <h3 class="info-title">${translatedName}</h3>
-                
-                <div class="info-grid">
-                    <div class="info-section">
-                        <span class="info-section-label">${trans.muscle_groups_label}</span>
-                        <div class="info-badges-container">${muscleTags || '-'}</div>
-                    </div>
-
-                    <div class="info-section">
-                        <span class="info-section-label">${trans.training_plans_label}</span>
-                        <div class="info-badges-container">${categoryTags || '-'}</div>
-                    </div>
-
-                    <div class="info-section full-width">
-                        <span class="info-section-label">${trans.base_stats_label}</span>
-                        <div class="info-stats-list">${statsHtml || '-'}</div>
-                    </div>
-                </div>
-
-                <div class="info-section">
-                    <details class="info-details">
-                        <summary>${trans.show_instructions}</summary>
-                        <div class="info-explanation">${explanation}</div>
-                    </details>
-                </div>
-
-                <div class="info-footer">
-                    ${targetDisplay ? `<div class="info-target"><strong>Ziel:</strong> ${targetDisplay}</div>` : ''}
-                    <div style="flex-grow: 1;"></div>
-                    <div class="info-reward-wrapper" style="display: flex; align-items: center; gap: 8px;">
-                        <span class="info-reward-label">Belohnung:</span>
-                        <div class="info-rewards">
-                            <span class="material-symbols-rounded icon-mana" style="font-size: 16px;">auto_awesome</span> ${scaledMana} 
-                            <span class="material-symbols-rounded icon-gold" style="margin-left:4px; font-size: 16px;">paid</span> ${scaledGold}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        DQ_UI.showCustomPopup(content, 'info');
-    },
-
-    renderFreeExercisesPage() {
-        const db = DQ_DB.db;
-        if (!db) return;
-        const store = db.transaction(['exercises'], 'readonly').objectStore('exercises');
-        const lang = DQ_CONFIG.userSettings.language || 'de';
-        const difficulty = DQ_CONFIG.userSettings.difficulty || 3;
-        store.getAll().onsuccess = (e) => {
-            DQ_UI.elements.exerciseList.innerHTML = '';
-            const allExercises = e.target.result;
-            let filteredExercises = this.currentFreeExerciseFilter === 'all' 
-                ? allExercises 
-                : allExercises.filter(ex => ex.category === this.currentFreeExerciseFilter);
-
-            // --- FILTER: Hanteln ausblenden im Freien Training ---
-            if (DQ_CONFIG.userSettings.hasEquipment === false) {
-                filteredExercises = filteredExercises.filter(ex => !ex.needsEquipment);
-            }
-
-            if (filteredExercises.length === 0) {
-                DQ_UI.elements.exerciseList.innerHTML = `<div class="card"><p>Keine Übungen in dieser Kategorie gefunden. <span class="material-symbols-rounded icon-accent" style="vertical-align: middle;">search_off</span></p></div>`;
-                return;
-            }
-
-            filteredExercises.forEach(exercise => {
-                let targetValue = exercise.baseValue;
-                if (exercise.type !== 'check' && exercise.type !== 'link' && exercise.type !== 'focus') {
-                    targetValue = Math.ceil(exercise.baseValue + (exercise.baseValue * 0.4 * (difficulty - 1)));
-                }
-                let targetDisplay = this.formatTargetDisplay(exercise.type, targetValue);
-
-                const translatedName = (DQ_DATA.translations[lang].exercise_names[exercise.nameKey] || exercise.nameKey);
-                
-                const isFocusExercise = exercise.type === 'focus';
-                const buttonAction = isFocusExercise ? 'start-focus' : 'complete';
-                const buttonText = isFocusExercise ? (DQ_DATA.translations[lang].start_task_button || 'Los') : 'OK';
-
-                const card = document.createElement('div');
-                card.className = 'card exercise-card';
-                card.dataset.exerciseId = exercise.id;
-                card.innerHTML = `
-                    <div class="quest-info">
-                        <h2>${translatedName}</h2>
-                        ${targetDisplay ? `<p class="quest-target">${targetDisplay}</p>` : ''}
-                    </div>
-                    <div class="exercise-card-actions">
-                        <button class="action-button info-button-small" data-action="info" aria-label="Info">?</button>
-                        <button class="action-button complete-button-small" data-action="${buttonAction}" aria-label="Absolvieren">${buttonText}</button>
-                    </div>
-                `;
-                DQ_UI.elements.exerciseList.appendChild(card);
-            });
-        };
-    },
-    
-    async completeFreeExercise(exerciseId) {
-        try {
-            const db = DQ_DB.db;
-            const tx = db.transaction(['exercises', 'character'], 'readwrite');
-            const exStore = tx.objectStore('exercises');
-            const charStore = tx.objectStore('character');
-
-            const exercise = await new Promise(res => exStore.get(exerciseId).onsuccess = e => res(e.target.result));
-            if (exercise.type === 'link') {
-                window.open(exercise.url, '_blank');
-            }
-            
-            let char = await new Promise(res => charStore.get(1).onsuccess = e => res(e.target.result));
-
-            const difficulty = DQ_CONFIG.userSettings.difficulty || 3;
-            const scaledMana = Math.ceil(exercise.manaReward * (1 + 0.2 * (difficulty - 1)));
-            const scaledGold = Math.ceil(exercise.goldReward * (1 + 0.15 * (difficulty - 1)));
-
-            char.mana += scaledMana;
-            char.gold += scaledGold;
-            char.totalGoldEarned += scaledGold;
-
-            const exerciseTemplate = Object.values(DQ_DATA.exercisePool).flat().find(ex => ex.id === exercise.id);
-            char = DQ_CONFIG.processStatGains(char, exerciseTemplate);
-            char = DQ_CONFIG.levelUpCheck(char);
-            
-            charStore.put(char);
-
-            await new Promise((resolve, reject) => {
-                tx.oncomplete = resolve;
-                tx.onerror = (event) => reject(event.target.error);
-            });
-
-            DQ_UI.showCustomPopup(`Sehr gut! <span class=\"material-symbols-rounded icon-accent\">thumb_up</span><br>+${scaledMana} Mana <span class=\"material-symbols-rounded icon-mana\">auto_awesome</span> | +${scaledGold} Gold <span class=\"material-symbols-rounded icon-gold\">paid</span>`);
-            DQ_CHARACTER_MAIN.renderPage();
-            DQ_ACHIEVEMENTS.checkAllAchievements(char);
-            
-        } catch (error) {
-            console.error("Speichern des freien Trainings fehlgeschlagen:", error);
-            DQ_UI.showCustomPopup("Speichern fehlgeschlagen. Bitte versuche es erneut.", 'penalty');
-        }
-    },
-
-    showFreeExerciseInfo(exerciseId) {
-        DQ_DB.db.transaction(['exercises'], 'readonly').objectStore('exercises').get(exerciseId).onsuccess = (e) => {
-            const ex = e.target.result;
-            if (!ex) return;
-            this.renderExerciseInfoPopup(ex, false);
-        };
-    },
-
-    displayQuests() {
-        const questList = document.getElementById('quest-list');
-        questList.innerHTML = '';
-
-        if (this.checkIfRestDay()) {
-            this.handleRestDay();
-            return; // Beendet die Funktion, da keine weiteren Quests angezeigt werden sollen
-        }
-
-        const dailyQuests = this.getDailyQuests();
-        dailyQuests.forEach(quest => {
-            const card = document.createElement('div');
-            card.className = `card exercise-card ${quest.completed ? 'completed' : ''}`;
-            card.dataset.questId = quest.questId;
-
-            let targetDisplay = this.formatTargetDisplay(quest.type, quest.target);
-
-            const translatedName = (DQ_DATA.translations[lang].exercise_names[quest.nameKey] || quest.nameKey);
-            
-            const isFocusQuest = quest.type === 'focus';
-            const buttonAction = isFocusQuest ? 'start-focus' : 'complete';
-            const buttonText = isFocusQuest ? (DQ_DATA.translations[lang].start_task_button || 'Los') : 'OK';
-
-            card.innerHTML = `
-                <div class="quest-info">
-                    <h2>${translatedName}</h2>
-                    ${targetDisplay ? `<p class="quest-target">${targetDisplay}</p>` : ''}
-                </div>
-                <div class="exercise-card-actions">
-                    <button class="action-button info-button-small" data-action="info" aria-label="Info">?</button>
-                        <button class="action-button complete-button-small" data-action="${buttonAction}" aria-label="Absolvieren" ${quest.completed ? 'disabled' : ''}>
-                        ${quest.completed ? '<span class="material-symbols-rounded">check</span>' : buttonText}
-                    </button>
-                </div>
-            `;
-            questList.appendChild(card);
-        });
-    },
-
-    handleRestDay() {
-        const questList = document.getElementById('quest-list');
-        questList.innerHTML = ''; // Leert die Liste für den Fall, dass schon etwas drin war
-
-        const restDayCard = document.createElement('div');
-        restDayCard.className = 'rest-day-card';
-
-        const icon = document.createElement('div');
-        icon.className = 'rest-day-icon';
-        icon.innerHTML = '<span class="material-symbols-rounded" style="font-size:48px;">favorite</span>';
-        restDayCard.appendChild(icon);
-
-        const title = document.createElement('h3');
-        title.textContent = this.getTranslation('rest_day_title');
-        restDayCard.appendChild(title);
-
-        const quote = document.createElement('p');
-        quote.className = 'rest-day-quote';
-        const quotes = this.getTranslation('rest_day_quotes');
-        quote.textContent = `"${quotes[Math.floor(Math.random() * quotes.length)]}"`;
-        restDayCard.appendChild(quote);
-
-        questList.appendChild(restDayCard); // Fügt die Karte zur Quest-Liste hinzu
-    },
-
-    getDailyQuests() {
-        const savedQuests = db.get('dailyQuests');
-        const allExercises = Object.values(DQ_DATA.exercisePool).flat();
-        const lang = DQ_CONFIG.userSettings.language || 'de';
-
-        return savedQuests.map(questId => {
-            const quest = allExercises.find(ex => ex.id === questId);
-            return quest ? {
-                questId: quest.id,
-                nameKey: quest.nameKey,
-                type: quest.type,
-                target: quest.target,
-                completed: quest.completed,
-                manaReward: quest.manaReward,
-                goldReward: quest.goldReward,
-                // Füge hier weitere benötigte Felder hinzu
-            } : null;
-        }).filter(q => q !== null);
-    },
-
-    checkIfRestDay() {
-        const userGoal = DQ_CONFIG.userSettings.goal || 'muscle';
-        if (userGoal === 'sick') {
-            return false; // Krankheitstage sind keine Restdays
-        }
-        
-        const dayOfWeek = new Date().getDay();
-        const numRestDays = DQ_CONFIG.userSettings.restDays || 0;
-        let activeRestDays = [];
-        
-        switch (parseInt(numRestDays)) {
-            case 1: activeRestDays = [0]; break; // Sonntag
-            case 2: activeRestDays = [2, 6]; break; // Dienstag, Samstag
-            case 3: activeRestDays = [0, 2, 4]; break; // Sonntag, Dienstag, Donnerstag
-        }
-        
-        return activeRestDays.includes(dayOfWeek);
-    }
 };
+

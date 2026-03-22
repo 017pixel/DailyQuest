@@ -1,27 +1,178 @@
-/* Kompaktes Design für Übungskarten */
-#exercise-list, #quest-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
+﻿/* Kompaktes Design fÃ¼r Ãœbungskarten */
+#exercise-list, #quest-list { display: grid; grid-template-columns: 1fr; gap: 10px; }
 .exercise-card {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 16px;
+    padding: 10px 14px;
     transition: box-shadow 0.4s ease, border-color 0.4s ease;
+}
+
+#training-phase-banner {
+    margin: 6px 0 10px 0;
+}
+
+#training-phase-banner[hidden] {
+    display: none;
+}
+
+.training-phase-banner-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 10px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(var(--primary-color-rgb), 0.14), var(--surface-container-high));
+    border: 1px solid rgba(var(--primary-color-rgb), 0.26);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+}
+
+.quest-phase-details {
+    border: 1px solid var(--outline-color);
+    border-radius: 14px;
+    background: var(--surface-container-high);
+    overflow: hidden;
+}
+
+.training-phase-details {
+    border: 0;
+    background: transparent;
+    overflow: visible;
+}
+
+.training-phase-details summary,
+.quest-phase-details summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 0 2px;
+}
+
+.training-phase-details summary::-webkit-details-marker,
+.quest-phase-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.training-phase-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.35;
+    opacity: 0.94;
+    margin: 0;
+}
+
+.training-phase-summary::after {
+    content: '\25BC';
+    font-size: 10px;
+    opacity: 0.65;
+}
+
+.training-phase-details[open] .training-phase-summary::after {
+    content: '\25B2';
+}
+
+.training-phase-details-body {
+    padding: 12px 2px 4px;
+}
+
+.training-phase-detail-text {
+    margin: 0 0 10px 0;
+    font-size: 13px;
+    line-height: 1.35;
+    opacity: 0.86;
+    word-break: break-word;
+}
+
+.training-phase-summary span:first-child {
+    text-align: left;
+}
+
+.training-phase-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.training-phase-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: var(--surface-container-high);
+    border: 1px solid var(--outline-color);
+}
+
+.training-phase-meta-item span {
+    font-size: 11px;
+    opacity: 0.72;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.training-phase-meta-item strong {
+    font-size: 14px;
+    line-height: 1.35;
+    font-weight: 700;
+    color: var(--on-surface-color);
+    word-break: break-word;
+}
+
+@media (max-width: 520px) {
+    .training-phase-meta-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.training-phase-banner-count {
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    border: 1px solid var(--outline-color);
+    background: var(--surface-container-high);
+    font-size: 14px;
+    line-height: 1.35;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.exercise-card.ready {
+    border-color: rgba(var(--primary-color-rgb), 0.35);
+    box-shadow: 0 0 0 1px rgba(var(--primary-color-rgb), 0.08);
+}
+
+.info-phase-section {
+    margin-top: -2px;
 }
 .quest-info {
     display: flex;
     flex-direction: column;
     justify-content: center;
     flex-grow: 1;
-    margin-right: 8px;
+    margin-right: 6px;
 }
-.exercise-card h2 { font-size: 16px; font-weight: 500; margin: 0; color: var(--on-surface-color); text-align: left; }
+.exercise-card h2 { font-size: 15px; font-weight: 500; margin: 0; color: var(--on-surface-color); text-align: left; }
 .quest-target {
-    font-size: 14px;
+    font-size: 13px;
     opacity: 0.7;
-    margin: 2px 0 0 0;
+    margin: 1px 0 0 0;
     padding: 0;
     color: var(--on-surface-color);
     line-height: 1.2;
 }
-.exercise-card-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.exercise-card-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+#page-exercises .action-button { height: 34px; }
+#page-exercises .info-button-small { width: 34px; font-size: 15px; }
+#page-exercises .complete-button-small { padding: 0 14px; font-size: 13px; }
 
 .exercise-card.highlight {
     border-color: var(--primary-color);
@@ -29,7 +180,7 @@
 }
 
 
-/* Styling für erledigte Quests */
+/* Styling fÃ¼r erledigte Quests */
 .exercise-card.completed {
     opacity: 0.6;
     background-color: var(--background-color);
@@ -52,7 +203,7 @@
     align-items: center;
 }
 
-/* Hero-Section für Daily Quests */
+/* Hero-Section fÃ¼r Daily Quests */
 .hero-quests {
     position: relative;
     min-height: calc(100vh - 60px - 75px - 32px); /* Viewport minus Header (60) minus Bottom-Nav (75) minus top/bottom padding (16+16) */
@@ -111,7 +262,7 @@
     50% { opacity: 1; }
 }
 
-/* Sanfter Übergang zur Sektion Freies Training */
+/* Sanfter Ãœbergang zur Sektion Freies Training */
 #free-training-container {
     padding-top: 16px;
     border-top: 1px solid var(--outline-color);
@@ -243,7 +394,7 @@
 
 /* Custom arrow on the right */
 .info-details summary::after {
-    content: '\25BC'; /* ▼ down arrow */
+    content: '\25BC'; /* â–¼ down arrow */
     font-size: 10px;
     color: var(--primary-color);
     transition: transform 0.25s ease;
@@ -290,4 +441,5 @@
     align-items: center;
     gap: 4px;
     font-weight: 600;
-}
+}
+

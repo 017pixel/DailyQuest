@@ -8,6 +8,13 @@ const DQ_TUTORIAL_PROGRESSIVE = {
     isShowing: false,
     currentFeature: null,
 
+    resetRuntimeState() {
+        this.isShowing = false;
+        this.currentFeature = null;
+        const overlay = document.getElementById('tutorial-progressive-overlay');
+        if (overlay) overlay.remove();
+    },
+
     /**
      * Definiert alle Tutorial-Schritte für jedes Feature
      * Kurze, emotionale Erklärungen mit Fokus auf Motivation
@@ -18,12 +25,12 @@ const DQ_TUTORIAL_PROGRESSIVE = {
             name: 'Übungen',
             steps: [
                 {
-                    text: 'Willkommen auf deiner Übersichtsseite!',
+                    text: 'Willkommen auf deiner Übersichtsseite! Oben siehst du deine aktuelle Trainingsphase.',
                     highlight: null,
                     position: 'center'
                 },
                 {
-                    text: 'Hier findest du deine täglichen Herausforderungen. Jeden Tag neue Aufgaben, die dich stärker machen!',
+                    text: 'Hier findest du deine täglichen Herausforderungen. Kraft-Quests haben mehrere Sets zum Abhaken, Ausdauer-Quests werden über "Eintragen" abgeschlossen.',
                     highlight: '#daily-quest-container',
                     position: 'bottom'
                 },
@@ -51,7 +58,7 @@ const DQ_TUTORIAL_PROGRESSIVE = {
             name: 'Daily Quests',
             steps: [
                 {
-                    text: 'Deine Daily Quests sind dein täglicher Weg zum Erfolg. Schließe sie ab, um Mana, Gold und Stats zu verdienen!',
+                    text: 'Deine Daily Quests folgen deinem Trainingsplan. Erst die Sets abhaken, dann den Auftrag abschließen.',
                     highlight: '#quest-list',
                     position: 'bottom'
                 }

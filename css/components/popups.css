@@ -1,4 +1,4 @@
-/* Popup System Styling */
+﻿/* Popup System Styling */
 #popup-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background-color: rgba(0, 0, 0, 0.5); opacity: 0;
@@ -73,6 +73,34 @@ html[data-theme='light'] .popup.penalty.show {
 .popup-content p { color: var(--on-surface-color); margin-bottom: 12px; font-size: 16px; }
 #notification-popup-content { padding: 16px 0; text-align: center; font-size: 18px; color: var(--on-surface-color); }
 
+.training-reset-message {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.training-reset-message p {
+    margin-bottom: 0;
+}
+
+.update-notice-box {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    text-align: left;
+}
+
+.update-notice-box ul {
+    margin: 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 8px;
+}
+
+.update-notice-box li {
+    line-height: 1.45;
+}
+
 .popup.penalty .popup-content h3 {
     color: var(--penalty-color);
 }
@@ -100,7 +128,7 @@ html[data-theme='light'] .popup.penalty.show {
     display: none;
 }
 .popup-content summary:after {
-    content: '▼';
+    content: '–¼';
     transition: transform 0.2s;
     font-size: 14px;
 }
@@ -418,3 +446,4 @@ input:checked + .slider:before {
 html[data-theme='light'] .dungeon-spawn-chip {
     box-shadow: 0 6px 18px rgba(0,0,0,0.2);
 }
+
