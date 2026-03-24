@@ -183,11 +183,65 @@
     getTargetValue(template, stage) {
         if (stage?.targetDuration) return stage.targetDuration;
         if (template.type === 'time') {
-            const seconds = Math.max(20, Math.round((stage.reps || 1) * 6));
-            return seconds;
+            if (typeof stage?.reps === 'number') {
+                return Math.max(20, Math.round(stage.reps * 6));
+            }
+            return Math.max(20, template.baseValue || 20);
         }
         if (template.type === 'check' || template.type === 'focus') return 1;
         return stage.reps || template.baseValue || 1;
+    },
+
+    formatDuration(seconds) {
+        const safe = Math.max(1, Math.round(seconds || 0));
+        if (safe >= 60) {
+            const minutes = Math.floor(safe / 60);
+            const rest = safe % 60;
+            return rest === 0 ? `${minutes} min` : `${minutes}m ${rest}s`;
+        }
+        return `${safe} s`;
+    },
+
+    getEnduranceTarget(template, stageContext, difficulty = 3) {
+        if (!template) return null;
+
+        const stageIndex = Math.max(0, stageContext?.stageIndex || 0);
+        const stageTimeMultiplier = 0.75 + (stageIndex * 0.12);
+        const stageRepMultiplier = 0.9 + (stageIndex * 0.08);
+        const diffMultiplier = this.getDifficultyMultiplier(difficulty);
+        const adjustedDifficulty = 1 + ((diffMultiplier - 1) * 0.6);
+
+        if (template.type === 'time') {
+            const baseSeconds = Math.max(15, template.baseValue || 30);
+            const seconds = Math.max(15, Math.round(baseSeconds * stageTimeMultiplier * adjustedDifficulty));
+            return {
+                kind: 'time',
+                value: seconds,
+                label: this.formatDuration(seconds)
+            };
+        }
+
+        if (template.type === 'reps') {
+            const baseReps = Math.max(1, template.baseValue || 1);
+            const reps = Math.max(1, Math.round(baseReps * stageRepMultiplier * adjustedDifficulty));
+            return {
+                kind: 'reps',
+                value: reps,
+                label: `${reps} ${this.t('reps_label', 'Wdh.')}`
+            };
+        }
+
+        if (template.nameKey === 'walk_30min' || template.nameKey === 'short_walk') {
+            const baseMinutes = template.nameKey === 'walk_30min' ? 15 : 8;
+            const minutes = Math.max(8, Math.round(baseMinutes * (1 + stageIndex * 0.08) * adjustedDifficulty));
+            return {
+                kind: 'time',
+                value: minutes * 60,
+                label: `${minutes} min`
+            };
+        }
+
+        return null;
     },
 
     getCompletionMode(goal, template) {
@@ -215,10 +269,13 @@
     buildQuest(goal, plan, state, stageContext, slot, template, todayStr, index, difficulty, hasEquipment) {
         const completionMode = this.getCompletionMode(goal, template);
         const targetValue = this.getTargetValue(template, stageContext.stage);
+        const enduranceTarget = goal === 'endurance'
+            ? this.getEnduranceTarget(template, stageContext, difficulty)
+            : null;
         const sets = completionMode === 'sets' ? Math.max(1, stageContext.stage.sets || 1) : 1;
         const reps = completionMode === 'sets'
             ? (template.type === 'time'
-                ? targetValue
+                ? (enduranceTarget?.value || targetValue)
                 : this.scaleReps(stageContext.stage.reps || template.baseValue || 1, difficulty))
             : targetValue;
         const setProgress = completionMode === 'sets' ? Array.from({ length: sets }, () => false) : [];
@@ -233,7 +290,8 @@
             slotKey: slot.key,
             nameKey: template.nameKey,
             type: completionMode === 'log' ? 'log' : template.type,
-            target: targetValue,
+            target: enduranceTarget?.value || targetValue,
+            targetLabel: enduranceTarget?.label || null,
             setPlan: completionMode === 'sets' ? { sets, reps } : null,
             setProgress,
             phaseIndex: stageContext.stageIndex,
@@ -303,6 +361,7 @@
 
     formatQuestTarget(quest) {
         if (quest.completionMode === 'log') {
+            if (quest.targetLabel) return quest.targetLabel;
             const summary = quest.targetSummary || {};
             const duration = summary.duration || quest.target || 20;
             const distance = summary.distance || 0;

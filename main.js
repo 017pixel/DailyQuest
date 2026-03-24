@@ -1044,7 +1044,9 @@ async function generateDailyQuestsIfNeeded(forceRegenerate = false) {
         forceRegenerate = true;
     }
 
-    const needsTrainingRefresh = goal !== 'restday' && goal !== 'sick' && questsToday.some(q => !q.completionMode || typeof q.phaseIndex !== 'number');
+    const hasLegacyEnduranceTargets = goal === 'endurance' && questsToday.some(q => q.completionMode === 'log' && !q.targetLabel);
+    const needsTrainingRefresh = goal !== 'restday' && goal !== 'sick'
+        && (questsToday.some(q => !q.completionMode || typeof q.phaseIndex !== 'number') || hasLegacyEnduranceTargets);
     if (!hasCompletedToday && needsTrainingRefresh && !forceRegenerate) {
         forceRegenerate = true;
     }
