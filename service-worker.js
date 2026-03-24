@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dailyquest-cache-v17';
+const CACHE_NAME = 'dailyquest-cache-v18';
 
 const urlsToCache = [
   '/',
@@ -85,6 +85,35 @@ self.addEventListener('fetch', event => {
 
   event.respondWith(
     (async () => {
+      const requestUrl = new URL(event.request.url);
+      const isSameOrigin = requestUrl.origin === self.location.origin;
+      const isAppAsset = isSameOrigin && (
+        requestUrl.pathname === '/' ||
+        requestUrl.pathname.endsWith('.html') ||
+        requestUrl.pathname.endsWith('.js') ||
+        requestUrl.pathname.endsWith('.css') ||
+        requestUrl.pathname.startsWith('/data/')
+      );
+
+      if (isAppAsset) {
+        try {
+          const freshResponse = await fetch(event.request);
+          if (freshResponse && freshResponse.status === 200 && freshResponse.type === 'basic') {
+            const cache = await caches.open(CACHE_NAME);
+            cache.put(event.request, freshResponse.clone());
+          }
+          return freshResponse;
+        } catch (error) {
+          const fallbackResponse = await caches.match(event.request);
+          if (fallbackResponse) return fallbackResponse;
+          if (event.request.mode === 'navigate') {
+            const fallbackPage = await caches.match('/index.html');
+            if (fallbackPage) return fallbackPage;
+          }
+          return new Response('Offline', { status: 503, statusText: 'Offline' });
+        }
+      }
+
       const cachedResponse = await caches.match(event.request);
       if (cachedResponse) return cachedResponse;
 
