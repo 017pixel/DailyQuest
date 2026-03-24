@@ -45,7 +45,7 @@ DQ_DATA.trainingPlans = {
             { key: 'legs', candidates: ['weighted_squats', 'squats', 'lunges', 'sumo_squats', 'deadlifts'] },
             { key: 'core', candidates: ['plank', 'situps', 'leg_raises', 'russian_twists', 'side_plank', 'hollow_body_hold'] },
             { key: 'posterior', candidates: ['glute_bridges', 'single_leg_glute_bridge', 'deadlifts', 'reverse_flys'] },
-            { key: 'finisher', candidates: ['burpees', 'jumping_jacks', 'mountain_climbers', 'jump_squats', 'jump_rope'] }
+            { key: 'finisher', candidates: ['burpees', 'jumping_jacks', 'mountain_climbers', 'jump_squats'] }
         ]
     },
     calisthenics: {
@@ -58,7 +58,7 @@ DQ_DATA.trainingPlans = {
             { key: 'core', candidates: ['plank', 'situps', 'leg_raises', 'russian_twists', 'hollow_body_hold', 'side_plank'] },
             { key: 'upper', candidates: ['pike_push_ups', 'tricep_dips_chair', 'push_ups_narrow', 'shoulder_press'] },
             { key: 'posterior', candidates: ['glute_bridges', 'single_leg_glute_bridge', 'reverse_flys'] },
-            { key: 'skill', candidates: ['burpees', 'mountain_climbers', 'jumping_jacks', 'jump_rope', 'wall_sit'] }
+            { key: 'skill', candidates: ['burpees', 'mountain_climbers', 'jumping_jacks', 'wall_sit'] }
         ]
     },
     fatloss: {
@@ -66,10 +66,10 @@ DQ_DATA.trainingPlans = {
         stageType: 'reps',
         stages: DQ_TRAINING_PLAN_SHARED_REP_STAGES,
         slots: [
-            { key: 'cardio', candidates: ['burpees', 'jumping_jacks', 'mountain_climbers', 'jump_rope', 'interval_sprint'] },
+            { key: 'cardio', candidates: ['burpees', 'jumping_jacks', 'mountain_climbers', 'interval_sprint'] },
             { key: 'legs', candidates: ['jump_squats', 'walking_lunges', 'sumo_squats', 'lunges', 'squats'] },
             { key: 'core', candidates: ['plank', 'side_plank', 'situps', 'leg_raises', 'russian_twists'] },
-            { key: 'full', candidates: ['burpees', 'mountain_climbers', 'jump_squats', 'jump_rope'] },
+            { key: 'full', candidates: ['burpees', 'mountain_climbers', 'jump_squats'] },
             { key: 'posterior', candidates: ['glute_bridges', 'single_leg_glute_bridge', 'deadlifts'] },
             { key: 'mobility', candidates: ['stretch_10min', 'stretch_5min', 'walk_30min'] }
         ]
@@ -83,7 +83,7 @@ DQ_DATA.trainingPlans = {
             { key: 'legs', candidates: ['squats', 'lunges', 'sumo_squats', 'walking_lunges'] },
             { key: 'core', candidates: ['plank', 'situps', 'leg_raises', 'side_plank'] },
             { key: 'posterior', candidates: ['glute_bridges', 'single_leg_glute_bridge', 'reverse_flys'] },
-            { key: 'conditioning', candidates: ['burpees', 'mountain_climbers', 'jumping_jacks', 'jump_rope', 'wall_sit'] },
+            { key: 'conditioning', candidates: ['burpees', 'mountain_climbers', 'jumping_jacks', 'wall_sit'] },
             { key: 'mobility', candidates: ['stretch_10min', 'stretch_5min', 'walk_30min'] }
         ]
     },
@@ -93,9 +93,9 @@ DQ_DATA.trainingPlans = {
         stages: DQ_TRAINING_PLAN_ENDURANCE_STAGES,
         slots: [
             { key: 'warmup', candidates: ['walk_30min', 'jumping_jacks', 'short_walk'] },
-            { key: 'interval', candidates: ['interval_sprint', 'mountain_climbers', 'jump_rope', 'high_knees'] },
+            { key: 'interval', candidates: ['interval_sprint', 'mountain_climbers', 'high_knees'] },
             { key: 'distance', candidates: ['jogging', 'running', 'step_ups', 'walk_30min'] },
-            { key: 'tempo', candidates: ['running', 'jogging', 'jump_rope', 'high_knees'] },
+            { key: 'tempo', candidates: ['running', 'jogging', 'high_knees'] },
             { key: 'legs', candidates: ['walking_lunges', 'jump_squats', 'step_ups', 'wall_sit'] },
             { key: 'cooldown', candidates: ['stretch_10min', 'stretch_5min', 'walk_30min'] }
         ]

@@ -1,5 +1,6 @@
 ﻿const DQ_TRAINING_SYSTEM = {
     todayCache: null,
+    blockedQuestNameKeys: ['jump_rope'],
 
     t(key, fallback = key) {
         const lang = this.getLang();
@@ -37,7 +38,7 @@
         if (!stage) return '';
         if (completionMode === 'log') {
             const distance = typeof stage.distance === 'number' ? stage.distance.toFixed(1) : '0.0';
-            return `${distance} km · ${stage.duration || 0} min · ${this.t('power', 'Power')} ${stage.power || 0}`;
+            return `${distance} km · ${stage.duration || 0} min`;
         }
 
         const setsLabel = this.t('sets_label', 'Sätze');
@@ -155,15 +156,16 @@
         const exercisePool = DQ_DATA.exercisePool;
         const nonSeniorPools = Object.keys(exercisePool).filter(k => k !== 'senior');
         const goalExercises = nonSeniorPools.flatMap(k => exercisePool[k]);
+        const blocked = new Set(this.blockedQuestNameKeys || []);
         const candidates = (slot.candidates || [])
             .map(nameKey => goalExercises.find(ex => ex.nameKey === nameKey))
-            .filter(Boolean);
+            .filter(ex => !!ex && !blocked.has(ex.nameKey));
         const filtered = candidates.filter(ex => hasEquipment !== false || !ex.needsEquipment);
         const pool = hasEquipment === false
-            ? (filtered.length > 0 ? filtered : goalExercises.filter(ex => !ex.needsEquipment))
+            ? (filtered.length > 0 ? filtered : goalExercises.filter(ex => !ex.needsEquipment && !blocked.has(ex.nameKey)))
             : (filtered.length > 0 ? filtered : candidates);
         const available = pool.filter(ex => !pickedToday.includes(ex.nameKey));
-        const finalPool = available.length > 0 ? available : pool;
+        const finalPool = available.length > 0 ? available : [];
         if (finalPool.length === 0) return null;
 
         const scored = finalPool.map(ex => {
@@ -215,7 +217,9 @@
         const targetValue = this.getTargetValue(template, stageContext.stage);
         const sets = completionMode === 'sets' ? Math.max(1, stageContext.stage.sets || 1) : 1;
         const reps = completionMode === 'sets'
-            ? this.scaleReps(stageContext.stage.reps || template.baseValue || 1, difficulty)
+            ? (template.type === 'time'
+                ? targetValue
+                : this.scaleReps(stageContext.stage.reps || template.baseValue || 1, difficulty))
             : targetValue;
         const setProgress = completionMode === 'sets' ? Array.from({ length: sets }, () => false) : [];
         const loadFactor = this.getLoadFactor(goal, stageContext.stage, template);
@@ -298,15 +302,16 @@
     },
 
     formatQuestTarget(quest) {
-        if (quest.completionMode === 'log' && quest.nameKey !== 'walk_30min') {
+        if (quest.completionMode === 'log') {
             const summary = quest.targetSummary || {};
             const duration = summary.duration || quest.target || 20;
             const distance = summary.distance || 0;
-            const power = summary.power || 0;
-            return `${distance.toFixed(1)} km · ${duration} min · ${this.t('power', 'Power')} ${power}`;
+            if (quest.slotKey === 'distance') return `${distance.toFixed(1)} km`;
+            return `${duration} min`;
         }
 
         if (quest.setPlan) {
+            if (quest.type === 'time') return `${quest.setPlan.sets} ${this.t('sets_label', 'Sätze')} · ${quest.setPlan.reps} s`;
             return `${quest.setPlan.sets} ${this.t('sets_label', 'Sätze')} · ${quest.setPlan.reps} ${this.t('reps_label', 'Wdh.')}`;
         }
 

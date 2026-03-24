@@ -1028,6 +1028,7 @@ async function generateDailyQuestsIfNeeded(forceRegenerate = false) {
         request.onsuccess = e => resolve(e.target.result || []);
         request.onerror = e => reject(e.target.error);
     });
+    const hasCompletedToday = questsToday.some(q => q.completed);
 
     const goalExercises = Object.values(DQ_DATA.exercisePool).flat();
     const questNeedsEquipment = quest => {
@@ -1035,12 +1036,16 @@ async function generateDailyQuestsIfNeeded(forceRegenerate = false) {
         return !!template?.needsEquipment;
     };
 
-    if (!hasEquipment && questsToday.some(questNeedsEquipment)) {
+    if (!hasCompletedToday && !hasEquipment && questsToday.some(questNeedsEquipment)) {
+        forceRegenerate = true;
+    }
+    const hasDuplicateQuests = new Set(questsToday.map(q => q.nameKey)).size !== questsToday.length;
+    if (!hasCompletedToday && hasDuplicateQuests) {
         forceRegenerate = true;
     }
 
     const needsTrainingRefresh = goal !== 'restday' && goal !== 'sick' && questsToday.some(q => !q.completionMode || typeof q.phaseIndex !== 'number');
-    if (needsTrainingRefresh && !forceRegenerate) {
+    if (!hasCompletedToday && needsTrainingRefresh && !forceRegenerate) {
         forceRegenerate = true;
     }
 
@@ -1084,7 +1089,12 @@ async function generateDailyQuestsIfNeeded(forceRegenerate = false) {
 
     if (goal === 'restday' || goal === 'sick') {
         console.log(`Generiere neue Quests für das Ziel: ${goal}`);
-        let pool = [...(DQ_DATA.exercisePool[goal] || DQ_DATA.exercisePool.muscle)];
+        const blockedQuestNameKeys = (typeof DQ_TRAINING_SYSTEM !== 'undefined' && Array.isArray(DQ_TRAINING_SYSTEM.blockedQuestNameKeys))
+            ? DQ_TRAINING_SYSTEM.blockedQuestNameKeys
+            : ['jump_rope'];
+        const blockedSet = new Set(blockedQuestNameKeys);
+        let pool = [...(DQ_DATA.exercisePool[goal] || DQ_DATA.exercisePool.muscle)]
+            .filter(ex => !blockedSet.has(ex.nameKey));
 
         if (!hasEquipment) {
             pool = pool.filter(ex => !ex.needsEquipment);
@@ -1095,10 +1105,11 @@ async function generateDailyQuestsIfNeeded(forceRegenerate = false) {
             [pool[i], pool[j]] = [pool[j], pool[i]];
         }
 
-        const questCount = 5;
+        const targetQuestCount = 5;
+        const questCount = Math.min(targetQuestCount, pool.length);
         const newQuests = [];
         for (let i = 0; i < questCount; i++) {
-            const template = pool[i % Math.max(1, pool.length)];
+            const template = pool[i];
             if (template) newQuests.push(template);
         }
         const difficulty = DQ_CONFIG.userSettings.difficulty || 3;

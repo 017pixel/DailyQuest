@@ -23,7 +23,15 @@
         const difficulty = DQ_CONFIG.userSettings.difficulty || 3;
         const headerText = DQ_TRAINING_SYSTEM.getPhaseHeaderText(context);
         const summary = DQ_TRAINING_SYSTEM.getStageSummary(goal, context.stage, plan.completionMode, difficulty);
-        const progress = Math.max(0, Math.min(100, Math.round(context.progress * 100)));
+        const questsToday = await new Promise(resolve => {
+            const tx = DQ_DB.db.transaction(['daily_quests'], 'readonly');
+            const index = tx.objectStore('daily_quests').index('date');
+            index.getAll(DQ_CONFIG.getTodayString()).onsuccess = e => resolve(e.target.result || []);
+            tx.onerror = () => resolve([]);
+        });
+        const progress = questsToday.length > 0
+            ? Math.round((questsToday.filter(q => q.completed).length / questsToday.length) * 100)
+            : Math.max(0, Math.min(100, Math.round(context.progress * 100)));
         const phaseWeekText = lang === 'en'
             ? `Week ${context.stageWeek + 1}/${context.stageWeeks}`
             : `Woche ${context.stageWeek + 1}/${context.stageWeeks}`;
@@ -38,8 +46,8 @@
                 : 'Diese Phase legt das Fundament für saubere Sätze und stabile Wiederholungen.')
             : (plan.completionMode === 'log'
                 ? (lang === 'en'
-                    ? 'Track the full workload with distance, duration and power.'
-                    : 'Erfasse hier die gesamte Belastung mit Distanz, Dauer und Power.')
+                    ? 'Track the full workload with distance and duration.'
+                    : 'Erfasse hier die gesamte Belastung mit Distanz und Dauer.')
                 : (lang === 'en'
                     ? 'Complete the quests directly to keep the flow simple.'
                     : 'Diese Phase wird direkt abgeschlossen und bleibt bewusst einfach.'));
