@@ -4,7 +4,32 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
-## Version 2.4 - Training Flow & Fokus Fixes (Aktuell)
+## Version 2.5.4 - Settings Redesign & Many Improvements (Aktuell)
+
+### Erstellt
+- Einstellungen komplett überarbeitet mit 5 Tabs (Main, Gewicht, Training, Extras, Teilen)
+- Neues Teilen-Feature mit QR-Code zum Teilen der App
+- Set-Animationen beim Training (Zahlen animieren beim Klicken)
+- Phasenfortschritt zeigt jetzt wie viel der Phase abgeschlossen ist
+- Unendlich-Symbol für die finale Phase
+
+### Verändert
+- Tab-Wechsel mit fließender Höhen-Animation
+- Pop-up-Animationen von unten (wie andere Pop-ups)
+- Einstellungen öffnen und schließen mit Slide-Effekt
+- Hampelmänner aus Muscle-Trainingsplan entfernt
+- Ausdauer-Eintrag ohne Power-Feld
+- Notizen nur noch bei Lauf-Übungen (Joggen, Walken)
+- Tutorial-Neuanfang funktioniert wieder zuverlässig
+
+### Gelöscht
+- Veraltetes Power-Feld im Ausdauer-Eintrag
+- Externe QR-Code-Bibliothek (jetzt lokal eingebunden)
+- Scrollbereich in den Settings-Tabs
+
+---
+
+## Version 2.5.3 - Tutorial Reset Fix
 
 ### Dungeon-Feature Erweiterung
 - **Zufällige Dungeons**: Implementierung einer 5% Wahrscheinlichkeit beim App-Start für ein Dungeon-Erscheinen.

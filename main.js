@@ -1,4 +1,4 @@
-﻿const DQ_CONFIG = {
+const DQ_CONFIG = {
     userSettings: {},
     dailyCheckInterval: null,
 
@@ -258,7 +258,7 @@
     }
 };
 
-const APP_VERSION = '2.5.1';
+const APP_VERSION = '2.5.4';
 const APP_UPDATE_FLAG_KEY = 'dq_seen_app_version';
 
 async function initializeApp() {
@@ -742,7 +742,7 @@ async function resetTutorialAndIntro() {
             <p>${trans.restart_training_warning || 'Dabei gehen dein Tutorial-Fortschritt und der Intro-Status verloren.'}</p>
             <p>${trans.restart_training_notice || 'Deine eigentlichen Spieldaten bleiben erhalten.'}</p>
             <div class="popup-actions">
-                <button id="reset-tutorial-confirm-button" class="card-button">${trans.restart_training_confirm || 'Neuanfang beginnen'}</button>
+                <button type="button" id="reset-tutorial-confirm-button" class="card-button">${trans.restart_training_confirm || 'Neuanfang beginnen'}</button>
             </div>
         </div>
     `;
@@ -773,6 +773,12 @@ async function resetTutorialAndIntro() {
             }
         }, { once: true });
     }
+}
+
+try {
+    window.resetTutorialAndIntro = resetTutorialAndIntro;
+} catch (e) {
+    console.error('Fehler beim Exportieren von resetTutorialAndIntro:', e);
 }
 
 function getUpdateNoticePages(trans) {
@@ -906,6 +912,7 @@ function saveSetting(key, value) {
                 if (key === 'difficulty' || key === 'hasEquipment') DQ_EXERCISES.renderFreeExercisesPage();
                 if (key === 'goal' || key === 'difficulty' || key === 'hasEquipment' || key === 'restDays') {
                     updateSettingsUI();
+                    DQ_EXERCISES.renderTrainingPhaseBanner();
                 }
                 resolve();
             };

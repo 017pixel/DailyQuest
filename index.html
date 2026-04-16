@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de" data-theme="dark">
 
 <head>
@@ -340,9 +340,18 @@
     <div id="settings-popup" class="popup">
         <div class="popup-drag-handle"></div>
         <h3 data-lang-key="settings">Einstellungen</h3>
+        
+        <div class="settings-tabs">
+            <button class="settings-tab active" data-tab="main" data-lang-key="settings_general">Main</button>
+            <button class="settings-tab" data-tab="weight" data-lang-key="settings_weight">Gewicht</button>
+            <button class="settings-tab" data-tab="training" data-lang-key="settings_training">Training</button>
+            <button class="settings-tab" data-tab="extras" data-lang-key="settings_extras">Extras</button>
+            <button class="settings-tab" data-tab="share" data-lang-key="settings_share">Teilen</button>
+        </div>
+        
         <div class="popup-content">
-            <div class="settings-section">
-                <h4 class="settings-subtitle" data-lang-key="settings_general">Allgemein</h4>
+            <!-- Tab: Main -->
+            <div id="settings-content-main" class="settings-tab-content active">
                 <div class="setting-item">
                     <label for="character-name-input" data-lang-key="character_name">Name</label>
                     <input type="text" id="character-name-input" placeholder="Unknown Hunter">
@@ -379,9 +388,9 @@
                     </div>
                 </div>
             </div>
-
-            <div class="settings-section">
-                <h4 class="settings-subtitle" data-lang-key="settings_weight">Gewichts-Tracking</h4>
+            
+            <!-- Tab: Gewicht -->
+            <div id="settings-content-weight" class="settings-tab-content">
                 <div class="setting-item">
                     <label data-lang-key="weight_tracking_enable">Tracking aktiv</label>
                     <div class="toggle-switch">
@@ -407,13 +416,12 @@
                     </div>
                 </div>
             </div>
-
-            <div class="settings-section">
-                <h4 class="settings-subtitle" data-lang-key="settings_training">Training</h4>
-
+            
+            <!-- Tab: Training -->
+            <div id="settings-content-training" class="settings-tab-content">
                 <div class="settings-warning-box">
                     <span class="material-symbols-rounded warning-icon" style="font-size:20px;">warning</span>
-                    <p data-lang-key="settings_warning_text"></p>
+                    <p data-lang-key="settings_warning_text">Aenderungen an diesen Einstellungen generieren deine heutigen Quests neu. Bisheriger Fortschritt fuer heute geht dabei verloren.</p>
                 </div>
 
                 <div class="setting-item slider-item">
@@ -456,30 +464,51 @@
                         <strong data-lang-key="training_phase_controls_title">Phase</strong>
                         <small data-lang-key="training_phase_controls_hint">Ändert nur die aktive Phase, nicht den Basisplan.</small>
                     </div>
-                    <div class="phase-controls-buttons">
-                        <button type="button" id="phase-repeat-button" class="card-button secondary-button" data-lang-key="training_phase_repeat">Wiederholen</button>
-                        <button type="button" id="phase-skip-button" class="card-button secondary-button" data-lang-key="training_phase_skip">Überspringen</button>
-                        <button type="button" id="phase-extend-button" class="card-button secondary-button" data-lang-key="training_phase_extend">Verlängern</button>
-                    </div>
+                </div>
+                <div class="phase-buttons-row">
+                    <button type="button" id="phase-repeat-button" class="card-button secondary-button phase-btn" data-lang-key="training_phase_repeat">Wdh.</button>
+                    <button type="button" id="phase-skip-button" class="card-button secondary-button phase-btn" data-lang-key="training_phase_skip">Überspringen</button>
+                    <button type="button" id="phase-extend-button" class="card-button secondary-button phase-btn" data-lang-key="training_phase_extend">Verlängern</button>
                 </div>
             </div>
-            <div class="settings-section">
-                <h4 class="settings-subtitle">Tutorial</h4>
+            
+            <!-- Tab: Extras -->
+            <div id="settings-content-extras" class="settings-tab-content">
+                <div class="setting-item-section-title" data-lang-key="settings_tutorial">Tutorial</div>
                 <div class="data-actions">
-                    <button type="button" id="reset-tutorial-button" class="card-button secondary-button full-width-button" data-lang-key="restart_training_button">
+                    <button type="button" id="reset-tutorial-button" class="card-button secondary-button full-width-button" data-lang-key="restart_training_button" onclick="resetTutorialAndIntro()">
                         Einen Neuanfang beginnen
                     </button>
                 </div>
-            </div>
-            <div class="settings-section">
-                <h4 class="settings-subtitle" data-lang-key="settings_data_prompt">Was möchtest du machen? Daten ...
-                </h4>
+                
+                <div class="setting-item-section-title" data-lang-key="settings_data_prompt">Was möchtest du machen? Daten ...</div>
                 <div class="data-actions">
                     <button id="export-data-button" class="card-button secondary-button"
                         data-lang-key="export_data_short">Exportieren</button>
                     <label for="import-data-input" class="card-button secondary-button"
                         data-lang-key="import_data_short">Importieren</label>
                     <input type="file" id="import-data-input" accept="*/*" style="display: none;">
+                </div>
+            </div>
+            
+            <!-- Tab: Teilen -->
+            <div id="settings-content-share" class="settings-tab-content">
+                <div class="share-section">
+                    <h4 data-lang-key="share_title">Teile DailyQuest!</h4>
+                    <p data-lang-key="share_description">Scanne den QR-Code oder teile den Link!</p>
+                    
+                    <div class="qr-code-wrapper">
+                        <div id="qr-code-canvas"></div>
+                    </div>
+                    
+                    <button class="card-button secondary-button share-copy-btn" id="copy-url-btn" data-lang-key="share_copy">Link kopieren</button>
+                    
+                    <a href="https://github.com/017pixel/DailyQuest" target="_blank" class="share-github-link">
+                        <span class="material-symbols-rounded">code</span>
+                        <span data-lang-key="share_github">Zum Code</span>
+                    </a>
+                    
+                    <div class="share-version">v2.5.4</div>
                 </div>
             </div>
         </div>
@@ -585,21 +614,17 @@
             <h3 data-lang-key="endurance_entry_title">Ausdauer eintragen</h3>
             <div class="settings-warning-box">
                 <span class="warning-icon"><span class="material-symbols-rounded" style="font-size:20px;">directions_run</span></span>
-                <p data-lang-key="endurance_entry_hint">Trage Strecke, Zeit und dein Belastungsgefühl ein.</p>
+                <p data-lang-key="endurance_entry_hint">Trage Strecke und Zeit ein.</p>
             </div>
             <div class="setting-item">
-                <label for="endurance-distance-input" data-lang-key="distance">Strecke</label>
+                <label for="endurance-distance-input" data-lang-key="distance">Strecke (km)</label>
                 <input type="number" id="endurance-distance-input" min="0" step="0.1" placeholder="5.0">
             </div>
             <div class="setting-item">
-                <label for="endurance-duration-input" data-lang-key="duration">Zeit</label>
+                <label for="endurance-duration-input" data-lang-key="duration">Zeit (min)</label>
                 <input type="number" id="endurance-duration-input" min="1" step="1" placeholder="30">
             </div>
-            <div class="setting-item">
-                <label for="endurance-power-input" data-lang-key="power">Power</label>
-                <input type="number" id="endurance-power-input" min="1" max="10" step="1" placeholder="6">
-            </div>
-            <div class="setting-item">
+            <div class="setting-item" id="endurance-notes-item" style="display:none;">
                 <label for="endurance-notes-input" data-lang-key="notes">Notizen</label>
                 <input type="text" id="endurance-notes-input" maxlength="120" placeholder="Wie war die Einheit?">
             </div>

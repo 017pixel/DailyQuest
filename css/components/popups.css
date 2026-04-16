@@ -1,4 +1,4 @@
-﻿/* Popup System Styling */
+/* Popup System Styling */
 #popup-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background-color: rgba(0, 0, 0, 0.5); opacity: 0;
@@ -9,10 +9,10 @@
     position: fixed; bottom: 0; left: 0; right: 0;
     background-color: transparent;
     border-top-left-radius: 24px; border-top-right-radius: 24px;
-    padding: 0 24px 0 24px; /* Unten kein Padding mehr, wird vom Content übernommen */
+    padding: 0 24px 0 24px;
     transform: translateY(100%);
     transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1), background-color 0.3s, box-shadow 0.6s ease;
-    z-index: 20; max-height: 80vh; 
+    z-index: 20; max-height: 70vh;
     touch-action: none;
     box-shadow: none;
     display: flex;
@@ -147,7 +147,13 @@ html[data-theme='light'] .popup.penalty.show {
 #settings-popup .popup-content {
     padding-top: 0;
     /* --- BUGFIX: Padding erhöht für mehr Platz --- */
-    padding-bottom: 56px; 
+    padding-bottom: 20px; 
+    overflow: hidden;
+}
+
+#settings-popup {
+    overflow: hidden;
+    transition: height 0.28s ease, transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 #settings-popup h3 {
     margin-top: 0;
@@ -172,19 +178,19 @@ html[data-theme='light'] .popup.penalty.show {
 .settings-warning-box {
     display: flex;
     align-items: flex-start;
-    gap: 10px;
+    gap: 8px;
     background-color: var(--surface-container-high);
     border: 1px solid var(--outline-color);
     border-radius: 12px;
     padding: 12px;
-    margin: 8px 0 16px 0;
+    margin: 8px 0 14px 0;
 }
 .settings-warning-box .warning-icon {
     font-size: 18px;
     line-height: 1.4;
 }
 .settings-warning-box p {
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1.4;
     opacity: 0.9;
     margin: 0;
@@ -195,18 +201,22 @@ html[data-theme='light'] .popup.penalty.show {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--surface-container-high);
+    padding: 8px 10px;
+    margin-bottom: 4px;
+    border-radius: 10px;
+    background: var(--surface-container-high);
+    border: 1px solid var(--outline-color);
 }
 .settings-section .setting-item:last-child { 
     border-bottom: none; 
 }
 
 .setting-item label {
-    font-size: 16px;
+    font-size: 12px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 5px;
+    flex-wrap: wrap;
 }
 
 .beta-tag {
@@ -225,11 +235,11 @@ html[data-theme='light'] .popup.penalty.show {
     color: var(--on-surface-color);
     border: 1px solid var(--outline-color);
     border-radius: 8px;
-    padding: 8px;
+    padding: 6px 8px;
     text-align: right;
 }
 .setting-item input[type="text"], .setting-item input[type="number"] {
-    width: 150px;
+    width: 132px;
 }
 /* --- KORREKTUR: Zu allgemeine Regel entfernt, die das Namensfeld gestreckt hat --- */
 /* .popup-content .setting-item input[type="text"] { ... } */
@@ -238,15 +248,15 @@ html[data-theme='light'] .popup.penalty.show {
 .setting-item.slider-item {
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
+    gap: 6px;
 }
 .setting-item.slider-item label {
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 .slider-container {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 10px;
 }
 
 input[type="range"] {
@@ -285,6 +295,7 @@ input[type="range"]::-moz-range-thumb {
     color: var(--primary-color);
     min-width: 12px;
     text-align: center;
+    font-size: 11px;
 }
 
 .toggle-switch {
@@ -329,17 +340,17 @@ input:checked + .slider:before {
 
 .data-actions {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     margin-top: 8px;
 }
 .data-actions .card-button {
-    width: 50%;
+    flex: 1;
     margin-top: 0;
-    padding: 14px 8px;
+    padding: 12px 8px;
     text-align: center;
     text-transform: none;
     letter-spacing: normal;
-    font-size: 15px;
+    font-size: 13px;
 }
 .data-actions .card-button.full-width-button {
     width: 100%;
@@ -445,5 +456,256 @@ input:checked + .slider:before {
 }
 html[data-theme='light'] .dungeon-spawn-chip {
     box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+}
+
+/* --- SETTINGS TABS --- */
+.settings-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--outline-color);
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.settings-tab {
+    flex: 1;
+    min-width: 0;
+    padding: 9px 4px;
+    border-radius: 12px;
+    background: var(--surface-container-high);
+    color: var(--on-surface-color);
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.settings-tab:hover {
+    background: var(--surface-container);
+    transform: translateY(-1px);
+}
+
+.settings-tab.active {
+    background: var(--primary-color);
+    color: var(--on-primary-color);
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.settings-tab-content {
+    display: none;
+    animation: settingsTabFadeIn 0.2s ease;
+}
+
+.settings-tab-content.active {
+    display: block;
+}
+
+@keyframes settingsTabFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- SETTING ITEMS IMPROVED --- */
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    border-radius: 10px;
+    background: var(--surface-container-high);
+    border: 1px solid var(--outline-color);
+    transition: border-color 0.2s;
+}
+
+.setting-item label {
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.setting-item-section-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+    margin-top: 16px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--outline-color);
+}
+
+.setting-item-section-title:first-child {
+    margin-top: 0;
+}
+
+/* --- IMPROVED BUTTONS --- */
+.card-button {
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid var(--outline-color);
+    background: var(--surface-container-high);
+    color: var(--on-surface-color);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.card-button:hover::before {
+    opacity: 1;
+}
+
+.card-button:active {
+    transform: scale(0.97);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.card-button.secondary-button {
+    background: transparent;
+    border: 1px solid var(--outline-color);
+}
+
+.phase-buttons-row {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 6px;
+}
+
+.phase-buttons-row .phase-btn {
+    flex: 1;
+    padding: 7px 3px;
+    font-size: 9px;
+    white-space: nowrap;
+    text-align: center;
+}
+
+/* --- NUMBER INPUT (AGE) STYLING --- */
+.setting-item input[type="number"] {
+    -moz-appearance: textfield;
+    background: var(--surface-container-high);
+    color: var(--on-surface-color);
+    border: 1px solid var(--outline-color);
+    border-radius: 10px;
+    padding: 10px 12px;
+    width: 80px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.setting-item input[type="number"]::-webkit-inner-spin-button,
+.setting-item input[type="number"]::-webkit-outer-spin-button {
+    opacity: 1;
+    height: 28px;
+    background: var(--surface-container);
+    border-radius: 6px;
+    color: var(--on-surface-color);
+    margin: 0 -4px;
+}
+
+/* --- SHARE SECTION --- */
+.share-section {
+    text-align: center;
+    padding: 12px 0;
+    overflow: hidden;
+    max-width: 280px;
+    margin: 0 auto;
+}
+
+.share-section h4 {
+    font-size: 18px;
+    color: var(--primary-color);
+    margin-bottom: 4px;
+    margin-top: 0;
+}
+
+.share-section > p {
+    opacity: 0.7;
+    font-size: 12px;
+    margin-bottom: 12px;
+    margin-top: 0;
+}
+
+.qr-code-wrapper {
+    background: var(--surface-color);
+    padding: 12px;
+    border-radius: 10px;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+#qr-code-canvas {
+    border-radius: 6px;
+    display: block;
+    width: 220px;
+    height: 220px;
+    overflow: hidden;
+}
+
+#qr-code-canvas canvas,
+#qr-code-canvas img,
+#qr-code-canvas table {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.share-copy-btn {
+    width: 100%;
+    max-width: 220px;
+    margin: 0 auto 10px auto;
+    display: block;
+}
+
+.share-github-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--on-surface-color);
+    opacity: 0.5;
+    text-decoration: none;
+    transition: opacity 0.2s;
+    padding: 6px 8px;
+}
+
+.share-github-link:hover {
+    opacity: 0.8;
+}
+
+.share-github-link .material-symbols-rounded {
+    font-size: 14px;
+}
+
+.share-version {
+    font-size: 10px;
+    opacity: 0.4;
+    margin-top: 8px;
 }
 

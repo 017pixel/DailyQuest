@@ -1,4 +1,4 @@
-﻿const DQ_UI = {
+const DQ_UI = {
     elements: {},
     touchStartY: 0,
     popupStack: [],
@@ -135,18 +135,157 @@
         if (this.popupStack.includes(popupElement)) return;
 
         this.elements.popupOverlay.classList.add('show');
-        popupElement.classList.add('show');
+        
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                popupElement.classList.add('show');
+            });
+        });
+        
         this.popupStack.push(popupElement);
+
+        if (popupElement.id === 'settings-popup') {
+            popupElement.style.height = 'auto';
+            requestAnimationFrame(() => {
+                this.initSettingsTabs();
+            });
+        }
+    },
+
+    initSettingsTabs() {
+        const tabs = document.querySelectorAll('.settings-tab');
+        const contents = document.querySelectorAll('.settings-tab-content');
+        const settingsPopup = this.elements.settingsPopup;
+        
+        if (!tabs.length || !contents.length) return;
+
+        const syncSettingsHeight = () => {
+            if (!settingsPopup) return;
+            const active = settingsPopup.querySelector('.settings-tab-content.active');
+            if (!active) return;
+            
+            requestAnimationFrame(() => {
+                const contentHeight = active.scrollHeight;
+                let extraPadding = 200;
+                if (active.id === 'settings-content-training') {
+                    extraPadding = 280;
+                } else if (active.id === 'settings-content-share') {
+                    extraPadding = 340;
+                } else if (active.id === 'settings-content-extras') {
+                    extraPadding = 220;
+                } else if (active.id === 'settings-content-weight') {
+                    extraPadding = 220;
+                } else if (active.id === 'settings-content-main') {
+                    extraPadding = 220;
+                }
+                const targetHeight = extraPadding + contentHeight;
+                settingsPopup.style.height = `${targetHeight}px`;
+            });
+        };
+
+        const setActiveTab = async (target) => {
+            tabs.forEach(t => t.classList.remove('active'));
+            contents.forEach(c => c.classList.remove('active'));
+
+            const tab = document.querySelector(`.settings-tab[data-tab="${target}"]`);
+            const contentEl = document.getElementById(`settings-content-${target}`);
+
+            if (tab) tab.classList.add('active');
+            if (contentEl) {
+                contentEl.classList.add('active');
+                syncSettingsHeight();
+            }
+
+            if (target === 'share') {
+                await this.loadQRCodeLibrary();
+                setTimeout(() => {
+                    this.generateShareQRCode();
+                    syncSettingsHeight();
+                }, 100);
+            }
+        };
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', async () => {
+                await setActiveTab(tab.dataset.tab);
+            });
+        });
+
+        const copyBtn = document.getElementById('copy-url-btn');
+        if (copyBtn) {
+            copyBtn.addEventListener('click', () => this.copyShareUrl());
+        }
+
+        const mainTab = document.querySelector('.settings-tab[data-tab="main"]');
+        const mainContent = document.getElementById('settings-content-main');
+        if (mainTab && mainContent) {
+            tabs.forEach(t => t.classList.remove('active'));
+            contents.forEach(c => c.classList.remove('active'));
+            mainTab.classList.add('active');
+            mainContent.classList.add('active');
+            requestAnimationFrame(syncSettingsHeight);
+        }
+    },
+
+    async loadQRCodeLibrary() {
+        if (window.QRCode) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'js/vendor/qrcode.min.js';
+            script.onload = resolve;
+            script.onerror = () => reject(new Error('QRCode library failed to load'));
+            document.head.appendChild(script);
+        });
+    },
+
+    generateShareQRCode() {
+        const container = document.getElementById('qr-code-canvas');
+        if (!container || !window.QRCode) return;
+
+        container.innerHTML = '';
+        
+        const url = 'https://017pixel.github.io/DailyQuest/';
+        const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+        
+        new QRCode(container, {
+            text: url,
+            width: 240,
+            height: 240,
+            margin: 1,
+            colorDark: isDark ? '#ffffff' : '#000000',
+            colorLight: isDark ? '#1a1a1a' : '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    },
+
+    copyShareUrl() {
+        const url = 'https://017pixel.github.io/DailyQuest/';
+        navigator.clipboard.writeText(url).then(() => {
+            const lang = DQ_CONFIG.userSettings.language || 'de';
+            const msg = (DQ_DATA.translations[lang]?.share_copied) || 'Link kopiert!';
+            this.showCustomPopup(`<p>${msg}</p>`, 'info');
+        }).catch(() => {
+            const lang = DQ_CONFIG.userSettings.language || 'de';
+            const msg = (DQ_DATA.translations[lang]?.share_copied) || 'Link kopiert!';
+            this.showCustomPopup(`<p>${msg}</p>`, 'info');
+        });
     },
 
     hideTopPopup() {
         if (this.popupStack.length === 0) return;
 
         const popupToHide = this.popupStack.pop();
+        
+        if (popupToHide.id === 'settings-popup') {
+            popupToHide.style.height = '';
+        }
+        
         popupToHide.classList.remove('show');
 
         if (this.popupStack.length === 0) {
-            this.elements.popupOverlay.classList.remove('show');
+            setTimeout(() => {
+                this.elements.popupOverlay.classList.remove('show');
+            }, 400);
         }
     },
 

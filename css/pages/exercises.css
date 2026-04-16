@@ -1,4 +1,4 @@
-﻿/* Kompaktes Design fÃ¼r Ãœbungskarten */
+/* Kompaktes Design fÃ¼r Ãœbungskarten */
 #exercise-list, #quest-list { display: grid; grid-template-columns: 1fr; gap: 10px; }
 .exercise-card {
     display: flex; align-items: center; justify-content: space-between;
@@ -172,7 +172,45 @@
 
 #page-exercises .action-button { height: 34px; }
 #page-exercises .info-button-small { width: 34px; font-size: 15px; }
-#page-exercises .complete-button-small { padding: 0 14px; font-size: 13px; }
+#page-exercises .complete-button-small { padding: 0 14px; font-size: 13px; transition: all 0.3s ease; }
+
+/* Set counter animation */
+.set-counter {
+    display: inline-block;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.set-counter.animating {
+    animation: setCounterPop 0.3s ease;
+}
+
+@keyframes setCounterPop {
+    0% { transform: translateY(-10px); opacity: 0; }
+    50% { transform: translateY(5px); }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+/* Completed state animation */
+.exercise-card.set-completed .complete-button-small {
+    animation: setCompletedPulse 0.4s ease;
+    background-color: var(--outline-color);
+}
+
+.exercise-card.set-completed {
+    animation: setCardFade 0.4s ease;
+}
+
+@keyframes setCompletedPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); background-color: var(--outline-color); }
+}
+
+@keyframes setCardFade {
+    0% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
 
 .exercise-card.highlight {
     border-color: var(--primary-color);

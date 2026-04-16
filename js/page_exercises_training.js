@@ -1,4 +1,4 @@
-﻿Object.assign(DQ_EXERCISES, {
+Object.assign(DQ_EXERCISES, {
     async renderTrainingPhaseBanner() {
         const banner = DQ_UI.elements.trainingPhaseBanner;
         if (!banner || typeof DQ_TRAINING_SYSTEM === 'undefined') {
@@ -29,9 +29,10 @@
             index.getAll(DQ_CONFIG.getTodayString()).onsuccess = e => resolve(e.target.result || []);
             tx.onerror = () => resolve([]);
         });
-        const progress = questsToday.length > 0
-            ? Math.round((questsToday.filter(q => q.completed).length / questsToday.length) * 100)
-            : Math.max(0, Math.min(100, Math.round(context.progress * 100)));
+        const isInfinitePhase = context.stageWeeks >= 9999;
+        const progress = isInfinitePhase 
+            ? Infinity 
+            : Math.round(((context.stageWeek + 1) / context.stageWeeks) * 100);
         const phaseWeekText = lang === 'en'
             ? `Week ${context.stageWeek + 1}/${context.stageWeeks}`
             : `Woche ${context.stageWeek + 1}/${context.stageWeeks}`;
@@ -61,7 +62,7 @@
                     </summary>
                     <div class="training-phase-details-body">
                         <p class="training-phase-detail-text">${detailText}</p>
-                        <div class="training-phase-banner-count">${lang === 'en' ? 'Progress' : 'Fortschritt'}: ${progress}%</div>
+                        <div class="training-phase-banner-count">${lang === 'en' ? 'Progress' : 'Fortschritt'}: ${progress === Infinity ? '∞' : `${progress}%`}</div>
                         <div class="training-phase-meta-grid">
                             <div class="training-phase-meta-item">
                                 <span>${lang === 'en' ? 'Load' : 'Belastung'}</span>
@@ -116,7 +117,13 @@
             }
             visibleQuests.forEach(quest => {
                 const card = document.createElement('div');
-                card.className = `card exercise-card ${quest.completed ? 'completed' : ''}${quest.canComplete ? ' ready' : ''}`;
+                const cardClasses = [
+                    'card',
+                    'exercise-card',
+                    quest.completed ? 'completed' : '',
+                    quest.canComplete ? 'ready' : ''
+                ].filter(Boolean).join(' ');
+                card.className = cardClasses;
                 card.dataset.questId = quest.questId;
 
                 const targetDisplay = typeof DQ_TRAINING_SYSTEM !== 'undefined' && DQ_TRAINING_SYSTEM.formatQuestTarget
@@ -129,7 +136,8 @@
                 const isSetQuest = quest.completionMode === 'sets' && Array.isArray(quest.setProgress) && quest.setPlan;
                 const totalSets = Math.max(1, quest.setPlan?.sets || quest.setProgress?.length || 1);
                 const doneSets = isSetQuest ? quest.setProgress.filter(Boolean).length : 0;
-                const progressText = `${doneSets}/${totalSets}`;
+                const isAllSetsComplete = isSetQuest && doneSets === totalSets;
+                const progressText = `<span class="set-counter">${doneSets}</span>/${totalSets}`;
                 const fallbackActionLabel = typeof DQ_TRAINING_SYSTEM !== 'undefined' ? DQ_TRAINING_SYSTEM.getQuestActionLabel(quest) : 'OK';
                 const buttonText = isFocusQuest
                     ? (DQ_DATA.translations[lang].start_task_button || 'Los')
@@ -143,7 +151,7 @@
                     </div>
                     <div class="exercise-card-actions">
                         <button class="action-button info-button-small" data-action="info" aria-label="Info">?</button>
-                        <button class="action-button complete-button-small" data-action="${buttonAction}" aria-label="Absolvieren" ${buttonDisabled ? 'disabled' : ''}>
+                        <button class="action-button complete-button-small${isAllSetsComplete ? ' set-completed' : ''}" data-action="${buttonAction}" aria-label="Absolvieren" ${buttonDisabled ? 'disabled' : ''}>
                             ${quest.completed ? '<span class="material-symbols-rounded">check</span>' : buttonText}
                         </button>
                     </div>
@@ -168,8 +176,15 @@
         const fields = DQ_UI.elements;
         if (fields.enduranceDistanceInput) fields.enduranceDistanceInput.value = '';
         if (fields.enduranceDurationInput) fields.enduranceDurationInput.value = '';
-        if (fields.endurancePowerInput) fields.endurancePowerInput.value = '';
         if (fields.enduranceNotesInput) fields.enduranceNotesInput.value = '';
+        
+        const quest = await this.getQuestById(questId);
+        const notesItem = document.getElementById('endurance-notes-item');
+        if (notesItem) {
+            const showNotes = quest?.nameKey?.includes('jog') || quest?.nameKey?.includes('walk') || quest?.nameKey?.includes('run') || quest?.nameKey?.includes('spazier');
+            notesItem.style.display = showNotes ? 'flex' : 'none';
+        }
+        
         DQ_UI.showPopup(fields.enduranceEntryPopup);
     },
 
@@ -187,7 +202,6 @@
         const payload = {
             distance: parseFloat(DQ_UI.elements.enduranceDistanceInput?.value) || 0,
             duration: parseInt(DQ_UI.elements.enduranceDurationInput?.value, 10) || 0,
-            power: parseInt(DQ_UI.elements.endurancePowerInput?.value, 10) || 0,
             notes: DQ_UI.elements.enduranceNotesInput?.value?.trim() || '',
             age: DQ_CONFIG.userSettings.age ?? null
         };
@@ -233,13 +247,18 @@
         if (!quest) return;
 
         if (quest.completionMode === 'sets') {
+            const button = document.querySelector(`[data-quest-id="${questId}"] .complete-button-small`);
+            if (button) {
+                button.classList.add('animating');
+            }
+            
             const updatedQuest = await DQ_TRAINING_SYSTEM.advanceSetProgress(questId);
             if (!updatedQuest) return;
 
             if (updatedQuest.canComplete) {
                 await this.finalizeQuestCompletion(questId);
             } else {
-                this.renderQuests();
+                setTimeout(() => this.renderQuests(), 300);
             }
             return;
         }
