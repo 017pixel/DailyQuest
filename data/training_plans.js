@@ -25,13 +25,7 @@ const DQ_TRAINING_PLAN_ENDURANCE_STAGES = [
 ];
 
 const DQ_TRAINING_PLAN_SENIOR_STAGES = [
-    { labelKey: 'phase_senior_start', weeks: 1, sets: 1, reps: 5 },
-    { labelKey: 'phase_senior_start', weeks: 1, sets: 1, reps: 6 },
-    { labelKey: 'phase_senior_build', weeks: 1, sets: 2, reps: 5 },
-    { labelKey: 'phase_senior_build', weeks: 1, sets: 2, reps: 6 },
-    { labelKey: 'phase_senior_control', weeks: 1, sets: 2, reps: 7 },
-    { labelKey: 'phase_senior_control', weeks: 1, sets: 3, reps: 5 },
-    { labelKey: 'phase_senior_endgame', weeks: 9999, sets: 3, reps: 6 }
+    { labelKey: 'phase_daily', weeks: 9999, sets: 1, reps: 1 }
 ];
 
 DQ_DATA.trainingPlans = {
@@ -101,16 +95,16 @@ DQ_DATA.trainingPlans = {
         ]
     },
     senior: {
-        completionMode: 'sets',
-        stageType: 'reps',
+        completionMode: 'tap',
+        stageType: 'tap',
         stages: DQ_TRAINING_PLAN_SENIOR_STAGES,
         slots: [
-            { key: 'chair_stand', candidates: ['chair_sit_to_stand', 'situps', 'squats'] },
-            { key: 'march', candidates: ['seated_marching', 'short_walk', 'walk_30min'] },
-            { key: 'push', candidates: ['wall_push_ups', 'knee_push_ups', 'tricep_dips_chair'] },
-            { key: 'balance', candidates: ['heel_raises', 'standing_balance', 'ankle_circles'] },
-            { key: 'mobility', candidates: ['seated_chest_opening', 'seated_head_turns', 'stretch_5min'] },
-            { key: 'stretch', candidates: ['seated_spinal_twist', 'stretch_10min', 'short_walk'] }
+            { key: 'chair_stand', candidates: ['chair_sit_to_stand', 'leg_raises_seated', 'knee_lifts'] },
+            { key: 'march', candidates: ['seated_marching', 'short_walk', 'deep_breathing'] },
+            { key: 'push', candidates: ['wall_push_ups', 'arm_circles', 'shoulder_shrugs'] },
+            { key: 'balance', candidates: ['heel_raises', 'standing_balance', 'calf_stretch'] },
+            { key: 'mobility', candidates: ['seated_chest_opening', 'neck_stretch', 'side_stretch'] },
+            { key: 'stretch', candidates: ['seated_spinal_twist', 'wrist_circles', 'finger_spreads'] }
         ]
     },
     sick: {

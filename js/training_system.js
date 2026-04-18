@@ -1,4 +1,4 @@
-﻿const DQ_TRAINING_SYSTEM = {
+const DQ_TRAINING_SYSTEM = {
     todayCache: null,
     blockedQuestNameKeys: ['jump_rope'],
 
@@ -249,6 +249,7 @@
         if (plan?.completionMode) return plan.completionMode;
         if (template.type === 'focus') return 'tap';
         if (template.type === 'check') return 'tap';
+        if (template.nameKey === 'walk_30min' || template.nameKey === 'short_walk') return 'tap';
         return 'sets';
     },
 

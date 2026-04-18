@@ -10,7 +10,7 @@ Object.assign(DQ_EXERCISES, {
         }
 
         const goal = DQ_CONFIG.userSettings.goal || 'muscle';
-        if (['sick', 'restday'].includes(goal)) {
+        if (['sick', 'restday', 'senior'].includes(goal)) {
             banner.hidden = true;
             banner.innerHTML = '';
             return;
@@ -287,6 +287,8 @@ Object.assign(DQ_EXERCISES, {
         const lang = DQ_CONFIG.userSettings.language || 'de';
         const trans = DQ_DATA.translations[lang];
         const difficulty = DQ_CONFIG.userSettings.difficulty || 3;
+        const goal = DQ_CONFIG.userSettings.goal || 'muscle';
+        const isSeniorMode = goal === 'senior';
 
         // Finde das Template für Muskelgruppen und Stats
         const template = Object.values(DQ_DATA.exercisePool).flat().find(t => t.nameKey === exercise.nameKey);
@@ -336,7 +338,7 @@ Object.assign(DQ_EXERCISES, {
         const content = `
             <div class="enhanced-info-popup">
                 <h3 class="info-title">${translatedName}</h3>
-                ${isQuest && (exercise.phaseLabel || exercise.phaseSummary) ? `
+                ${isQuest && !isSeniorMode && (exercise.phaseLabel || exercise.phaseSummary) ? `
                     <div class="info-section info-phase-section">
                         <span class="info-section-label">${trans.training_phase_controls_title || 'Phase'}</span>
                         <div class="info-badges-container">

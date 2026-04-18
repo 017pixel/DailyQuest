@@ -91,16 +91,27 @@ DQ_DATA.exercisePool = {
     general_workout: [
         { id: 901, nameKey: 'general_workout', type: 'check', baseValue: 1, mana: 100, gold: 100, statPoints: { kraft: 2, ausdauer: 2, beweglichkeit: 1, durchhaltevermoegen: 2, willenskraft: 1 } },
     ],
-    senior: [
-        { id: 1001, nameKey: 'chair_sit_to_stand', type: 'reps', baseValue: 5, mana: 16, gold: 6, statPoints: { kraft: 0.5, durchhaltevermoegen: 0.5 }, muscles: ['legs', 'glutes'] },
-        { id: 1002, nameKey: 'seated_marching', type: 'reps', baseValue: 6, mana: 14, gold: 5, statPoints: { ausdauer: 0.5, beweglichkeit: 0.5 }, muscles: ['legs', 'core'] },
-        { id: 1003, nameKey: 'wall_push_ups', type: 'reps', baseValue: 6, mana: 15, gold: 6, statPoints: { kraft: 0.5, beweglichkeit: 0.5 }, muscles: ['chest', 'shoulders', 'arms'] },
-        { id: 1004, nameKey: 'heel_raises', type: 'reps', baseValue: 8, mana: 12, gold: 4, statPoints: { ausdauer: 0.5, durchhaltevermoegen: 0.5 }, muscles: ['legs'] },
-        { id: 1005, nameKey: 'standing_balance', type: 'time', baseValue: 20, mana: 12, gold: 4, statPoints: { beweglichkeit: 0.5, durchhaltevermoegen: 0.5 }, muscles: ['legs', 'core'] },
-        { id: 1006, nameKey: 'seated_chest_opening', type: 'time', baseValue: 20, mana: 10, gold: 4, statPoints: { beweglichkeit: 0.5 }, muscles: ['chest', 'shoulders'] },
-        { id: 1007, nameKey: 'ankle_circles', type: 'reps', baseValue: 8, mana: 10, gold: 3, statPoints: { beweglichkeit: 0.5 }, muscles: ['legs'] },
-        { id: 1008, nameKey: 'seated_head_turns', type: 'reps', baseValue: 6, mana: 8, gold: 3, statPoints: { beweglichkeit: 0.5 }, muscles: ['shoulders', 'back'] },
-        { id: 1009, nameKey: 'seated_spinal_twist', type: 'time', baseValue: 20, mana: 10, gold: 4, statPoints: { beweglichkeit: 0.5, durchhaltevermoegen: 0.5 }, muscles: ['core', 'back'] }
+senior: [
+        { id: 1001, nameKey: 'chair_sit_to_stand', type: 'check', baseValue: 1, mana: 16, gold: 6, statPoints: { kraft: 0.5, durchhaltevermoegen: 0.5 }, muscles: ['legs', 'glutes'] },
+        { id: 1002, nameKey: 'seated_marching', type: 'check', baseValue: 1, mana: 14, gold: 5, statPoints: { ausdauer: 0.5, beweglichkeit: 0.5 }, muscles: ['legs', 'core'] },
+        { id: 1003, nameKey: 'wall_push_ups', type: 'check', baseValue: 1, mana: 15, gold: 6, statPoints: { kraft: 0.5, beweglichkeit: 0.5 }, muscles: ['chest', 'shoulders', 'arms'] },
+        { id: 1004, nameKey: 'heel_raises', type: 'check', baseValue: 1, mana: 12, gold: 4, statPoints: { ausdauer: 0.5, durchhaltevermoegen: 0.5 }, muscles: ['legs'] },
+        { id: 1005, nameKey: 'standing_balance', type: 'check', baseValue: 1, mana: 12, gold: 4, statPoints: { beweglichkeit: 0.5, durchhaltevermoegen: 0.5 }, muscles: ['legs', 'core'] },
+        { id: 1006, nameKey: 'seated_chest_opening', type: 'check', baseValue: 1, mana: 10, gold: 4, statPoints: { beweglichkeit: 0.5 }, muscles: ['chest', 'shoulders'] },
+        { id: 1007, nameKey: 'ankle_circles', type: 'check', baseValue: 1, mana: 10, gold: 3, statPoints: { beweglichkeit: 0.5 }, muscles: ['legs'] },
+        { id: 1008, nameKey: 'seated_head_turns', type: 'check', baseValue: 1, mana: 8, gold: 3, statPoints: { beweglichkeit: 0.5 }, muscles: ['shoulders', 'back'] },
+        { id: 1009, nameKey: 'seated_spinal_twist', type: 'check', baseValue: 1, mana: 10, gold: 4, statPoints: { beweglichkeit: 0.5, durchhaltevermoegen: 0.5 }, muscles: ['core', 'back'] },
+        { id: 1010, nameKey: 'arm_circles', type: 'check', baseValue: 1, mana: 10, gold: 3, statPoints: { beweglichkeit: 0.5 }, muscles: ['shoulders', 'arms'] },
+        { id: 1011, nameKey: 'leg_raises_seated', type: 'check', baseValue: 1, mana: 12, gold: 4, statPoints: { kraft: 0.5, ausdauer: 0.5 }, muscles: ['abs', 'legs'] },
+        { id: 1012, nameKey: 'neck_stretch', type: 'check', baseValue: 1, mana: 8, gold: 3, statPoints: { beweglichkeit: 0.5 }, muscles: ['shoulders', 'neck'] },
+        { id: 1013, nameKey: 'wrist_circles', type: 'check', baseValue: 1, mana: 6, gold: 2, statPoints: { beweglichkeit: 0.5 }, muscles: ['arms', 'hands'] },
+        { id: 1014, nameKey: 'calf_stretch', type: 'check', baseValue: 1, mana: 8, gold: 3, statPoints: { beweglichkeit: 0.5 }, muscles: ['legs'] },
+        { id: 1015, nameKey: 'shoulder_shrugs', type: 'check', baseValue: 1, mana: 8, gold: 3, statPoints: { kraft: 0.5 }, muscles: ['shoulders', 'neck'] },
+        { id: 1016, nameKey: 'deep_breathing', type: 'check', baseValue: 1, mana: 10, gold: 3, statPoints: { durchhaltevermoegen: 0.5 }, muscles: ['mind', 'full_body'] },
+        { id: 1017, nameKey: 'finger_spreads', type: 'check', baseValue: 1, mana: 6, gold: 2, statPoints: { beweglichkeit: 0.5 }, muscles: ['hands', 'arms'] },
+        { id: 1018, nameKey: 'knee_lifts', type: 'check', baseValue: 1, mana: 12, gold: 4, statPoints: { ausdauer: 0.5, kraft: 0.5 }, muscles: ['legs', 'abs'] },
+        { id: 1019, nameKey: 'side_stretch', type: 'check', baseValue: 1, mana: 10, gold: 3, statPoints: { beweglichkeit: 0.5 }, muscles: ['core', 'side'] },
+        { id: 1020, nameKey: 'short_walk', type: 'check', baseValue: 1, mana: 15, gold: 5, statPoints: { ausdauer: 0.5, durchhaltevermoegen: 0.5 }, muscles: ['legs'] }
     ]
 };
 
@@ -184,7 +195,18 @@ DQ_DATA.exerciseExplanations = {
         seated_chest_opening: "Sitz aufrecht und öffne die Brust, indem du die Arme weit nach hinten führst oder die Hände leicht hinter dem Rücken verbindest. Zieh die Schulterblätter sanft zusammen und bleib locker.",
         ankle_circles: "Sitz oder steh sicher und hebe einen Fuß leicht an. Kreise den Fuß langsam in beide Richtungen, ohne das Sprunggelenk zu erzwingen. Dann die andere Seite.",
         seated_head_turns: "Sitz aufrecht mit lockeren Schultern. Drehe den Kopf langsam nach rechts und links, ohne zu rucken. Die Bewegung bleibt klein und kontrolliert.",
-        seated_spinal_twist: "Sitz aufrecht auf dem Stuhl, die Füße am Boden. Drehe den Oberkörper leicht nach rechts und links, ohne den Rücken zu überdrehen. Bleib ruhig und langsam."
+seated_spinal_twist: "Sitz aufrecht auf dem Stuhl, die Füße am Boden. Drehe den Oberkörper leicht nach rechts und links, ohne den Rücken zu überdrehen. Bleib ruhig und langsam.",
+        arm_circles: "Steh oder sitz aufrecht. Mach mit den Armen weite Kreise nach vorne und nach hinten. Großes hilft, die Schultern beweglich zu halten.",
+        leg_raises_seated: "Sitz aufrecht auf dem Stuhl. Hebe ein Bein gerade nach vorne und halte es kurz. Senke langsam wieder ab. Wechsle die Seite.",
+        neck_stretch: "Sitz oder steh aufrecht. Neige den Kopf langsam nach rechts, halte kurz, dann nach links. Nicht ruckartig bewegen.",
+        wrist_circles: "Halte die Arme vor dir und drehe die Handgelenke langsam im Kreis. Erst eine Richtung, dann die andere.",
+        calf_stretch: "Stell dich hin und halte dich fest. Stell einen Fuß nach hinten, drück die Ferse sanft in den Boden. Du spürst eine Dehnung im Wade.",
+        shoulder_shrugs: "Sitz oder steh aufrecht. Heb die Schultern hoch zu den Ohren, halt kurz, und lass sie wieder fallen. Atme dabei aus.",
+        deep_breathing: "Setz dich bequem hin. Atme langsam durch die Nase ein, halt kurz, und puste langsam durch den Mund aus. Mehrfach wiederholen.",
+        finger_spreads: "Streck die Arme aus und spreiz die Finger weit auseinander, dann zur Faust ballen. Langsam und mehrfach wiederholen.",
+        knee_lifts: "Sitz aufrecht auf dem Stuhl. Heb ein Knie zur Brust, halt kurz, und senke es wieder. Nicht überanstrengen.",
+        side_stretch: "Sitz aufrecht und heb einen Arm über den Kopf. Lehn dich langsam zur anderen Seite, bis du eine Dehnung spürst. Dann die Seite wechseln.",
+        short_walk: "Ein kurzer Spaziergang an der frischen Luft tut gut. Geh in deinem Tempo und genieße die Bewegung."
     },
     en: {
         bicep_curls: "Stand shoulder-width apart and upright, holding dumbbells with palms facing forward. Keep your upper arms and elbows locked to the side of your body. Bend your arms and lift the weights towards your chest in a controlled manner. Then, slowly and fully lower them back down without using momentum.",
@@ -251,8 +273,19 @@ DQ_DATA.exerciseExplanations = {
         standing_balance: "Stand on one leg or in a narrow stance and lightly hold on if needed. Stay calm and upright without wobbling. Switch sides after the set time.",
         seated_chest_opening: "Sit upright and open your chest by taking your arms gently back or lightly linking your hands behind you. Squeeze your shoulder blades together softly and stay relaxed.",
         ankle_circles: "Sit or stand safely and lift one foot slightly off the ground. Circle the foot slowly in both directions without forcing the ankle. Then switch sides.",
-        seated_head_turns: "Sit upright with relaxed shoulders. Slowly turn your head to the right and left without jerking. Keep the movement small and controlled.",
-        seated_spinal_twist: "Sit upright on a chair with your feet on the floor. Rotate your upper body a little to the right and left without forcing your back. Stay slow and steady."
+seated_head_turns: "Sit upright with relaxed shoulders. Slowly turn your head to the right and left without jerking. Keep the movement small and controlled.",
+        seated_spinal_twist: "Sit upright on a chair with your feet on the floor. Rotate your upper body a little to the right and left without forcing your back. Stay slow and steady.",
+        arm_circles: "Stand or sit upright. Make wide circles with your arms, first forward then backward. Large circles help keep shoulders mobile.",
+        leg_raises_seated: "Sit upright on a chair. Lift one leg straight out in front and hold briefly. Lower slowly. Switch sides.",
+        neck_stretch: "Sit or stand upright. Slowly tilt your head to the right, hold, then to the left. Don't move jerkily.",
+        wrist_circles: "Hold your arms in front and circle your wrists slowly. One direction, then the other.",
+        calf_stretch: "Stand and hold on for balance. Place one foot back and gently press the heel down. You feel a stretch in your calf.",
+        shoulder_shrugs: "Sit or stand upright. Lift your shoulders toward your ears, hold briefly, and let them drop. Exhale as you do this.",
+        deep_breathing: "Sit comfortably. Breathe in slowly through your nose, hold briefly, and breathe out slowly through your mouth. Repeat several times.",
+        finger_spreads: "Extend your arms and spread your fingers wide apart, then make a fist. Do slowly and repeat.",
+        knee_lifts: "Sit upright on a chair. Lift one knee toward your chest, hold briefly, and lower. Don't overexert.",
+        side_stretch: "Sit upright and raise one arm overhead. Lean slowly to the other side until you feel a stretch. Then switch sides.",
+        short_walk: "A short walk in the fresh air is good for you. Walk at your pace and enjoy the movement."
     }
 };
 

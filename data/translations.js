@@ -87,6 +87,7 @@ DQ_DATA.translations = {
         phase_senior_build: "Stabiler Aufbau",
         phase_senior_control: "Kontrolle",
         phase_senior_endgame: "Dauerhaft schwer",
+        phase_daily: "Täglich",
         phase_recovery: "Erholung",
         distance: "Strecke",
         duration: "Zeit",
@@ -281,7 +282,10 @@ DQ_DATA.translations = {
             hula_hoop: "Hula Hoop Reifen", stair_climbing: "Treppen Rennen", jogging: "Joggen", running: "Rennen",
             chair_sit_to_stand: "Vom Stuhl aufstehen", seated_marching: "Sitzendes Marschieren", wall_push_ups: "Wand-Liegestütze",
             heel_raises: "Fersenheben", standing_balance: "Balance-Halten", seated_chest_opening: "Brustöffner im Sitzen",
-            ankle_circles: "Fußkreisen", seated_head_turns: "Sitzende Kopfdrehungen", seated_spinal_twist: "Sitzende Wirbelsäulendrehung"
+            ankle_circles: "Fußkreisen", seated_head_turns: "Sitzende Kopfdrehungen", seated_spinal_twist: "Sitzende Wirbelsäulendrehung",
+            arm_circles: "Armkreisen", leg_raises_seated: "Beinheben im Sitzen", neck_stretch: "Nackendehnung", wrist_circles: "Handgelenkskreisen",
+            calf_stretch: "Wadendehnung", shoulder_shrugs: "Schulterzucken", deep_breathing: "Tiefes Atmen", finger_spreads: "Fingerspreizen",
+            knee_lifts: "Knieheben", side_stretch: "Seitliche Dehnung", short_walk: "Kurzer Spaziergang"
         },
         extra_quest_names: {
             extra_clean_room: "Ein Zimmer aufräumen", extra_walk_hour: "1 Stunde Spaziergang", extra_learn_hour: "1 Stunde etwas Neues lernen",
@@ -377,6 +381,7 @@ DQ_DATA.translations = {
         phase_senior_build: "Steady build",
         phase_senior_control: "Control",
         phase_senior_endgame: "Hard mode",
+        phase_daily: "Daily",
         phase_recovery: "Recovery",
         distance: "Distance",
         duration: "Time",
@@ -570,7 +575,10 @@ DQ_DATA.translations = {
             hula_hoop: "Hula Hoop", stair_climbing: "Stair Climbing", jogging: "Jogging", running: "Running",
             chair_sit_to_stand: "Sit to Stand", seated_marching: "Seated Marching", wall_push_ups: "Wall Push-ups",
             heel_raises: "Heel Raises", standing_balance: "Balance Hold", seated_chest_opening: "Seated Chest Opener",
-            ankle_circles: "Ankle Circles", seated_head_turns: "Seated Head Turns", seated_spinal_twist: "Seated Spinal Twist"
+            ankle_circles: "Ankle Circles", seated_head_turns: "Seated Head Turns", seated_spinal_twist: "Seated Spinal Twist",
+            arm_circles: "Arm Circles", leg_raises_seated: "Seated Leg Raises", neck_stretch: "Neck Stretch", wrist_circles: "Wrist Circles",
+            calf_stretch: "Calf Stretch", shoulder_shrugs: "Shoulder Shrugs", deep_breathing: "Deep Breathing", finger_spreads: "Finger Spreads",
+            knee_lifts: "Knee Lifts", side_stretch: "Side Stretch", short_walk: "Short Walk"
         },
         extra_quest_names: {
             extra_clean_room: "Clean a room", extra_walk_hour: "1 hour walk", extra_learn_hour: "Learn something new for 1 hour",

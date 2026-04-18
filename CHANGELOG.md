@@ -4,7 +4,30 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
-## Version 2.5.4 - Settings Redesign & Many Improvements (Aktuell)
+## Version 2.6.0 - Rentnermodus Modernisierung
+
+### Erstellt
+- 11 neue einfache Senior-Übungen hinzugefügt (arm_circles, leg_raises_seated, neck_stretch, wrist_circles, calf_stretch, shoulder_shrugs, deep_breathing, finger_spreads, knee_lifts, side_stretch)
+- Tiefes Atmen als neue Übung für Entspannung
+- Deutsche und englische Übersetzungen für alle neuen Übungen
+
+### Verändert
+- Rentnermodus komplett vereinfacht: keine Phasen mehr, nur noch eine tägliche Phase
+- Spaziergänge zeigen keine Sätze/Wdh mehr, nur noch einmal abhaken
+- Phase-Banner im Rentnermodus deaktiviert (weniger verwirrend)
+- Phase-Badges im Info-Popup für Senior ausgeblendet
+- Alle Senior-Übungen auf einfaches Abhaken umgestellt
+- Training Plan auf tap-Modul umgestellt (direkt abhaken statt Sätze zählen)
+- App-Version auf 2.6.0 erhöht
+- Datenbank-Version auf 34 erhöht
+
+### Gelöscht
+- Alte Phasen im Rentnermodus (Sanfter Einstieg, Stabiler Aufbau, etc.)
+- Phasen-Fortschritts-Balken im Rentnermodus
+
+---
+
+## Version 2.5.4 - Settings Redesign & Many Improvements
 
 ### Erstellt
 - Einstellungen komplett überarbeitet mit 5 Tabs (Main, Gewicht, Training, Extras, Teilen)
