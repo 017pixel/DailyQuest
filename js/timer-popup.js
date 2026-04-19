@@ -1,3 +1,5 @@
+console.log('[Timer] timer-popup.js loading...');
+
 let timerInterval = null;
 let currentExercise = null;
 let currentQuestId = null;
@@ -6,7 +8,9 @@ let remainingTime = 0;
 let isRunning = false;
 let isPaused = false;
 
-window.openTimerPopup = function(exercise, questId = null) {
+// Funktion SOFORT global verfügbar machen
+function openTimerPopup(exercise, questId = null) {
+    console.log('[Timer] openTimerPopup called', exercise ? exercise.nameKey : 'no exercise');
     currentExercise = exercise;
     currentQuestId = questId;
     totalTime = exercise.baseValue;
@@ -19,7 +23,10 @@ window.openTimerPopup = function(exercise, questId = null) {
     isPaused = false;
     resetTimerUI();
 
-    DQ_UI.showPopup(document.getElementById('timer-popup'));
+    const popup = document.getElementById('timer-popup');
+    console.log('[Timer] popup element:', popup);
+    DQ_UI.showPopup(popup);
+    console.log('[Timer] popup should be shown now');
 };
 
 function getExerciseName(nameKey) {
