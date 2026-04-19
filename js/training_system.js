@@ -152,10 +152,15 @@ const DQ_TRAINING_SYSTEM = {
         return { stageIndex, stage, stageWeek, stageWeeks, progress, shiftedWeek };
     },
 
-    pickCandidate(slot, recentExerciseKeys, hasEquipment, pickedToday = []) {
+    pickCandidate(slot, recentExerciseKeys, hasEquipment, pickedToday = [], goal = null) {
         const exercisePool = DQ_DATA.exercisePool;
-        const nonSeniorPools = Object.keys(exercisePool).filter(k => k !== 'senior');
-        const goalExercises = nonSeniorPools.flatMap(k => exercisePool[k]);
+        let poolKeys;
+        if (goal === 'senior') {
+            poolKeys = ['senior'];
+        } else {
+            poolKeys = Object.keys(exercisePool).filter(k => k !== 'senior');
+        }
+        const goalExercises = poolKeys.flatMap(k => exercisePool[k]);
         const blocked = new Set(this.blockedQuestNameKeys || []);
         const candidates = (slot.candidates || [])
             .map(nameKey => goalExercises.find(ex => ex.nameKey === nameKey))
@@ -342,7 +347,7 @@ const DQ_TRAINING_SYSTEM = {
 
         for (let i = 0; i < 6; i++) {
             const slot = plan.slots[i] || plan.slots[plan.slots.length - 1];
-            const template = this.pickCandidate(slot, recent, hasEquipment, questIds) || this.pickCandidate({ candidates: ['walk_30min', 'stretch_10min'] }, recent, hasEquipment, questIds);
+            const template = this.pickCandidate(slot, recent, hasEquipment, questIds, goal) || this.pickCandidate({ candidates: ['walk_30min', 'stretch_10min'] }, recent, hasEquipment, questIds, goal);
             if (!template) continue;
             const quest = this.buildQuest(goal, plan, state, stageContext, slot, template, todayStr, i, difficulty, hasEquipment);
             questIds.push(quest.nameKey);

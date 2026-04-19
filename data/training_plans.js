@@ -37,7 +37,7 @@ DQ_DATA.trainingPlans = {
             { key: 'push', candidates: ['push_ups_normal', 'push_ups_narrow', 'push_ups_wide', 'dumbbell_press', 'shoulder_press', 'tricep_dips_chair'] },
             { key: 'pull', candidates: ['dumbbell_rows', 'barbell_rows', 'bicep_curls', 'reverse_flys'] },
             { key: 'legs', candidates: ['weighted_squats', 'squats', 'lunges', 'sumo_squats', 'deadlifts'] },
-            { key: 'core', candidates: ['plank', 'situps', 'leg_raises', 'russian_twists', 'side_plank', 'hollow_body_hold'] },
+            { key: 'core', candidates: ['situps', 'leg_raises', 'russian_twists'] },
             { key: 'posterior', candidates: ['glute_bridges', 'single_leg_glute_bridge', 'deadlifts', 'reverse_flys'] },
             { key: 'finisher', candidates: ['burpees', 'mountain_climbers', 'jump_squats'] }
         ]

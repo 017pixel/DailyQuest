@@ -11,6 +11,14 @@
     background-color: var(--outline-color); color: var(--on-surface-color);
     opacity: 0.5; cursor: not-allowed;
 }
+
+/* Buy-Button wenn nicht leistbar */
+.buy-button:disabled {
+    background-color: #6b7280;
+    color: white;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
 .secondary-button { background-color: var(--secondary-button-color); }
 .card-button-no-transform {
     text-transform: none;
@@ -51,16 +59,7 @@
     padding: 0 16px; font-size: 14px; text-transform: uppercase;
 }
 
-.claim-button-small {
-    background-color: var(--secondary-button-color); 
-    color: var(--on-surface-color);
-    padding: 0 16px; font-size: 14px; text-transform: uppercase;
-}
-.achievement-card.claimable .claim-button-small {
-    background-color: var(--primary-color); 
-    color: var(--on-primary-color);
-}
-
+/* Claim-Button wird weiter unten bei interaktiven Buttons definiert */
 
 /* Filter Buttons (Shop & Freies Training) */
 .filter-button { 
@@ -107,4 +106,56 @@
     background-color: var(--primary-color);
     color: var(--on-primary-color);
     box-shadow: 0 2px 8px -2px rgba(var(--primary-color-rgb), 0.5);
+}
+
+/* Claim-Button für Achievements */
+.claim-button-small {
+    background-color: var(--surface-color);
+    color: var(--on-surface-color);
+}
+.achievement-card.claimable .claim-button-small {
+    background-color: #22c55e;
+    color: white;
+}
+.achievement-card.claimable .claim-button-small:hover {
+    background-color: #16a34a;
+}
+
+/* Claim-Button Basis-Stil */
+.claim-button-small {
+    background-color: var(--surface-color);
+    color: var(--on-surface-color);
+    padding: 0 16px;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+/* Interaktive Action-Buttons (Kaufen, Ausrüsten, Benutzen, Claim) */
+.buy-button,
+.equip-button,
+.action-button[data-action="buy"],
+.action-button[data-action="equip"],
+.action-button[data-action="use"],
+.action-button[data-action="claim"] {
+    background-color: #22c55e;
+    color: white;
+}
+.buy-button:hover,
+.equip-button:hover,
+.action-button[data-action="buy"]:hover,
+.action-button[data-action="equip"]:hover,
+.action-button[data-action="use"]:hover,
+.action-button[data-action="claim"]:hover {
+    filter: brightness(1.1);
+    background-color: #16a34a;
+}
+
+/* Secondary Variante */
+.buy-button.secondary-button,
+.equip-button.secondary-button {
+    background-color: var(--secondary-button-color);
+}
+.buy-button.secondary-button:hover,
+.equip-button.secondary-button:hover {
+    background-color: var(--surface-container-high);
 }

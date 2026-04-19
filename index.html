@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="css/pages/extra-quest.css">
     <link rel="stylesheet" href="css/pages/achievements.css">
     <link rel="stylesheet" href="css/pages/fokus.css">
+    <link rel="stylesheet" href="css/pages/timer.css">
     <link rel="stylesheet" href="css/pages/dungeon.css">
     <link rel="stylesheet" href="tutorial/css/tutorial.css">
     <!-- Material Symbols (icon font) -->
@@ -635,6 +636,54 @@
         </div>
     </div>
 
+    <div id="timer-popup" class="popup">
+        <div class="popup-drag-handle"></div>
+        <div class="popup-content">
+            <div id="timer-header">
+                <h3 id="timer-exercise-name"></h3>
+            </div>
+            <div id="timer-display-container">
+                <div id="timer-countdown-overlay" class="hidden">
+                    <div id="timer-countdown-number">5</div>
+                </div>
+                <div id="timer-display">00:00</div>
+                <div id="timer-progress">
+                    <div id="timer-progress-fill"></div>
+                </div>
+            </div>
+            <div id="timer-controls">
+                <button id="timer-start-button" class="card-button">
+                    <span class="material-symbols-rounded">play_arrow</span>
+                    <span data-lang-key="timer_start">Los</span>
+                </button>
+                <button id="timer-pause-button" class="card-button hidden">
+                    <span class="material-symbols-rounded">pause</span>
+                    <span data-lang-key="timer_pause">Pause</span>
+                </button>
+                <button id="timer-resume-button" class="card-button hidden">
+                    <span class="material-symbols-rounded">play_arrow</span>
+                    <span data-lang-key="timer_resume">Weiter</span>
+                </button>
+                <button id="timer-done-button" class="card-button success-button hidden">
+                    <span class="material-symbols-rounded">check</span>
+                    <span data-lang-key="timer_done">Geschafft!</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="timer-warning-popup" class="popup popup-small">
+        <div class="popup-drag-handle"></div>
+        <div class="popup-content">
+            <h3 data-lang-key="timer_warning_title">Timer läuft noch</h3>
+            <p data-lang-key="timer_warning_message">Der Timer läuft noch. Wenn du das Popup jetzt schließt, geht der Fortschritt verloren.</p>
+            <div class="popup-actions">
+                <button id="timer-warning-cancel" class="card-button secondary-button" data-lang-key="timer_warning_continue">Weitermachen</button>
+                <button id="timer-warning-confirm" class="card-button" data-lang-key="timer_warning_leave">Trotzdem verlassen</button>
+            </div>
+        </div>
+    </div>
+
 
     <script>
         if (location.protocol.startsWith('http') && 'serviceWorker' in navigator) {
@@ -677,6 +726,7 @@
     <script src="js/character/page_character_inventory.js"></script>
     <script src="js/character/page_character_labels.js"></script>
     <script src="js/character/page_character_main.js"></script>
+    <script src="js/timer-popup.js"></script>
     <script src="js/page_exercises.js"></script>
     <script src="js/page_exercises_training.js"></script>
     <script src="js/page_shop.js"></script>

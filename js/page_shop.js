@@ -74,7 +74,7 @@ const DQ_SHOP = {
                     const canAfford = character.gold >= item.cost;
                     const icon = item.iconSymbol ? `<span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 6px;">${item.iconSymbol}</span>` : '';
                     const displayName = cleanName(item.name);
-                    card.innerHTML = `<h2>${icon}${displayName}</h2><p>${item.description}</p><p class=\"item-price\"><span class=\"label\">Kosten:</span><span class=\"material-symbols-rounded icon-gold\">paid</span><span>${item.cost}</span></p><button class=\"card-button\" data-item-id=\"${item.id}\" ${canAfford ? '' : 'disabled'}>Kaufen</button>`;
+                    card.innerHTML = `<h2>${icon}${displayName}</h2><p>${item.description}</p><p class=\"item-price\"><span class=\"label\">Kosten:</span><span class=\"material-symbols-rounded icon-gold\">paid</span><span>${item.cost}</span></p><button class="card-button buy-button" data-item-id="${item.id}" ${canAfford ? '' : 'disabled'}>Kaufen</button>`;
                     DQ_UI.elements.shopItemsEquipment.appendChild(card);
                 });
             };

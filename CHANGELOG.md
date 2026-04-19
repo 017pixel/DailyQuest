@@ -4,6 +4,30 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## Version 2.7.0 - Timer Feature & Buttons
+
+### Erstellt
+- Neues Timer-Popup für zeitbasierte Übungen (Plank, Side Plank, Hollow Body Hold, etc.)
+- 5-Sekunden Countdown mit "GO!" Anzeige vor dem Start
+- Web Worker für präzise Zeitmessung (läuft im Hintergrund weiter)
+- Warnung beim Schließen des Popups während Timer läuft
+- Grüne Kauf-Buttons im Shop für bessere Sichtbarkeit
+- Grüne Ausrüsten-Buttons im Inventar
+
+### Verändert
+- Timer-Popup zeigt 65% der Bildschirmgröße
+- Progress-Bar zeigt den Timer-Fortschritt
+- Start/Pause/Fortsetzen/Geschafft-Buttons implementiert
+- Senior-Modus Bug behoben (zeigt wieder 6 statt 3 Aufgaben)
+- Mana und Gold Werte mehrerer Übungen angepasst
+- Muskelaufbau-Pool bereinigt (Plank-Varianten entfernt)
+- App-Version auf 2.7.0 erhöht
+
+### Gelöscht
+- Alte Plank-Varianten aus dem Muskelaufbau-Training (Core-Slot)
+
+---
+
 ## Version 2.6.0 - Rentnermodus Modernisierung
 
 ### Erstellt

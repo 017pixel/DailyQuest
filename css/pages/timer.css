@@ -1,0 +1,185 @@
+#timer-popup {
+    max-height: 65vh;
+    touch-action: none;
+}
+
+#timer-popup .popup-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 0 40px;
+}
+
+#timer-header {
+    margin-bottom: 24px;
+}
+
+#timer-exercise-name {
+    color: var(--primary-color);
+    font-size: 20px;
+    text-align: center;
+    margin: 0;
+}
+
+#timer-display-container {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+#timer-countdown-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--popup-bg-dark);
+    z-index: 10;
+    border-radius: 16px;
+}
+
+#timer-countdown-overlay.hidden {
+    display: none;
+}
+
+#timer-countdown-number {
+    font-size: 120px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    animation: countdownSlideIn 0.5s ease-out;
+}
+
+@keyframes countdownSlideIn {
+    0% {
+        transform: translateY(-100px);
+        opacity: 0;
+    }
+    50% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+}
+
+@keyframes countdownSlideOut {
+    0% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+}
+
+#timer-display {
+    font-size: 72px;
+    font-weight: 700;
+    color: var(--primary-color);
+    font-family: 'Roboto', sans-serif;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+}
+
+#timer-progress {
+    width: 80%;
+    height: 8px;
+    background-color: var(--surface-color);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+#timer-progress-fill {
+    height: 100%;
+    background-color: var(--accent);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+#timer-controls {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    justify-content: center;
+}
+
+#timer-controls .card-button {
+    min-width: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+#timer-controls .card-button .material-symbols-rounded {
+    font-size: 24px;
+}
+
+#timer-controls .card-button.hidden {
+    display: none;
+}
+
+#timer-controls .success-button {
+    background-color: #22c55e;
+}
+
+#timer-controls .success-button:hover {
+    background-color: #16a34a;
+}
+
+#timer-warning-popup .popup-content {
+    text-align: center;
+    padding: 24px 0 40px;
+}
+
+#timer-warning-popup h3 {
+    color: var(--primary-color);
+    margin-bottom: 12px;
+}
+
+#timer-warning-popup p {
+    color: var(--on-surface-color);
+    margin-bottom: 24px;
+    font-size: 14px;
+}
+
+#timer-warning-popup .popup-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    justify-content: center;
+}
+
+#timer-warning-popup .card-button {
+    flex: 1;
+    max-width: 160px;
+}
+
+html[data-theme='light'] #timer-display {
+    color: var(--primary-color);
+}
+
+html[data-theme='light'] #timer-countdown-overlay {
+    background-color: var(--popup-bg-light);
+}
+
+html[data-theme='light'] #timer-controls .success-button {
+    background-color: #16a34a;
+    color: white;
+}
+
+html[data-theme='light'] #timer-controls .success-button:hover {
+    background-color: #15803d;
+}

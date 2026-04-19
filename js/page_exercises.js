@@ -1,4 +1,4 @@
-﻿const DQ_EXERCISES = {
+const DQ_EXERCISES = {
     currentFreeExerciseFilter: 'all',
     pendingEnduranceQuestId: null,
 
@@ -52,6 +52,14 @@
             const questId = parseInt(card.dataset.questId, 10);
             if (action === 'info') {
                 this.showQuestInfo(questId);
+            } else if (action === 'start-timer') {
+                const quest = await new Promise(res => DQ_DB.db.transaction('daily_quests').objectStore('daily_quests').get(questId).onsuccess = e => res(e.target.result));
+                if (quest) {
+                    const exerciseTemplate = Object.values(DQ_DATA.exercisePool).flat().find(ex => ex.nameKey === quest.nameKey);
+                    if (exerciseTemplate && exerciseTemplate.type === 'time') {
+                        openTimerPopup(exerciseTemplate, questId);
+                    }
+                }
             } else if (action === 'complete') {
                 await this.completeQuest(questId);
             } else if (action === 'start-focus') {
@@ -72,6 +80,14 @@
                 this.showFreeExerciseInfo(exerciseId);
             } else if (action === 'complete') {
                 this.completeFreeExercise(exerciseId);
+            } else if (action === 'start-timer') {
+                const exercise = await new Promise(res => DQ_DB.db.transaction('exercises').objectStore('exercises').get(exerciseId).onsuccess = e => res(e.target.result));
+                if (exercise && exercise.type === 'time') {
+                    const exerciseTemplate = Object.values(DQ_DATA.exercisePool).flat().find(ex => ex.id === exercise.id);
+                    if (exerciseTemplate && exercise.baseValue <= 180) {
+                        openTimerPopup(exerciseTemplate, exerciseId);
+                    }
+                }
             } else if (action === 'start-focus') {
                 const exercise = await new Promise(res => DQ_DB.db.transaction('exercises').objectStore('exercises').get(exerciseId).onsuccess = e => res(e.target.result));
                 if (exercise) {

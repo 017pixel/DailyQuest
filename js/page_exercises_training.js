@@ -132,7 +132,8 @@ Object.assign(DQ_EXERCISES, {
 
                 const translatedName = (DQ_DATA.translations[lang].exercise_names[quest.nameKey] || quest.nameKey);
                 const isFocusQuest = quest.type === 'focus';
-                const buttonAction = isFocusQuest ? 'start-focus' : 'complete';
+                const isTimeQuest = quest.type === 'time' && quest.target <= 180;
+                const buttonAction = isFocusQuest ? 'start-focus' : (isTimeQuest ? 'start-timer' : 'complete');
                 const isSetQuest = quest.completionMode === 'sets' && Array.isArray(quest.setProgress) && quest.setPlan;
                 const totalSets = Math.max(1, quest.setPlan?.sets || quest.setProgress?.length || 1);
                 const doneSets = isSetQuest ? quest.setProgress.filter(Boolean).length : 0;
@@ -141,7 +142,9 @@ Object.assign(DQ_EXERCISES, {
                 const fallbackActionLabel = typeof DQ_TRAINING_SYSTEM !== 'undefined' ? DQ_TRAINING_SYSTEM.getQuestActionLabel(quest) : 'OK';
                 const buttonText = isFocusQuest
                     ? (DQ_DATA.translations[lang].start_task_button || 'Los')
-                    : (isSetQuest ? progressText : fallbackActionLabel);
+                    : (isTimeQuest
+                        ? (DQ_DATA.translations[lang].timer_start_button || 'Los')
+                        : (isSetQuest ? progressText : fallbackActionLabel));
                 const buttonDisabled = quest.completed;
 
                 card.innerHTML = `
@@ -421,8 +424,11 @@ Object.assign(DQ_EXERCISES, {
                 const translatedName = (DQ_DATA.translations[lang].exercise_names[exercise.nameKey] || exercise.nameKey);
                 
                 const isFocusExercise = exercise.type === 'focus';
-                const buttonAction = isFocusExercise ? 'start-focus' : 'complete';
-                const buttonText = isFocusExercise ? (DQ_DATA.translations[lang].start_task_button || 'Los') : 'OK';
+                const isTimeExercise = exercise.type === 'time' && targetValue <= 180;
+                const buttonAction = isFocusExercise ? 'start-focus' : (isTimeExercise ? 'start-timer' : 'complete');
+                const buttonText = isFocusExercise 
+                    ? (DQ_DATA.translations[lang].start_task_button || 'Los')
+                    : (isTimeExercise ? (DQ_DATA.translations[lang].timer_start_button || 'Los') : 'OK');
 
                 const card = document.createElement('div');
                 card.className = 'card exercise-card';
