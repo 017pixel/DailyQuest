@@ -7,6 +7,21 @@ let totalTime = 0;
 let isRunning = false;
 let isPaused = false;
 
+window.openTimerPopup = function(exercise, questId = null) {
+    currentExercise = exercise;
+    currentQuestId = questId;
+    totalTime = exercise.baseValue;
+
+    const exerciseName = getExerciseName(exercise.nameKey);
+    document.getElementById('timer-exercise-name').textContent = exerciseName;
+
+    isRunning = false;
+    isPaused = false;
+    resetTimerUI();
+
+    DQ_UI.showPopup(document.getElementById('timer-popup'));
+};
+
 function initTimerPopup() {
     timerWorker = new Worker(TIMER_WORKER_PATH);
 
