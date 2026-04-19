@@ -1,66 +1,8 @@
-const TIMER_WORKER_CODE = `
 let timerInterval = null;
-let remainingTime = 0;
-let isPaused = false;
-
-self.onmessage = function(e) {
-    const { action, time } = e.data;
-    switch(action) {
-        case 'start':
-            startTimer(time);
-            break;
-        case 'pause':
-            pauseTimer();
-            break;
-        case 'resume':
-            resumeTimer();
-            break;
-        case 'stop':
-            stopTimer();
-            break;
-    }
-};
-
-function startTimer(seconds) {
-    remainingTime = seconds;
-    isPaused = false;
-    if (timerInterval) clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-        if (!isPaused && remainingTime > 0) {
-            remainingTime--;
-            self.postMessage({ action: 'tick', remaining: remainingTime });
-            if (remainingTime <= 0) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-                self.postMessage({ action: 'finished' });
-            }
-        }
-    }, 1000);
-    self.postMessage({ action: 'tick', remaining: remainingTime });
-}
-
-function pauseTimer() {
-    isPaused = true;
-    self.postMessage({ action: 'paused', remaining: remainingTime });
-}
-
-function resumeTimer() {
-    isPaused = false;
-    self.postMessage({ action: 'resumed', remaining: remainingTime });
-}
-
-function stopTimer() {
-    if (timerInterval) clearInterval(timerInterval);
-    remainingTime = 0;
-    isPaused = false;
-    self.postMessage({ action: 'stopped' });
-}
-`;
-
-let timerWorker = null;
 let currentExercise = null;
 let currentQuestId = null;
 let totalTime = 0;
+let remainingTime = 0;
 let isRunning = false;
 let isPaused = false;
 
@@ -68,6 +10,7 @@ window.openTimerPopup = function(exercise, questId = null) {
     currentExercise = exercise;
     currentQuestId = questId;
     totalTime = exercise.baseValue;
+    remainingTime = totalTime;
 
     const exerciseName = getExerciseName(exercise.nameKey);
     document.getElementById('timer-exercise-name').textContent = exerciseName;
@@ -78,57 +21,6 @@ window.openTimerPopup = function(exercise, questId = null) {
 
     DQ_UI.showPopup(document.getElementById('timer-popup'));
 };
-
-function initTimerPopup() {
-    const blob = new Blob([TIMER_WORKER_CODE], { type: 'application/javascript' });
-    timerWorker = new Worker(URL.createObjectURL(blob));
-
-    timerWorker.onmessage = function(e) {
-        const { action, remaining } = e.data;
-
-        switch(action) {
-            case 'tick':
-                updateTimerDisplay(remaining);
-                updateProgressBar(remaining);
-                break;
-            case 'finished':
-                onTimerFinished();
-                break;
-            case 'paused':
-                showPauseState();
-                break;
-            case 'resumed':
-                showResumeState();
-                break;
-            case 'stopped':
-                resetTimerState();
-                break;
-        }
-    };
-
-    document.getElementById('timer-start-button').addEventListener('click', startCountdown);
-    document.getElementById('timer-pause-button').addEventListener('click', pauseTimer);
-    document.getElementById('timer-resume-button').addEventListener('click', resumeTimer);
-    document.getElementById('timer-done-button').addEventListener('click', completeExercise);
-
-    document.getElementById('timer-warning-cancel').addEventListener('click', closeWarningPopup);
-    document.getElementById('timer-warning-confirm').addEventListener('click', confirmLeave);
-}
-
-function openTimerPopup(exercise, questId = null) {
-    currentExercise = exercise;
-    currentQuestId = questId;
-    totalTime = exercise.baseValue;
-
-    const exerciseName = getExerciseName(exercise.nameKey);
-    document.getElementById('timer-exercise-name').textContent = exerciseName;
-
-    isRunning = false;
-    isPaused = false;
-    resetTimerUI();
-
-    DQ_UI.showPopup(document.getElementById('timer-popup'));
-}
 
 function getExerciseName(nameKey) {
     const lang = getCurrentLanguage();
@@ -137,9 +29,14 @@ function getExerciseName(nameKey) {
 }
 
 function resetTimerUI() {
-    document.getElementById('timer-display').textContent = formatTime(totalTime);
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+    remainingTime = totalTime;
+    document.getElementById('timer-display').textContent = formatTime(remainingTime);
     document.getElementById('timer-progress-fill').style.width = '0%';
-    
+
     document.getElementById('timer-start-button').classList.remove('hidden');
     document.getElementById('timer-pause-button').classList.add('hidden');
     document.getElementById('timer-resume-button').classList.add('hidden');
@@ -150,18 +47,18 @@ function resetTimerUI() {
 function startCountdown() {
     const countdownOverlay = document.getElementById('timer-countdown-overlay');
     const countdownNumber = document.getElementById('timer-countdown-number');
-    
+
     countdownOverlay.classList.remove('hidden');
     let count = 5;
-    
+
     countdownNumber.textContent = count;
     countdownNumber.style.animation = 'none';
     void countdownNumber.offsetWidth;
     countdownNumber.style.animation = 'countdownSlideIn 0.5s ease-out';
-    
+
     const countdownInterval = setInterval(() => {
         count--;
-        
+
         if (count > 0) {
             countdownNumber.style.animation = 'none';
             void countdownNumber.offsetWidth;
@@ -183,40 +80,53 @@ function startCountdown() {
 function startTimer() {
     isRunning = true;
     isPaused = false;
-    
-    timerWorker.postMessage({ action: 'start', time: totalTime });
-    
+    remainingTime = totalTime;
+
+    timerInterval = setInterval(() => {
+        if (!isPaused && remainingTime > 0) {
+            remainingTime--;
+            updateTimerDisplay(remainingTime);
+            updateProgressBar(remainingTime);
+
+            if (remainingTime <= 0) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                onTimerFinished();
+            }
+        }
+    }, 1000);
+
     document.getElementById('timer-start-button').classList.add('hidden');
     document.getElementById('timer-pause-button').classList.remove('hidden');
 }
 
 function pauseTimer() {
     isPaused = true;
-    timerWorker.postMessage({ action: 'pause' });
+    showPauseState();
 }
 
 function resumeTimer() {
     isPaused = false;
-    timerWorker.postMessage({ action: 'resume' });
+    showResumeState();
 }
 
 function onTimerFinished() {
     isRunning = false;
     isPaused = false;
-    
+
     document.getElementById('timer-pause-button').classList.add('hidden');
     document.getElementById('timer-done-button').classList.remove('hidden');
-    
+
     document.getElementById('timer-display').textContent = '00:00';
     document.getElementById('timer-progress-fill').style.width = '100%';
 }
 
-function updateTimerDisplay(remaining) {
-    document.getElementById('timer-display').textContent = formatTime(remaining);
+function updateTimerDisplay(seconds) {
+    document.getElementById('timer-display').textContent = formatTime(seconds);
 }
 
-function updateProgressBar(remaining) {
-    const elapsed = totalTime - remaining;
+function updateProgressBar(seconds) {
+    const elapsed = totalTime - seconds;
     const percentage = (elapsed / totalTime) * 100;
     document.getElementById('timer-progress-fill').style.width = percentage + '%';
 }
@@ -237,24 +147,20 @@ function showResumeState() {
     document.getElementById('timer-pause-button').classList.remove('hidden');
 }
 
-function resetTimerState() {
-    isRunning = false;
-    isPaused = false;
-}
-
 function completeExercise() {
-    if (currentExercise) {
-        if (currentQuestId) {
-            DQ_EXERCISES.finalizeQuestCompletion(currentQuestId);
-        } else if (currentExercise.id) {
-            DQ_EXERCISES.completeFreeExercise(currentExercise.id);
-        }
+    if (currentQuestId) {
+        DQ_EXERCISES.finalizeQuestCompletion(currentQuestId);
+    } else if (currentExercise && currentExercise.id) {
+        DQ_EXERCISES.completeFreeExercise(currentExercise.id);
     }
     DQ_UI.hidePopup();
 }
 
 function confirmLeave() {
-    timerWorker.postMessage({ action: 'stop' });
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
     DQ_UI.hidePopup();
     DQ_UI.hidePopup();
 }
@@ -285,6 +191,16 @@ function initTimerCloseHandler() {
             });
         }
     }
+}
+
+function initTimerPopup() {
+    document.getElementById('timer-start-button').addEventListener('click', startCountdown);
+    document.getElementById('timer-pause-button').addEventListener('click', pauseTimer);
+    document.getElementById('timer-resume-button').addEventListener('click', resumeTimer);
+    document.getElementById('timer-done-button').addEventListener('click', completeExercise);
+
+    document.getElementById('timer-warning-cancel').addEventListener('click', closeWarningPopup);
+    document.getElementById('timer-warning-confirm').addEventListener('click', confirmLeave);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
