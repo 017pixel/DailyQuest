@@ -21,10 +21,12 @@ const DQ_CONFIG = {
     getStreakData() {
         const data = localStorage.getItem('streakData');
         if (!data) return { streak: 0, lastDate: null };
-        try { return JSON.parse(data); } catch { return { aname: 'Unknown Hunter', level: 1, mana: 0, manaToNextLevel: 100, gold: 200, stats: { kraft: 5, ausdauer: 5, beweglichkeit: 5, durchhaltevermoegen: 5, willenskraft: 5 }, statProgress: { kraft: 0, ausdauer: 0, beweglichkeit: 0, durchhaltevermoegen: 0, willenskraft: 0 }, equipment: { weapons: [], armor: null }, inventory: [] }; }
+        try { return JSON.parse(data); } catch { return { streak: 0, lastDate: null }; }
     },
     setStreakData(streak, lastDate) {
         localStorage.setItem('streakData', JSON.stringify({ streak, lastDate }));
+        localStorage.setItem('dq_last_local_update', String(Date.now()));
+        if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
     },
     updateStreakDisplay() {
         const streakBox = document.getElementById('streak-value');
@@ -89,6 +91,7 @@ const DQ_CONFIG = {
 
 
         let leveledUp = false;
+        let fromLevel = char.level;
         while (char.mana >= char.manaToNextLevel) {
             const manaNeededForThisLevel = char.manaToNextLevel;
             char.mana -= manaNeededForThisLevel;
@@ -100,6 +103,9 @@ const DQ_CONFIG = {
 
         if (leveledUp) {
             setTimeout(() => DQ_UI.showCustomPopup(`LEVEL UP! <span class=\"material-symbols-rounded icon-accent\">rocket_launch</span> Du bist jetzt Level ${char.level}!`), 600);
+            if (typeof DQ_ANALYTICS !== 'undefined') {
+                DQ_ANALYTICS.logLevelUp(fromLevel, char.level);
+            }
         }
 
         return char;
@@ -156,7 +162,10 @@ const DQ_CONFIG = {
 
                     store.put(char);
                 };
-                tx.oncomplete = () => resolve();
+                tx.oncomplete = () => {
+                    if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+                    resolve();
+                };
                 tx.onerror = (ev) => reject(ev.target.error);
             } catch (e) {
                 reject(e);
@@ -199,6 +208,10 @@ const DQ_CONFIG = {
                     if (typeof DQ_TRAINING_SYSTEM !== 'undefined' && quest) {
                         DQ_TRAINING_SYSTEM.recordQuestActivity(quest, { age: finalCharState?.age ?? null }).catch(() => { });
                     }
+                    if (typeof DQ_ANALYTICS !== 'undefined' && quest) {
+                        DQ_ANALYTICS.logQuestCompletion(quest);
+                    }
+                    if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
                     resolve(finalCharState);
                 };
                 tx.onerror = (event) => {
@@ -258,7 +271,7 @@ const DQ_CONFIG = {
     }
 };
 
-const APP_VERSION = '2.7.2';
+const APP_VERSION = '2.9.0';
 const APP_UPDATE_FLAG_KEY = 'dq_seen_app_version';
 
 async function initializeApp() {
@@ -354,6 +367,43 @@ async function initializeApp() {
 
         await DQ_DB.init();
 
+        // WICHTIG: App als bereit markieren BEVOR Auth-Screen oder Tutorial blockieren koennen.
+        // Der Watchdog prueft auf appReady - wenn der User sich im Auth-Screen Zeit laesst,
+        // soll trotzdem kein Initialisierungsfehler angezeigt werden.
+        window.appReady = true;
+        console.log('App-Grundinitialisierung abgeschlossen. Bereit fuer User-Interaction.');
+
+        // Supabase initialisieren (CDN-basiert fuer GitHub Pages)
+        try {
+            if (typeof DQ_SUPABASE !== 'undefined') {
+                DQ_SUPABASE.init();
+                await DQ_SUPABASE.initAuth();
+
+                // NEU: Pruefe ob Auth-Screen fuer Migration gezeigt werden muss
+                // (bestehender User mit lokalen Daten, aber noch keine Auth-Entscheidung)
+                if (!DQ_SUPABASE.currentUser && !localStorage.getItem('dq_auth_decision_made')) {
+                    const char = await DQ_CONFIG.getCharacter();
+                    if (char) {
+                        console.log('Bestehender User mit lokalen Daten erkannt. Zeige Migration-Auth-Screen...');
+                        DQ_SUPABASE.showAuthScreen('migration');
+                        await DQ_SUPABASE.waitForAuthDecision();
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('Supabase-Init fehlgeschlagen:', e);
+        }
+
+        // Woechtlichen Snapshot erstellen falls noetig
+        try {
+            const char = await DQ_CONFIG.getCharacter();
+            if (char && typeof DQ_ANALYTICS !== 'undefined') {
+                await DQ_ANALYTICS.maybeTakeSnapshot(char);
+            }
+        } catch (e) {
+            console.warn('Snapshot-Check fehlgeschlagen:', e);
+        }
+
         DQ_UI.init(elements);
         DQ_CHARACTER_MAIN.init(elements);
         DQ_STATS.init(elements);
@@ -389,8 +439,39 @@ async function initializeApp() {
         DQ_EXERCISES.renderQuests();
         DQ_EXERCISES.renderFreeExercisesPage();
 
-        console.log('All initializations complete. App is ready.');
-        window.appReady = true;
+        console.log('All module initializations complete.');
+
+        // Deep-Link-Verarbeitung für Shortcuts (z.B. ?page=character)
+        // UND Tutorial-Reset Parameter (z.B. ?tutorial=true)
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const pageParam = urlParams.get('page');
+            const tutorialParam = urlParams.get('tutorial');
+
+            if (pageParam) {
+                const targetPage = pageParam.startsWith('page-') ? pageParam : 'page-' + pageParam;
+                const navBtn = document.querySelector(`.nav-button[data-page="${targetPage}"]`);
+                if (navBtn) {
+                    setTimeout(() => DQ_UI.handleNavClick(navBtn), 100);
+                }
+            }
+
+            // Wenn ?tutorial=true, setze Tutorial zurück und starte es
+            if (tutorialParam === 'true') {
+                console.log('Tutorial-Reset Parameter erkannt. Setze Tutorial zurück...');
+                if (typeof DQ_TUTORIAL_STATE !== 'undefined') {
+                    await DQ_TUTORIAL_STATE.resetTutorial();
+                }
+                // Parameter aus URL entfernen ohne Neuladen
+                if (window.history.replaceState) {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            } else if (pageParam && window.history.replaceState) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        } catch (e) {
+            console.warn('Deep-Link-Verarbeitung fehlgeschlagen:', e);
+        }
 
         // Tutorial-Check: Prüfen ob Tutorial bereits abgespielt wurde
         await checkAndStartTutorial();
@@ -710,6 +791,11 @@ function addSettingsListeners(elements) {
     elements.exportDataButton.addEventListener('click', exportData);
     elements.importDataInput.addEventListener('change', importData);
     elements.resetTutorialButton.addEventListener('click', resetTutorialAndIntro);
+
+    // Supabase Account-Listener
+    if (typeof DQ_SUPABASE !== 'undefined') {
+        DQ_SUPABASE.setupSettingsListeners();
+    }
 }
 
 async function deleteWeightData() {
@@ -725,6 +811,8 @@ async function deleteWeightData() {
             tx.oncomplete = resolve;
             tx.onerror = reject;
         });
+        localStorage.setItem('dq_last_local_update', String(Date.now()));
+        if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
         DQ_UI.showCustomPopup("Alle Gewichtsdaten wurden gelöscht.");
         DQ_CHARACTER_MAIN.renderPage();
     } catch (error) {
@@ -733,44 +821,103 @@ async function deleteWeightData() {
     }
 }
 
+async function resetAllGameData() {
+    console.log('Starte Neuanfang...');
+
+    // NEU: Verwende DQ_SUPABASE.resetGameData() fuer Cloud-Reset
+    // Das speichert previous_data, erhoeht reset_count und behaelt die Auth-Session
+    if (typeof DQ_SUPABASE !== 'undefined' && DQ_SUPABASE.resetGameData) {
+        await DQ_SUPABASE.resetGameData();
+    } else {
+        // Fallback wenn Supabase nicht verfuegbar
+        console.log('Supabase nicht verfuegbar. Nur lokaler Reset.');
+        if (typeof DQ_SUPABASE !== 'undefined' && DQ_SUPABASE.performLocalResetOnly) {
+            await DQ_SUPABASE.performLocalResetOnly();
+        }
+    }
+
+    console.log('Neuanfang abgeschlossen. Auth-Session bleibt erhalten.');
+}
+
 async function resetTutorialAndIntro() {
     const lang = DQ_CONFIG.userSettings.language || 'de';
     const trans = DQ_DATA.translations[lang] || DQ_DATA.translations.de;
-    const content = `
+    
+    // Zuerst alle Popups schliessen, damit das Warn-Popup ganz vorne liegt
+    DQ_UI.hideAllPopups();
+    
+    // Kurze Verzoegerung, damit das Einstellungs-Popup sicher geschlossen ist
+    await new Promise(resolve => setTimeout(resolve, 150));
+    
+    // --- POPUP 1: Erste Warnung ---
+    const popup1Content = `
         <div class="training-reset-message">
-            <h3>${trans.restart_training_title || 'Einen Neuanfang beginnen'}</h3>
-            <p>${trans.restart_training_warning || 'Dabei gehen dein Tutorial-Fortschritt und der Intro-Status verloren.'}</p>
-            <p>${trans.restart_training_notice || 'Deine eigentlichen Spieldaten bleiben erhalten.'}</p>
+            <h3>${trans.reset_popup1_title || 'WARNUNG'}</h3>
+            <p>${trans.restart_full_reset_warning || 'Alle deine Spielstaende werden geloescht! Streak, Einstellungen, Charakter, Inventar – ALLES!'}</p>
             <div class="popup-actions">
-                <button type="button" id="reset-tutorial-confirm-button" class="card-button">${trans.restart_training_confirm || 'Neuanfang beginnen'}</button>
+                <button type="button" id="reset-popup1-cancel" class="card-button secondary-button">${trans.reset_popup1_cancel || 'Abbrechen'}</button>
+                <button type="button" id="reset-popup1-continue" class="card-button">${trans.reset_popup1_continue || 'Weiter'}</button>
             </div>
         </div>
     `;
-
-    DQ_UI.showCustomPopup(content, 'info');
-
-    const confirmButton = document.getElementById('reset-tutorial-confirm-button');
-    if (confirmButton) {
-        confirmButton.addEventListener('click', async () => {
-            try {
-                console.log('Setze Tutorial-Status zurück...');
-                if (typeof DQ_TUTORIAL_STATE !== 'undefined') {
-                    await DQ_TUTORIAL_STATE.resetTutorial();
+    
+    DQ_UI.showCustomPopup(popup1Content, 'penalty');
+    
+    const cancelBtn1 = document.getElementById('reset-popup1-cancel');
+    const continueBtn = document.getElementById('reset-popup1-continue');
+    
+    if (cancelBtn1) {
+        cancelBtn1.addEventListener('click', () => {
+            DQ_UI.hideAllPopups();
+        }, { once: true });
+    }
+    
+    if (continueBtn) {
+        continueBtn.addEventListener('click', async () => {
+            DQ_UI.hideAllPopups();
+            
+            // --- POPUP 2: Letzte Bestaetigung ---
+            const popup2Content = `
+                <div class="training-reset-message">
+                    <h3>${trans.reset_popup2_title || 'LETZTE CHANCE'}</h3>
+                    <p>${trans.restart_training_warning || 'Dabei werden Tutorial und Intro komplett zurueckgesetzt. Du startest wirklich von vorne.'}</p>
+                    <p><strong>Dies kann nicht rueckgaengig gemacht werden!</strong></p>
+                    <div class="popup-actions">
+                        <button type="button" id="reset-popup2-cancel" class="card-button secondary-button">${trans.reset_popup2_cancel || 'Abbrechen'}</button>
+                        <button type="button" id="reset-popup2-confirm" class="card-button" style="background: var(--penalty-color, #ff4444);">${trans.reset_popup2_final_confirm || 'Ja, alles zuruecksetzen'}</button>
+                    </div>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                DQ_UI.showCustomPopup(popup2Content, 'penalty');
+                
+                const cancelBtn2 = document.getElementById('reset-popup2-cancel');
+                const confirmBtn2 = document.getElementById('reset-popup2-confirm');
+                
+                if (cancelBtn2) {
+                    cancelBtn2.addEventListener('click', () => {
+                        DQ_UI.hideAllPopups();
+                    }, { once: true });
                 }
-                if (typeof DQ_TUTORIAL_PROGRESSIVE !== 'undefined' && typeof DQ_TUTORIAL_PROGRESSIVE.resetRuntimeState === 'function') {
-                    DQ_TUTORIAL_PROGRESSIVE.resetRuntimeState();
+                
+                if (confirmBtn2) {
+                    confirmBtn2.addEventListener('click', async () => {
+                        try {
+                            DQ_UI.hideAllPopups();
+                            DQ_UI.showCustomPopup(trans.reset_in_progress || 'Spiel wird zurueckgesetzt...', 'info');
+                            
+                            await resetAllGameData();
+                            
+                            // Weiterleitung zum Tutorial
+                            window.location.href = window.location.pathname + '?tutorial=true';
+                        } catch (error) {
+                            console.error('Fehler beim Zuruecksetzen des Spiels:', error);
+                            DQ_UI.showCustomPopup('Fehler beim Zuruecksetzen. Bitte versuche es erneut.', 'penalty');
+                        }
+                    }, { once: true });
                 }
-                if (typeof DQ_TUTORIAL_MAIN !== 'undefined' && typeof DQ_TUTORIAL_MAIN.resetRuntimeState === 'function') {
-                    DQ_TUTORIAL_MAIN.resetRuntimeState();
-                }
-                DQ_UI.hideAllPopups();
-                const url = new URL(window.location.href);
-                url.searchParams.set('tutorial_reset', Date.now().toString());
-                window.location.replace(url.toString());
-            } catch (error) {
-                console.error('Fehler beim Zurücksetzen des Tutorials:', error);
-                DQ_UI.showCustomPopup('Fehler beim Zurücksetzen. Bitte versuche es erneut.', 'penalty');
-            }
+            }, 100);
         }, { once: true });
     }
 }
@@ -882,40 +1029,47 @@ function saveSetting(key, value) {
                     settingsTx.objectStore('settings').put(DQ_CONFIG.userSettings);
                     settingsTx.oncomplete = () => {
                         updateSettingsUI();
+                        if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
                         resolve();
                     };
                     settingsTx.onerror = () => {
                         updateSettingsUI();
+                        if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
                         resolve();
                     };
                     return;
                 }
+                if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
                 resolve();
             };
         } else {
             DQ_CONFIG.userSettings[key] = value;
             const tx = DQ_DB.db.transaction(['settings'], 'readwrite');
             tx.objectStore('settings').put(DQ_CONFIG.userSettings);
-            tx.oncomplete = () => {
-                if (key === 'language') {
-                    DQ_UI.applyTranslations();
-                    DQ_EXERCISES.renderQuests();
-                    DQ_EXERCISES.renderFreeExercisesPage();
+        tx.oncomplete = () => {
+            if (key === 'language') {
+                DQ_UI.applyTranslations();
+                DQ_EXERCISES.renderQuests();
+                DQ_EXERCISES.renderFreeExercisesPage();
+            }
+            if (key === 'theme') {
+                DQ_UI.applyTheme();
+                const difficultySlider = document.getElementById('difficulty-slider');
+                if (difficultySlider) {
+                    setTimeout(() => updateDifficultySliderStyle(difficultySlider), 50);
                 }
-                if (key === 'theme') {
-                    DQ_UI.applyTheme();
-                    const difficultySlider = document.getElementById('difficulty-slider');
-                    if (difficultySlider) {
-                        setTimeout(() => updateDifficultySliderStyle(difficultySlider), 50);
-                    }
-                }
-                if (key === 'difficulty' || key === 'hasEquipment') DQ_EXERCISES.renderFreeExercisesPage();
-                if (key === 'goal' || key === 'difficulty' || key === 'hasEquipment' || key === 'restDays') {
-                    updateSettingsUI();
-                    DQ_EXERCISES.renderTrainingPhaseBanner();
-                }
-                resolve();
-            };
+            }
+            if (key === 'difficulty' || key === 'hasEquipment') DQ_EXERCISES.renderFreeExercisesPage();
+            if (key === 'goal' || key === 'difficulty' || key === 'hasEquipment' || key === 'restDays') {
+                updateSettingsUI();
+                DQ_EXERCISES.renderTrainingPhaseBanner();
+            }
+            // Supabase Sync triggern
+            if (typeof DQ_SUPABASE !== 'undefined') {
+                DQ_SUPABASE.triggerSync();
+            }
+            resolve();
+        };
         }
     });
 }
@@ -1165,6 +1319,9 @@ async function generateDailyQuestsIfNeeded(forceRegenerate = false) {
         });
     }
 
+    localStorage.setItem('dq_last_local_update', String(Date.now()));
+    if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+
     console.log('Neue Quests erfolgreich generiert und gespeichert.');
 }
 function initializeCharacter() {
@@ -1200,6 +1357,9 @@ function initializeCharacter() {
                 if (!char.ageBand) char.ageBand = 'unknown';
             }
             tx.oncomplete = () => {
+                if (!char) {
+                    localStorage.setItem('dq_last_local_update', String(Date.now()));
+                }
                 DQ_CHARACTER_MAIN.renderPage();
                 resolve(char);
             };
@@ -1330,6 +1490,7 @@ async function checkForPenaltyAndReset() {
             DQ_CHARACTER_MAIN.renderPage();
             DQ_EXTRA.renderExtraQuestPage();
             DQ_CONFIG.updateStreakDisplay();
+            if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
             resolve();
         };
     });
@@ -1350,6 +1511,12 @@ async function exportData() {
         results.forEach(result => dataToExport[result.name] = result.data);
         dataToExport.streakData = DQ_CONFIG.getStreakData();
 
+        // Zusaetzliche localStorage-Keys exportieren fuer vollstaendige Wiederherstellung
+        ['lastPenaltyCheck', 'dq_seen_app_version'].forEach(key => {
+            const val = localStorage.getItem(key);
+            if (val !== null) dataToExport[key] = val;
+        });
+
         const jsonString = JSON.stringify(dataToExport, null, 2);
         const blob = new Blob([jsonString], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -1363,6 +1530,12 @@ async function exportData() {
             URL.revokeObjectURL(url);
         }, 100);
         DQ_UI.showCustomPopup("Daten erfolgreich exportiert!");
+
+        // Sync und Audit-Tracking NUR bei erfolgreichem Export
+        if (typeof DQ_SUPABASE !== 'undefined') {
+            DQ_SUPABASE.triggerSync();
+            DQ_SUPABASE.markActivity('export');
+        }
     } catch (error) {
         console.error("Export failed:", error);
         DQ_UI.showCustomPopup(`Datenexport fehlgeschlagen: ${error.message}`, 'penalty');
@@ -1392,33 +1565,49 @@ function importData(event) {
                 localStorage.removeItem('streakData');
             }
 
-            const storeNames = Array.from(DQ_DB.db.objectStoreNames);
-            const tx = DQ_DB.db.transaction(storeNames, 'readwrite');
-            tx.oncomplete = () => {
-                alert("Daten erfolgreich importiert! Die App wird jetzt neu geladen.");
-                location.reload();
-            };
-            tx.onerror = (event) => { throw new Error("Fehler beim Schreiben in die Datenbank: " + event.target.error); };
+            // Zusaetzliche localStorage-Keys aus Backup wiederherstellen
+            ['lastPenaltyCheck', 'dq_seen_app_version'].forEach(key => {
+                if (data[key] !== undefined) {
+                    localStorage.setItem(key, data[key]);
+                }
+            });
 
+            const storeNames = Array.from(DQ_DB.db.objectStoreNames);
+
+            // WICHTIG: IndexedDB Transaktionen mit await in Schleifen sind unsicher,
+            // da die Transaktion vorzeitig schliessen kann.
+            // Wir verarbeiten jeden Store in einer EIGENEN Transaktion.
             for (const storeName of storeNames) {
                 await new Promise((resolve, reject) => {
-                    const req = tx.objectStore(storeName).clear();
-                    req.onsuccess = resolve;
-                    req.onerror = () => reject(req.error);
+                    const tx = DQ_DB.db.transaction(storeName, 'readwrite');
+                    const store = tx.objectStore(storeName);
+
+                    const clearReq = store.clear();
+                    clearReq.onsuccess = () => {
+                        if (data[storeName] && Array.isArray(data[storeName])) {
+                            for (const item of data[storeName]) {
+                                store.put(item);
+                            }
+                        }
+                    };
+                    clearReq.onerror = () => reject(clearReq.error);
+
+                    tx.oncomplete = resolve;
+                    tx.onerror = (event) => reject(event.target.error);
                 });
-                if (data[storeName]) {
-                    for (const item of data[storeName]) {
-                        await new Promise((resolve, reject) => {
-                            const req = tx.objectStore(storeName).put(item);
-                            req.onsuccess = resolve;
-                            req.onerror = () => reject(req.error);
-                        });
-                    }
-                }
             }
+
+            localStorage.setItem('dq_last_local_update', String(Date.now()));
+            if (typeof DQ_SUPABASE !== 'undefined') {
+                await DQ_SUPABASE.syncToSupabase();
+                DQ_SUPABASE.markActivity('import');
+            }
+
+            DQ_UI.showCustomPopup('<h3>Import abgeschlossen</h3><p>Deine Daten wurden erfolgreich wiederhergestellt. Die App wird neu geladen.</p>', 'info');
+            setTimeout(() => location.reload(), 1500);
         } catch (error) {
             console.error("Import failed:", error);
-            alert("Import fehlgeschlagen: " + error.message);
+            DQ_UI.showCustomPopup(`<h3>Import fehlgeschlagen</h3><p>${error.message}</p>`, 'penalty');
         } finally {
             DQ_UI.elements.importDataInput.value = '';
         }

@@ -83,29 +83,65 @@
     }
 }
 
+@keyframes countdownDropDown {
+    0% {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+#timer-circle-container {
+    position: relative;
+    width: 240px;
+    height: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+#timer-circle {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.timer-circle-bg {
+    fill: none;
+    stroke: var(--surface-color);
+    stroke-width: 12;
+}
+
+.timer-circle-progress {
+    fill: none;
+    stroke: #405748;
+    stroke-width: 12;
+    stroke-linecap: round;
+    stroke-dasharray: 754; /* 2 * PI * 120 */
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 0.3s ease;
+}
+
 #timer-display {
-    font-size: 72px;
+    font-size: 43px;
     font-weight: 700;
     color: var(--primary-color);
     font-family: 'Roboto', sans-serif;
     letter-spacing: 2px;
-    margin-bottom: 16px;
+    z-index: 2;
 }
 
 #timer-progress {
-    width: 80%;
-    height: 8px;
-    background-color: var(--surface-color);
-    border-radius: 4px;
-    overflow: hidden;
+    display: none;
 }
 
 #timer-progress-fill {
-    height: 100%;
-    background-color: var(--accent);
-    border-radius: 4px;
-    transition: width 0.3s ease;
-    width: 0%;
+    display: none;
 }
 
 #timer-controls {
@@ -132,11 +168,11 @@
 }
 
 #timer-controls .success-button {
-    background-color: #22c55e;
+    background-color: #466e55;
 }
 
 #timer-controls .success-button:hover {
-    background-color: #16a34a;
+    background-color: #355242;
 }
 
 #timer-warning-popup .popup-content {
@@ -176,10 +212,34 @@ html[data-theme='light'] #timer-countdown-overlay {
 }
 
 html[data-theme='light'] #timer-controls .success-button {
-    background-color: #16a34a;
+    background-color: #466e55;
     color: white;
 }
 
 html[data-theme='light'] #timer-controls .success-button:hover {
-    background-color: #15803d;
+    background-color: #355242;
+}
+
+html[data-theme='light'] .timer-circle-bg {
+    stroke: var(--surface-color);
+}
+
+html[data-theme='light'] .timer-circle-progress {
+    stroke: #405748;
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 380px) {
+    #timer-circle-container {
+        width: 200px;
+        height: 200px;
+    }
+    
+    #timer-display {
+        font-size: 32px;
+    }
+    
+    #timer-countdown-number {
+        font-size: 80px;
+    }
 }

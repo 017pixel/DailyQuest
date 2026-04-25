@@ -307,6 +307,15 @@ DQ_DATA.translations = {
         restart_training_warning: "Dabei werden Tutorial und Intro komplett zurückgesetzt. Du startest wirklich von vorne.",
         restart_training_notice: "Deine eigentlichen Spieldaten bleiben erhalten.",
         restart_training_confirm: "Neuanfang beginnen",
+        restart_full_reset_warning: "Alle deine Spielstaende werden geloescht! Streak, Einstellungen, Charakter, Inventar – ALLES!",
+        reset_popup1_title: "WARNUNG",
+        reset_popup1_continue: "Weiter",
+        reset_popup1_cancel: "Abbrechen",
+        reset_popup2_title: "LETZTE CHANCE",
+        reset_popup2_final_confirm: "Ja, alles zuruecksetzen",
+        reset_popup2_cancel: "Abbrechen",
+        reset_in_progress: "Spiel wird zurueckgesetzt...",
+        reset_success: "Zuruecksetzen abgeschlossen. Starte neu...",
         restday_info_box: "Heute ist ein Restday. Erhole dich heute!"
     },
     en: {
@@ -608,7 +617,25 @@ DQ_DATA.translations = {
         restart_training_warning: "This completely resets the tutorial and intro. You will start from the beginning.",
         restart_training_notice: "Your actual game data stays intact.",
         restart_training_confirm: "Start over",
-        restday_info_box: "Rest day today. Recover first."
+        restart_full_reset_warning: "All your game data will be deleted! Streak, settings, character, inventory – EVERYTHING!",
+        reset_popup1_title: "WARNING",
+        reset_popup1_continue: "Continue",
+        reset_popup1_cancel: "Cancel",
+        reset_popup2_title: "LAST CHANCE",
+        reset_popup2_final_confirm: "Yes, reset everything",
+        reset_popup2_cancel: "Cancel",
+        reset_in_progress: "Resetting game...",
+        reset_success: "Reset complete. Restarting...",
+        restday_info_box: "Rest day today. Recover first.",
+
+        // --- NEUE STATS KARTEN ---
+        profile_type_title: "Profil-Typ",
+        consistency_title: "Durchhaltevermoegen",
+        time_patterns_title: "Zeitmuster",
+        endurance_progress_title: "Ausdauer-Entwicklung",
+        mana_gold_title: "Mana & Gold",
+        achievement_stats_title: "Achievements",
+        extra_shop_title: "Extra-Quests & Shop"
     }
 };
 

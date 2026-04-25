@@ -115,7 +115,10 @@ const DQ_EXTRA = {
         };
 
         store.put(questData);
-        tx.oncomplete = () => this.renderExtraQuestPage();
+        tx.oncomplete = () => {
+            this.renderExtraQuestPage();
+            if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+        };
     },
 
     async completeExtraQuest() {
@@ -143,6 +146,11 @@ const DQ_EXTRA = {
         char.mana += quest.manaReward;
         char.gold += quest.goldReward;
         DQ_UI.showCustomPopup(`EXTRA-QUEST ERFÜLLT!<br>+${quest.manaReward} Mana <span class=\"material-symbols-rounded icon-mana\">auto_awesome</span> | +${quest.goldReward} Gold <span class=\"material-symbols-rounded icon-gold\">paid</span>`);
+        if (typeof DQ_ANALYTICS !== 'undefined') {
+            const startTime = new Date(quest.startTime).getTime();
+            const durationMinutes = Math.round((Date.now() - startTime) / 60000);
+            DQ_ANALYTICS.logExtraQuest(quest, durationMinutes);
+        }
 
         
         const questTemplate = DQ_DATA.extraQuestPool.find(q => q.nameKey === quest.nameKey);
@@ -158,6 +166,7 @@ const DQ_EXTRA = {
             this.renderExtraQuestPage();
             // --- BUGFIX: Korrekter Aufruf ---
             DQ_CHARACTER_MAIN.renderPage();
+            if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
         };
     }
 };

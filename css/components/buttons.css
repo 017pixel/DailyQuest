@@ -12,12 +12,47 @@
     opacity: 0.5; cursor: not-allowed;
 }
 
-/* Buy-Button wenn nicht leistbar */
-.buy-button:disabled {
-    background-color: #6b7280;
+/* --- SHOP BUY-BUTTON STYLING --- */
+/* Kaufen-Button: deutlich sichtbar mit leichtem Gruenton */
+.card-button.buy-button {
+    background-color: transparent;
+    color: #ffffff;
+    border: 2px solid #466e55;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.card-button.buy-button:hover {
+    background-color: #466e55;
     color: white;
-    opacity: 0.6;
-    cursor: not-allowed;
+    filter: none;
+    transform: scale(1.02);
+}
+.card-button.buy-button:active {
+    background-color: #355242;
+    border-color: #355242;
+    color: white;
+    transform: scale(0.96);
+}
+
+/* Buy-Button wenn nicht leistbar */
+.card-button.buy-button.cannot-afford {
+    background-color: var(--surface-container-high);
+    color: #9ca3af;
+    border: 2px solid var(--outline-color);
+    opacity: 1;
+    cursor: pointer;
+}
+.card-button.buy-button.cannot-afford:hover {
+    background-color: var(--outline-color);
+    color: var(--on-surface-color);
+    filter: none;
+    transform: scale(1.02);
+}
+/* Active-Effekt: kurzes dunkelgruenes Feedback statt weiss */
+.card-button.buy-button.cannot-afford:active {
+    background-color: #466e55;
+    border-color: #466e55;
+    color: white;
+    transform: scale(0.96);
 }
 .secondary-button { background-color: var(--secondary-button-color); }
 .card-button-no-transform {
@@ -110,52 +145,52 @@
 
 /* Claim-Button für Achievements */
 .claim-button-small {
-    background-color: var(--surface-color);
-    color: var(--on-surface-color);
+    background-color: var(--surface-container-high);
+    color: var(--outline-color);
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 .achievement-card.claimable .claim-button-small {
-    background-color: #22c55e;
+    background-color: #466e55;
     color: white;
+    opacity: 1;
+    cursor: pointer;
 }
 .achievement-card.claimable .claim-button-small:hover {
-    background-color: #16a34a;
+    background-color: #355242;
 }
 
 /* Claim-Button Basis-Stil */
 .claim-button-small {
-    background-color: var(--surface-color);
-    color: var(--on-surface-color);
+    background-color: var(--surface-container-high);
+    color: var(--outline-color);
     padding: 0 16px;
     font-size: 14px;
     text-transform: uppercase;
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
-/* Interaktive Action-Buttons (Kaufen, Ausrüsten, Benutzen, Claim) */
-.buy-button,
+/* Interaktive Action-Buttons (Ausrüsten, Benutzen, Claim) */
 .equip-button,
-.action-button[data-action="buy"],
 .action-button[data-action="equip"],
 .action-button[data-action="use"],
 .action-button[data-action="claim"] {
-    background-color: #22c55e;
+    background-color: #466e55;
     color: white;
 }
-.buy-button:hover,
 .equip-button:hover,
-.action-button[data-action="buy"]:hover,
 .action-button[data-action="equip"]:hover,
 .action-button[data-action="use"]:hover,
 .action-button[data-action="claim"]:hover {
     filter: brightness(1.1);
-    background-color: #16a34a;
+    background-color: #355242;
 }
 
 /* Secondary Variante */
-.buy-button.secondary-button,
 .equip-button.secondary-button {
     background-color: var(--secondary-button-color);
 }
-.buy-button.secondary-button:hover,
 .equip-button.secondary-button:hover {
     background-color: var(--surface-container-high);
 }

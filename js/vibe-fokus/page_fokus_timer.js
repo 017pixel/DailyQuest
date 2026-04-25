@@ -1,4 +1,4 @@
-﻿const DQ_FOKUS_TIMER = {
+const DQ_FOKUS_TIMER = {
     DEFAULT_LABELS: [
         { key: 'focus_label_reading', text: 'Lesen' },
         { key: 'focus_label_learning', text: 'Lernen' },
@@ -230,6 +230,10 @@
             label: sessionLabel
         });
 
+        if (typeof DQ_ANALYTICS !== 'undefined') {
+            DQ_ANALYTICS.logFocusSession(minutes, sessionLabel);
+        }
+
         if (linkedQuest) {
             const { type, id } = linkedQuest;
             if (type === 'quest') await DQ_EXERCISES.completeQuest(id);
@@ -262,6 +266,7 @@
 
         await DQ_VIBE_STATE.saveState();
         await new Promise(res => tx.oncomplete = res);
+        if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
 
         DQ_UI.showFocusRewardPopup({
             minutes: minutes,
@@ -331,6 +336,7 @@
     async deleteLabel(id) {
         const tx = DQ_DB.db.transaction('focus_labels', 'readwrite');
         await new Promise(res => tx.objectStore('focus_labels').delete(id).onsuccess = res);
+        if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
     },
 
     promptForNewLabel() {
@@ -344,6 +350,7 @@
             if (newLabelName) {
                 const tx = DQ_DB.db.transaction('focus_labels', 'readwrite');
                 await new Promise(res => tx.objectStore('focus_labels').add({ name: newLabelName }).onsuccess = res);
+                if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
                 DQ_UI.hideTopPopup();
                 this.promptForLabel();
             }

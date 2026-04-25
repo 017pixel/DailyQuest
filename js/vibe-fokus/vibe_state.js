@@ -70,7 +70,10 @@ const DQ_VIBE_STATE = {
             }
 
             const request = store.put(stateToSave);
-            tx.oncomplete = () => resolve();
+            tx.oncomplete = () => {
+                if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+                resolve();
+            };
             tx.onerror = (e) => reject("Fehler beim Speichern des Vibe-Zustands: " + e.target.error);
         });
     }

@@ -29,6 +29,37 @@
         this.updateContinueButtonLabel();
     },
 
+    async showAuthDuringTutorial() {
+        // Auth-Screen anzeigen wenn noch keine Entscheidung getroffen wurde
+        if (typeof DQ_SUPABASE !== 'undefined' && !localStorage.getItem('dq_auth_decision_made')) {
+            console.log('Zeige Auth-Screen waehrend Tutorial...');
+
+            // WICHTIG: Speichere Intro-Zustand fuer E-Mail-Redirect-Fall
+            // Wenn sich der User registriert und E-Mail bestaetigen muss,
+            // gehen die Intro-Daten sonst beim Reload verloren
+            try {
+                const introState = {
+                    playerName: this.playerName,
+                    age: this.age,
+                    hasEquipment: this.hasEquipment,
+                    trainingGoal: this.trainingGoal,
+                    seniorMode: this.seniorMode,
+                    seniorModeOptOut: this.seniorModeOptOut,
+                    savedAt: Date.now()
+                };
+                localStorage.setItem('dq_intro_state', JSON.stringify(introState));
+            } catch (e) {
+                console.warn('Fehler beim Speichern des Intro-Zustands:', e);
+            }
+
+            DQ_SUPABASE.showAuthScreen('intro');
+            await DQ_SUPABASE.waitForAuthDecision();
+
+            // Auth-Screen wurde geschlossen, Entscheidung wurde getroffen
+            console.log('Auth-Entscheidung waehrend Tutorial getroffen.');
+        }
+    },
+
     async showAgeSelection() {
         const container = document.getElementById('tutorial-text-container');
         if (!container) return;
@@ -75,6 +106,8 @@
         await this.runIntroSequence();
 
         if (this.seniorMode) {
+            // Auth-Screen fuer Senior Mode VOR Charakter-Erstellung
+            await this.showAuthDuringTutorial();
             await this.initializeCharacterWithName(this.playerName);
             await this.showWelcomeSequence();
             return;
@@ -265,6 +298,10 @@
 
                 await this.hideText();
                 await this.delay(250);
+
+                // NEU: Auth-Screen nach Trainingsplan-Erstellung (Equipment + Goal)
+                await this.showAuthDuringTutorial();
+
                 await this.initializeCharacterWithName(this.playerName);
                 await this.showWelcomeSequence();
             });
@@ -406,6 +443,11 @@
 
                     if (typeof DQ_CHARACTER_MAIN !== 'undefined') {
                         DQ_CHARACTER_MAIN.renderPage();
+                    }
+
+                    // NEU: Tutorial-Daten sofort zu Supabase syncen
+                    if (typeof DQ_SUPABASE !== 'undefined') {
+                        await DQ_SUPABASE.syncToSupabase();
                     }
 
                     resolve();

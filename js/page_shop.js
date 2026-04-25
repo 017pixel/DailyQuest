@@ -28,10 +28,26 @@ const DQ_SHOP = {
     },
 
     handleBuyEquipmentClick(event) {
-        if (event.target.classList.contains('card-button')) {
-            const itemId = parseInt(event.target.dataset.itemId, 10);
-            this.buyEquipmentItem(itemId);
+        const btn = event.target.closest('.buy-button');
+        if (!btn) return;
+
+        const itemId = parseInt(btn.dataset.itemId, 10);
+        const itemCost = parseInt(btn.dataset.itemCost, 10);
+
+        if (btn.classList.contains('cannot-afford')) {
+            // Popup mit fehlender Gold-Menge anzeigen
+            DQ_CONFIG.getCharacter().then(char => {
+                const missing = itemCost - (char?.gold || 0);
+                const lang = DQ_CONFIG.userSettings.language || 'de';
+                const msg = lang === 'de'
+                    ? `Dir fehlen <span class="material-symbols-rounded icon-gold" style="vertical-align:middle;">paid</span> <strong>${missing} Gold</strong> um dir das zu kaufen.`
+                    : `You are missing <span class="material-symbols-rounded icon-gold" style="vertical-align:middle;">paid</span> <strong>${missing} Gold</strong> to buy this.`;
+                DQ_UI.showCustomPopup(msg);
+            });
+            return;
         }
+
+        this.buyEquipmentItem(itemId);
     },
 
     renderPage() {
@@ -74,7 +90,8 @@ const DQ_SHOP = {
                     const canAfford = character.gold >= item.cost;
                     const icon = item.iconSymbol ? `<span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 6px;">${item.iconSymbol}</span>` : '';
                     const displayName = cleanName(item.name);
-                    card.innerHTML = `<h2>${icon}${displayName}</h2><p>${item.description}</p><p class=\"item-price\"><span class=\"label\">Kosten:</span><span class=\"material-symbols-rounded icon-gold\">paid</span><span>${item.cost}</span></p><button class="card-button buy-button" data-item-id="${item.id}" ${canAfford ? '' : 'disabled'}>Kaufen</button>`;
+                    const btnClass = canAfford ? 'card-button buy-button' : 'card-button buy-button cannot-afford';
+                    card.innerHTML = `<h2>${icon}${displayName}</h2><p>${item.description}</p><p class=\"item-price\"><span class=\"label\">Kosten:</span><span class=\"material-symbols-rounded icon-gold\">paid</span><span>${item.cost}</span></p><button class="${btnClass}" data-item-id="${item.id}" data-item-cost="${item.cost}">Kaufen</button>`;
                     DQ_UI.elements.shopItemsEquipment.appendChild(card);
                 });
             };
@@ -94,6 +111,7 @@ const DQ_SHOP = {
             if (char) {
                 DQ_ACHIEVEMENTS.checkAchievement(char, 'shop');
             }
+            if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
         };
 
         Promise.all([
@@ -126,6 +144,9 @@ const DQ_SHOP = {
             char.totalItemsPurchased++;
             DQ_UI.showCustomPopup(`${item.name} gekauft!`);
             charStore.put(char);
+            if (typeof DQ_ANALYTICS !== 'undefined') {
+                DQ_ANALYTICS.logShopPurchase(item, item.cost, 'buy');
+            }
         });
     }
 };

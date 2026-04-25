@@ -47,8 +47,56 @@ const DQ_TUTORIAL_MAIN = {
         if (pulseContainer) pulseContainer.classList.add('visible');
 
         this.createContinueButton();
+
+        // Pruefe ob gespeicherter Intro-Zustand vorhanden ist
+        // (z.B. nach E-Mail-Bestaetigung waehrend des Intros)
+        const savedState = this.loadIntroState();
+        if (savedState) {
+            console.log('Gespeicherter Intro-Zustand gefunden. Stelle wieder her...');
+            this.playerName = savedState.playerName || '';
+            this.age = savedState.age || 34;
+            this.hasEquipment = savedState.hasEquipment || false;
+            this.trainingGoal = savedState.trainingGoal || '';
+            this.seniorMode = savedState.seniorMode || false;
+            this.seniorModeOptOut = savedState.seniorModeOptOut || false;
+
+            // Loesche gespeicherten Zustand
+            this.clearIntroState();
+
+            // Wenn Name vorhanden, ueberspringe Intro und erstelle Charakter direkt
+            if (this.playerName) {
+                console.log('Wiederhergestellte Daten gefunden. Ueberspringe Intro...');
+                await this.initializeCharacterWithName(this.playerName);
+                await this.showWelcomeSequence();
+                return;
+            }
+        }
+
         await this.showPreNameWelcome();
         await this.showNameInput();
+    },
+
+    loadIntroState() {
+        try {
+            const raw = localStorage.getItem('dq_intro_state');
+            if (!raw) return null;
+            const state = JSON.parse(raw);
+            // Nur wenn weniger als 30 Minuten alt
+            if (state.savedAt && (Date.now() - state.savedAt) < 30 * 60 * 1000) {
+                return state;
+            }
+        } catch (e) {
+            console.warn('Fehler beim Laden des Intro-Zustands:', e);
+        }
+        return null;
+    },
+
+    clearIntroState() {
+        try {
+            localStorage.removeItem('dq_intro_state');
+        } catch (e) {
+            console.warn('Fehler beim Loeschen des Intro-Zustands:', e);
+        }
     },
 
     createContinueButton() {

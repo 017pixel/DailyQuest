@@ -60,6 +60,7 @@ const DQ_TRAINING_SYSTEM = {
     getQuestActionLabel(quest) {
         if (!quest || quest.completed) return 'check';
         if (quest.completionMode === 'log') return this.t('endurance_entry_button', 'Eintragen');
+        if (quest.completionMode === 'timer') return this.t('timer_start_button', 'Los');
         if (quest.completionMode === 'sets') {
             const totalSets = Math.max(1, quest.setPlan?.sets || quest.setProgress?.length || 1);
             const doneSets = Array.isArray(quest.setProgress) ? quest.setProgress.filter(Boolean).length : 0;
@@ -251,7 +252,14 @@ const DQ_TRAINING_SYSTEM = {
 
     getCompletionMode(goal, template) {
         const plan = this.getPlan(goal);
-        if (plan?.completionMode) return plan.completionMode;
+        // Spezifische Logik fuer Ausdauer-Training
+        if (goal === 'endurance') {
+            if (template.type === 'time' && template.baseValue <= 180) return 'timer';
+            if (template.type === 'check') return 'tap';
+            if (template.nameKey === 'walking_lunges') return 'tap';
+            return 'log';
+        }
+        if (plan?.completionMode && goal !== 'endurance') return plan.completionMode;
         if (template.type === 'focus') return 'tap';
         if (template.type === 'check') return 'tap';
         if (template.nameKey === 'walk_30min' || template.nameKey === 'short_walk') return 'tap';
@@ -318,6 +326,14 @@ const DQ_TRAINING_SYSTEM = {
                 loadFactor: rewardScale
             }
         };
+
+        // Spezifische Anpassungen fuer Ausdauer-Timer
+        if (completionMode === 'timer') {
+            const timerScale = (1 + 0.3 * (difficulty - 1));
+            quest.target = Math.ceil(template.baseValue * timerScale);
+            quest.type = 'time';
+            quest.targetLabel = this.formatDuration(quest.target);
+        }
 
         if (goal === 'endurance') {
             quest.targetSummary = {
@@ -504,7 +520,13 @@ const DQ_TRAINING_SYSTEM = {
                         power: payload.power || 0
                     }
                 });
-                tx.oncomplete = () => resolve(quest);
+                if (typeof DQ_ANALYTICS !== 'undefined') {
+                    DQ_ANALYTICS.logEnduranceEntry(payload.distance || 0, payload.duration || 0, payload.power || 0);
+                }
+                tx.oncomplete = () => {
+                    if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+                    resolve(quest);
+                };
             };
             tx.onerror = ev => reject(ev.target.error);
         });

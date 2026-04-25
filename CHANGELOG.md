@@ -4,6 +4,55 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## Version 2.9.0 - Supabase Sync Refinement & Audit
+
+### Erstellt
+- Audit-Tracking fuer Export- und Import-Vorgaenge in der Cloud-Datenbank
+- Automatische Wiederherstellung von App-Version und Straf-Status beim Backup-Import
+- E-Mail-Weiterleitung nach Registrierung fuer spaetere Bestaetigungs-Aktivierung
+
+### Verändert
+- Registrierungs-Flow repariert fuer korrekte Verarbeitung bei ausstehender E-Mail-Bestaetigung
+- Abmeldung zeigt sofort den Anmelde-Bildschirm an
+- Export- und Import-Funktion speichert nun vollstaendige lokale Einstellungen
+- Backup-Import verwendet jetzt interne Popup-Benachrichtigungen statt Browser-Dialogen
+- Streak-Daten-Validierung repariert fuer konsistentes Format bei korrupten Daten
+
+### Gelöscht
+- Veraltete Query-Parameter aus Script-Laden entfernt
+- Unnoetiger Sofort-Sync-Aufruf bei fehlgeschlagenem Datenexport entfernt
+
+---
+
+## Version 2.8.0 - Supabase Cloud Sync
+
+### Erstellt
+- Vollstaendige Supabase-Integration fuer Cloud-Synchronisation
+- Auth-Screen mit Login / Register / Anonymous Sign-In
+- Automatischer Anonymous Login beim App-Start fuer Tracking
+- Account-Tab in den Einstellungen mit Sync-Status
+- `js/supabase-config.js` - Zentrale Supabase-Konfiguration
+- `js/supabase-client.js` - Supabase Client mit Auth, Sync, Import/Export
+- `supabase/schema.sql` - Datenbank-Schema mit RLS (Row Level Security)
+- Debounced Sync (5s) + periodischer Sync (2min) + Sync bei Tab-Verlassen
+- Intelligente Daten-Migration fuer bestehende User (lokale Daten werden beim ersten Login hochgeladen)
+- Cross-Device Sync fuer eingeloggte User (E-Mail / Password)
+- Anonymous Tracking: Daten werden gespeichert, aber kein Cross-Device Sync
+- Cloud-Daten werden beim Account-Reset ebenfalls geloescht
+- Service Worker Cache auf v20 aktualisiert (neue Supabase-Dateien gecacht)
+
+### Verändert
+- App ist jetzt "Online First" mit automatischer Cloud-Sicherung
+- IndexedDB bleibt als lokale Performance-Schicht erhalten
+- Alle DB-Schreiboperationen triggern automatischen Supabase-Sync
+- README und technische Dokumentation aktualisiert
+- Tutorial wird nicht gestartet wenn Auth-Screen aktiv ist
+- Import-Funktion: Robuste IndexedDB-Transaktionen (kein await in Schleifen)
+- `resetAllGameData` loescht auch Cloud-Daten und migrated-Flags
+- App-Version auf 2.8.0 erhoeht
+
+---
+
 ## Version 2.7.0 - Timer Feature & Buttons
 
 ### Erstellt

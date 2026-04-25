@@ -7,7 +7,11 @@
  */
 setTimeout(() => {
     // Prüfen, ob das Erfolgs-Signal von main.js gesetzt wurde.
-    if (!window.appReady) {
+    // ODER: Der Auth-Screen ist aktiv (App wartet auf User-Entscheidung)
+    const authScreen = document.getElementById('auth-screen');
+    const authScreenActive = authScreen && !authScreen.classList.contains('hidden');
+
+    if (!window.appReady && !authScreenActive) {
         console.warn("Watchdog: App-Readiness-Signal nicht gefunden. Zeige Notfall-Nachricht an.");
         const fallback = document.getElementById('critical-error-fallback');
         if (fallback) {
@@ -15,6 +19,10 @@ setTimeout(() => {
             fallback.classList.add('visible');
         }
     } else {
-        console.log("Watchdog: App-Readiness-Signal gefunden. Alles in Ordnung.");
+        if (authScreenActive) {
+            console.log("Watchdog: App wartet auf Auth-Entscheidung. Alles in Ordnung.");
+        } else {
+            console.log("Watchdog: App-Readiness-Signal gefunden. Alles in Ordnung.");
+        }
     }
-}, 3000); // 3 Sekunden warten, um der App Zeit zum Laden zu geben.
+}, 5000); // 5 Sekunden warten, um der App Zeit zum Laden zu geben (Auth-Screen kann laenger dauern).

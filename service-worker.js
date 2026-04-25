@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dailyquest-cache-v18';
+const CACHE_NAME = 'dailyquest-cache-v21';
 
 const urlsToCache = [
   '/',
@@ -13,6 +13,7 @@ const urlsToCache = [
   '/css/pages/extra-quest.css',
   '/css/pages/achievements.css',
   '/css/pages/fokus.css',
+  '/css/pages/timer.css',
   '/css/pages/dungeon.css',
   '/tutorial/css/tutorial.css',
   '/data/translations.js',
@@ -21,10 +22,15 @@ const urlsToCache = [
   '/data/dungeons.js',
   '/data/training_plans.js',
   '/js/database.js',
+  '/js/analytics.js',
   '/js/ui.js',
+  '/js/timer-popup.js',
+  '/js/character/charts/chart_canvas_base.js',
+  '/js/character/page_character_cards.js',
   '/js/character/page_character_stats.js',
   '/js/character/page_character_inventory.js',
   '/js/character/page_character_labels.js',
+  '/js/character/page_character_swipe.js',
   '/js/character/page_character_main.js',
   '/js/page_exercises.js',
   '/js/page_exercises_training.js',
@@ -37,6 +43,9 @@ const urlsToCache = [
   '/js/vibe-fokus/vibe_state.js',
   '/js/vibe-fokus/page_fokus_timer.js',
   '/js/vibe-fokus/page_fokus_main.js',
+  '/js/supabase-config.js',
+  '/js/supabase-client.js',
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',
   '/tutorial/js/tutorial_state.js',
   '/tutorial/js/tutorial_main.js',
   '/tutorial/js/tutorial_onboarding.js',

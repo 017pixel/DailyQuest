@@ -4,9 +4,17 @@ const DQ_DUNGEON_MAIN = {
 
     async open() {
         // Wechsel zur Dungeon-Seite
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.page').forEach(p => {
+            p.classList.remove('active');
+            p.hidden = true;
+            p.style.display = 'none';
+        });
         const dungeonPage = document.getElementById('page-dungeon');
-        if (dungeonPage) dungeonPage.classList.add('active');
+        if (dungeonPage) {
+            dungeonPage.classList.add('active');
+            dungeonPage.hidden = false;
+            dungeonPage.style.display = '';
+        }
         // Hide bottom nav during dungeon
         const bottomNav = document.getElementById('bottom-nav');
         if (bottomNav) bottomNav.style.display = 'none';

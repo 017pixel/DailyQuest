@@ -3,12 +3,17 @@
     "name": "DailyQuest",
     "short_name": "DailyQuest",
     "start_url": "./index.html",
+    "scope": "./",
     "display": "standalone",
+    "display_override": ["standalone", "minimal-ui"],
     "background_color": "#121212",
     "theme_color": "#1c1b1f",
     "description": "Gamify your daily workouts and build your character.",
     "orientation": "portrait",
-    "categories": ["fitness", "health", "games"],
+    "lang": "de",
+    "dir": "ltr",
+    "categories": ["fitness", "health", "sports", "lifestyle"],
+    "prefer_related_applications": false,
     "icons": [
         {
             "src": "icon.png",
@@ -42,6 +47,51 @@
             "type": "image/png",
             "form_factor": "narrow",
             "label": "DailyQuest Home Screen"
+        },
+        {
+            "src": "icon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "DailyQuest Desktop View"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Character",
+            "short_name": "Character",
+            "description": "Open character stats",
+            "url": "./index.html?page=character",
+            "icons": [
+                {
+                    "src": "icon.png",
+                    "sizes": "96x96"
+                }
+            ]
+        },
+        {
+            "name": "Workouts",
+            "short_name": "Workouts",
+            "description": "Open daily quests and workouts",
+            "url": "./index.html?page=exercises",
+            "icons": [
+                {
+                    "src": "icon.png",
+                    "sizes": "96x96"
+                }
+            ]
+        },
+        {
+            "name": "Focus",
+            "short_name": "Focus",
+            "description": "Open focus timer",
+            "url": "./index.html?page=fokus",
+            "icons": [
+                {
+                    "src": "icon.png",
+                    "sizes": "96x96"
+                }
+            ]
         }
     ]
 }

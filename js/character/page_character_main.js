@@ -2,6 +2,9 @@ const DQ_CHARACTER_MAIN = {
 
     init(elements) {
         elements.characterTabSwitcher.addEventListener('click', (event) => this.handleTabClick(event));
+        if (typeof DQ_SWIPE !== 'undefined') {
+            DQ_SWIPE.init();
+        }
     },
 
     handleTabClick(event) {
@@ -48,6 +51,11 @@ const DQ_CHARACTER_MAIN = {
             // Inhalte der Tabs rendern
             DQ_STATS.renderStatsPage(char, entries);
             DQ_INVENTORY.renderInventoryPage(char);
+
+            // Swipe-System initialisieren/aktualisieren
+            if (typeof DQ_SWIPE !== 'undefined') {
+                DQ_SWIPE.refresh();
+            }
 
         } catch (error) {
             console.error("Fehler beim Rendern der Charakter-Seite:", error);

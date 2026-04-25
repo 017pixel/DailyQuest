@@ -40,7 +40,7 @@ const DQ_ACHIEVEMENTS = {
         }
 
         if (charWasModified) {
-            console.log("Fehlende Achievements im Charakterobjekt gefunden und hinzugefügt. Speichere...");
+            console.log("Fehlende Achievements im Charakterobjekt gefunden und hinzugefuegt. Speichere...");
             const tx = DQ_DB.db.transaction('character', 'readwrite');
             const store = tx.objectStore('character');
             await new Promise((resolve, reject) => {
@@ -48,6 +48,7 @@ const DQ_ACHIEVEMENTS = {
                 request.onsuccess = resolve;
                 request.onerror = reject;
             });
+            if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
         }
 
         const achievements = Object.values(DQ_DATA.achievements).map(ach => {
@@ -177,7 +178,10 @@ const DQ_ACHIEVEMENTS = {
         store.put(char);
 
         await new Promise(resolve => {
-            tx.oncomplete = resolve;
+            tx.oncomplete = () => {
+                if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+                resolve();
+            };
             tx.onerror = e => console.error("Fehler beim Speichern der Belohnung:", e);
         });
 
@@ -244,6 +248,7 @@ const DQ_ACHIEVEMENTS = {
             await new Promise(resolve => {
                 store.put(char).onsuccess = resolve;
             });
+            if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
 
             const lang = DQ_CONFIG.userSettings.language || 'de';
             const name = DQ_DATA.translations[lang][achData.nameKey] || achData.nameKey;

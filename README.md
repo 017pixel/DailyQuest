@@ -95,10 +95,11 @@ Detaillierte Informationen zur Architektur, zum Design und zur Theorie hinter Da
 ## Technologien und Sicherheit
 
 - **Frontend**: HTML5, CSS3, Vanilla JavaScript (ES6+).
-- **Datenbank**: IndexedDB für 100% lokale Datenspeicherung im Browser.
-- **PWA**: Offline-Funktionalität durch Service Worker und Web App Manifest.
-- **Visualisierung**: Chart.js für dynamische Diagramme.
-- **Datenschutz**: Keine Accounts, kein Tracking, keine Cloud - alle Daten bleiben auf deinem Gerät.
+- **Datenbank**: Supabase (PostgreSQL) fuer Cloud-Synchronisation + IndexedDB fuer lokale Performance.
+- **PWA**: Offline-Funktionalitaet durch Service Worker und Web App Manifest.
+- **Visualisierung**: Chart.js fuer dynamische Diagramme.
+- **Cloud-Sync**: Automatische Synchronisation aller Daten ueber Supabase. Cross-Device-Zugriff mit E-Mail-Account oder anonymes Tracking.
+- **Datenschutz**: Daten werden sicher in der Cloud gespeichert. RLS (Row Level Security) stellt sicher, dass nur der jeweilige User seine eigenen Daten sehen kann.
 
 ---
 

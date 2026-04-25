@@ -10,7 +10,7 @@ const DQ_DB = {
     init: function () {
         return new Promise((resolve, reject) => {
             // --- VERSION ERHÖHT, UM UPDATE FÜR ALLE NUTZER ZU ERZWINGEN ---
-            const dbName = 'VibeCodenDB', dbVersion = 34;
+            const dbName = 'VibeCodenDB', dbVersion = 35;
             const request = indexedDB.open(dbName, dbVersion);
 
             request.onerror = (e) => {
@@ -38,6 +38,31 @@ const DQ_DB = {
                     console.log("Upgrade-Schritt: Erstelle 'focus_labels' Object Store.");
                     if (!db.objectStoreNames.contains('focus_labels')) {
                         db.createObjectStore('focus_labels', { keyPath: 'id', autoIncrement: true });
+                    }
+                }
+
+                if (oldVersion < 35) {
+                    console.log("Upgrade-Schritt: Erstelle Analytics Object Stores.");
+                    if (!db.objectStoreNames.contains('player_snapshots')) {
+                        const snapStore = db.createObjectStore('player_snapshots', { keyPath: 'id', autoIncrement: true });
+                        snapStore.createIndex('date', 'date', { unique: false });
+                    }
+                    if (!db.objectStoreNames.contains('shop_history')) {
+                        const shopStore = db.createObjectStore('shop_history', { keyPath: 'id', autoIncrement: true });
+                        shopStore.createIndex('timestamp', 'timestamp', { unique: false });
+                    }
+                    if (!db.objectStoreNames.contains('extra_quest_history')) {
+                        const extraStore = db.createObjectStore('extra_quest_history', { keyPath: 'id', autoIncrement: true });
+                        extraStore.createIndex('timestamp', 'timestamp', { unique: false });
+                    }
+                    if (!db.objectStoreNames.contains('level_up_history')) {
+                        const lvlStore = db.createObjectStore('level_up_history', { keyPath: 'id', autoIncrement: true });
+                        lvlStore.createIndex('timestamp', 'timestamp', { unique: false });
+                    }
+                    if (!db.objectStoreNames.contains('character_events')) {
+                        const evtStore = db.createObjectStore('character_events', { keyPath: 'id', autoIncrement: true });
+                        evtStore.createIndex('timestamp', 'timestamp', { unique: false });
+                        evtStore.createIndex('type', 'type', { unique: false });
                     }
                 }
 
@@ -75,6 +100,27 @@ const DQ_DB = {
                     logStore.createIndex('date', 'date', { unique: false });
                     logStore.createIndex('goal', 'goal', { unique: false });
                     logStore.createIndex('type', 'type', { unique: false });
+                }
+                if (!db.objectStoreNames.contains('player_snapshots')) {
+                    const snapStore = db.createObjectStore('player_snapshots', { keyPath: 'id', autoIncrement: true });
+                    snapStore.createIndex('date', 'date', { unique: false });
+                }
+                if (!db.objectStoreNames.contains('shop_history')) {
+                    const shopStore = db.createObjectStore('shop_history', { keyPath: 'id', autoIncrement: true });
+                    shopStore.createIndex('timestamp', 'timestamp', { unique: false });
+                }
+                if (!db.objectStoreNames.contains('extra_quest_history')) {
+                    const extraStore = db.createObjectStore('extra_quest_history', { keyPath: 'id', autoIncrement: true });
+                    extraStore.createIndex('timestamp', 'timestamp', { unique: false });
+                }
+                if (!db.objectStoreNames.contains('level_up_history')) {
+                    const lvlStore = db.createObjectStore('level_up_history', { keyPath: 'id', autoIncrement: true });
+                    lvlStore.createIndex('timestamp', 'timestamp', { unique: false });
+                }
+                if (!db.objectStoreNames.contains('character_events')) {
+                    const evtStore = db.createObjectStore('character_events', { keyPath: 'id', autoIncrement: true });
+                    evtStore.createIndex('timestamp', 'timestamp', { unique: false });
+                    evtStore.createIndex('type', 'type', { unique: false });
                 }
 
                 console.log("Datenbank-Upgrade abgeschlossen.");

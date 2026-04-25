@@ -6,142 +6,139 @@
     transition: box-shadow 0.4s ease, border-color 0.4s ease;
 }
 
+/* Section Header Row mit h2 und Mini-Pille */
+.section-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 4px;
+}
+
+.section-header-row h2 {
+    margin: 0;
+    flex-shrink: 0;
+}
+
 #training-phase-banner {
-    margin: 6px 0 10px 0;
+    flex-shrink: 0;
 }
 
 #training-phase-banner[hidden] {
     display: none;
 }
 
-.training-phase-banner-card {
+/* Phase Mini-Pille */
+.phase-mini-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(var(--primary-color-rgb), 0.18), rgba(var(--primary-color-rgb), 0.08));
+    border: 1px solid rgba(var(--primary-color-rgb), 0.35);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary-color);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(var(--primary-color-rgb), 0.12);
+}
+
+.phase-mini-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(var(--primary-color-rgb), 0.22);
+    background: linear-gradient(135deg, rgba(var(--primary-color-rgb), 0.28), rgba(var(--primary-color-rgb), 0.14));
+}
+
+.phase-mini-pill:active {
+    transform: translateY(0);
+}
+
+/* Phase Info Popup Body */
+#phase-info-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.phase-info-section {
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: var(--surface-container-high);
+    border: 1px solid var(--outline-color);
+}
+
+.phase-info-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.65;
+    margin-bottom: 8px;
+}
+
+.phase-info-section-value {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--on-surface-color);
+    line-height: 1.4;
+}
+
+.phase-info-progress-bar {
+    width: 100%;
+    height: 10px;
+    background: var(--surface-color);
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.phase-info-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), rgba(var(--primary-color-rgb), 0.7));
+    border-radius: 5px;
+    transition: width 0.5s ease;
+}
+
+.phase-info-daily-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.phase-info-stat {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    padding: 8px 10px;
-    border-radius: 16px;
-    background: linear-gradient(135deg, rgba(var(--primary-color-rgb), 0.14), var(--surface-container-high));
-    border: 1px solid rgba(var(--primary-color-rgb), 0.26);
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
-}
-
-.quest-phase-details {
+    padding: 10px;
+    border-radius: 12px;
+    background: var(--surface-color);
     border: 1px solid var(--outline-color);
-    border-radius: 14px;
-    background: var(--surface-container-high);
-    overflow: hidden;
 }
 
-.training-phase-details {
-    border: 0;
-    background: transparent;
-    overflow: visible;
-}
-
-.training-phase-details summary,
-.quest-phase-details summary {
-    list-style: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 0 2px;
-}
-
-.training-phase-details summary::-webkit-details-marker,
-.quest-phase-details summary::-webkit-details-marker {
-    display: none;
-}
-
-.training-phase-summary {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 1.35;
-    opacity: 0.94;
-    margin: 0;
-}
-
-.training-phase-summary::after {
-    content: '\25BC';
-    font-size: 10px;
+.phase-info-stat-label {
+    font-size: 11px;
     opacity: 0.65;
 }
 
-.training-phase-details[open] .training-phase-summary::after {
-    content: '\25B2';
-}
-
-.training-phase-details-body {
-    padding: 12px 2px 4px;
-}
-
-.training-phase-detail-text {
-    margin: 0 0 10px 0;
-    font-size: 13px;
-    line-height: 1.35;
-    opacity: 0.86;
-    word-break: break-word;
-}
-
-.training-phase-summary span:first-child {
-    text-align: left;
-}
-
-.training-phase-meta-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 8px;
-    margin-bottom: 10px;
-}
-
-.training-phase-meta-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 10px 12px;
-    border-radius: 14px;
-    background: var(--surface-container-high);
-    border: 1px solid var(--outline-color);
-}
-
-.training-phase-meta-item span {
-    font-size: 11px;
-    opacity: 0.72;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
-.training-phase-meta-item strong {
-    font-size: 14px;
-    line-height: 1.35;
+.phase-info-stat-value {
+    font-size: 18px;
     font-weight: 700;
-    color: var(--on-surface-color);
-    word-break: break-word;
+    color: var(--primary-color);
 }
 
-@media (max-width: 520px) {
-    .training-phase-meta-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
+/* Alte Styles (aufrÃ¤umen - Details/Summary wird nicht mehr genutzt) */
+.training-phase-banner-card,
+.training-phase-details,
+.quest-phase-details,
+.training-phase-details-body,
+.training-phase-detail-text,
+.training-phase-meta-grid,
+.training-phase-meta-item,
 .training-phase-banner-count {
-    display: block;
-    width: 100%;
-    margin-bottom: 10px;
-    padding: 8px 10px;
-    border-radius: 12px;
-    border: 1px solid var(--outline-color);
-    background: var(--surface-container-high);
-    font-size: 14px;
-    line-height: 1.35;
-    white-space: normal;
-    word-break: break-word;
+    display: none;
 }
 
 .exercise-card.ready {
@@ -175,19 +172,32 @@
 #page-exercises .complete-button-small { padding: 0 14px; font-size: 13px; transition: all 0.3s ease; }
 
 /* Set counter animation */
+.set-counter-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 1.3em;
+    overflow: hidden;
+    position: relative;
+    vertical-align: middle;
+}
+
 .set-counter {
     display: inline-block;
-    position: relative;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.set-counter.animating {
-    animation: setCounterPop 0.3s ease;
+.set-counter.slide-out {
+    transform: translateY(120%);
+    opacity: 0;
 }
 
-@keyframes setCounterPop {
-    0% { transform: translateY(-10px); opacity: 0; }
-    50% { transform: translateY(5px); }
+.set-counter.slide-in {
+    animation: setCounterSlideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes setCounterSlideIn {
+    0% { transform: translateY(-120%); opacity: 0; }
     100% { transform: translateY(0); opacity: 1; }
 }
 
@@ -244,18 +254,19 @@
 /* Hero-Section fÃ¼r Daily Quests */
 .hero-quests {
     position: relative;
-    min-height: calc(100vh - 60px - 75px - 32px); /* Viewport minus Header (60) minus Bottom-Nav (75) minus top/bottom padding (16+16) */
+    min-height: calc(100vh - 60px - 75px - 48px); /* Viewport minus Header (60) minus Bottom-Nav (75) minus top/bottom padding (16+32) */
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
+    padding: 16px 0 32px 0;
 }
 
-.hero-quests > h2:first-child {
-    margin-top: 8px;
+.hero-quests .section-header-row:first-child {
+    margin-top: 0;
 }
 
 .hero-quests #quest-list {
-    margin-top: 8px;
+    margin-top: 24px;
 }
 
 /* Reveal-Handle am unteren Rand der Hero-Section */

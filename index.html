@@ -35,9 +35,278 @@
     <link rel="shortcut icon" href="icon.png" type="image/png">
     <link rel="apple-touch-icon" href="icon.png">
 
+    <!-- Supabase Client CDN (fuer GitHub Pages Kompatibilitaet) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+    <!-- KRITISCH: Auth-Screen Inline Styles (Fallback wenn externe CSS noch nicht geladen) -->
+    <style>
+        #auth-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 999999999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-color: #121212;
+            background-image: linear-gradient(180deg, #1f1c24 0%, #121212 100%);
+            animation: authSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes authSlideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        #auth-screen.hidden {
+            display: none !important;
+            animation: none;
+        }
+        .auth-container {
+            width: 100%;
+            max-width: 400px;
+        }
+        .auth-card {
+            background: rgba(28, 27, 31, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid #49454f;
+            border-radius: 24px;
+            padding: 32px 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            color: #e6e1e5;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .auth-logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #5f8575;
+            margin: 8px 0 4px;
+        }
+        .auth-logo p {
+            font-size: 13px;
+            opacity: 0.7;
+            margin: 0;
+        }
+        .auth-badge {
+            display: inline-block;
+            align-self: center;
+            background: #5f8575;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 16px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+        }
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .auth-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #2a292d;
+            border: 1px solid #49454f;
+            border-radius: 12px;
+            padding: 10px 14px;
+        }
+        .auth-input-group input {
+            background: transparent;
+            border: none;
+            color: #e6e1e5;
+            font-size: 15px;
+            flex-grow: 1;
+            outline: none;
+            width: 100%;
+        }
+        .auth-input-group input::placeholder {
+            color: #e6e1e5;
+            opacity: 0.4;
+        }
+        .auth-submit-btn {
+            background: #5f8575;
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+        .auth-submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .auth-error {
+            background: rgba(207, 102, 121, 0.15);
+            border: 1px solid #cf6679;
+            color: #cf6679;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 13px;
+            text-align: center;
+            display: none;
+        }
+        .auth-success {
+            text-align: center;
+            padding: 24px 16px;
+            display: none;
+            background: rgba(95, 133, 117, 0.08);
+            border: 1px solid rgba(95, 133, 117, 0.25);
+            border-radius: 16px;
+            margin: 8px 0;
+        }
+        .auth-success h3 {
+            color: #5f8575;
+            margin: 12px 0 8px;
+            font-size: 18px;
+        }
+        .auth-success p {
+            margin: 0 0 16px;
+            font-size: 13px;
+            opacity: 0.8;
+        }
+        .auth-secondary-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid #49454f;
+            background: #2a292d;
+            color: #e6e1e5;
+            margin-top: 8px;
+        }
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 4px 0;
+            color: #e6e1e5;
+            opacity: 0.5;
+        }
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #49454f;
+        }
+        .auth-anonymous-btn,
+        .auth-toggle-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid #49454f;
+            background: #2a292d;
+            color: #e6e1e5;
+        }
+        .auth-toggle-btn {
+            background: transparent;
+            border: none;
+            color: #5f8575;
+        }
+        .auth-info {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background: #2a292d;
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 4px;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+    </style>
+
 </head>
 
 <body>
+
+    <!-- ==================== AUTH SCREEN (Login / Register) ==================== -->
+    <div id="auth-screen" class="hidden">
+        <div class="auth-backdrop"></div>
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-logo">
+                    <span class="material-symbols-rounded" style="font-size:48px;">fitness_center</span>
+                    <h1>DailyQuest</h1>
+                    <p>Cloud-Sync aktiviert</p>
+                </div>
+
+                <div id="authModeBadge" class="auth-badge">Anmelden</div>
+
+                <form id="emailAuthForm" class="auth-form">
+                    <div class="auth-input-group">
+                        <span class="material-symbols-rounded auth-input-icon">mail</span>
+                        <input type="email" id="authEmail" placeholder="E-Mail" required autocomplete="email">
+                    </div>
+                    <div class="auth-input-group">
+                        <span class="material-symbols-rounded auth-input-icon">lock</span>
+                        <input type="password" id="authPassword" placeholder="Passwort" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" id="authSubmitBtn" class="auth-submit-btn">
+                        Mit E-Mail anmelden
+                    </button>
+                </form>
+
+                <div id="authRegistrationSuccess" class="auth-success" style="display:none;">
+                    <span class="material-symbols-rounded" style="font-size:40px;color:var(--success-color);">mark_email_read</span>
+                    <h3>Registrierung erfolgreich!</h3>
+                    <p>Bitte pruefe deine E-Mails und bestaetige deinen Account.</p>
+                    <button id="authBackToLogin" class="auth-secondary-btn" onclick="document.getElementById('authRegistrationSuccess').style.display='none';document.getElementById('emailAuthForm').style.display='block';">
+                        Zurueck zum Login
+                    </button>
+                </div>
+
+                <div id="authError" class="auth-error" style="display:none;"></div>
+
+                <div class="auth-divider">
+                    <span>oder</span>
+                </div>
+
+                <button id="anonymousSignInBtn" class="auth-anonymous-btn">
+                    <span class="material-symbols-rounded">visibility_off</span>
+                    Anonym fortfahren
+                </button>
+
+                <button type="button" id="toggleAuthMode" class="auth-toggle-btn">
+                    Noch kein Konto? Registrieren
+                </button>
+
+                <div class="auth-info">
+                    <span class="material-symbols-rounded">cloud_sync</span>
+                    <p>Melde dich an, um deinen Fortschritt auf allen Geraeten zu synchronisieren. Deine Daten werden automatisch in der Cloud gesichert.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Tutorial Overlay -->
     <div id="tutorial-overlay" class="hidden">
@@ -92,8 +361,10 @@
         <section id="page-exercises" class="page active">
 
             <div id="daily-quest-container" class="hero-quests">
-                <h2 data-lang-key="daily_quests">Daily Quests</h2>
-                <div id="training-phase-banner"></div>
+                <div class="section-header-row">
+                    <h2 data-lang-key="daily_quests">Daily Quests</h2>
+                    <div id="training-phase-banner"></div>
+                </div>
                 <div id="quest-list" class="content-container">
                     <!-- Quests werden hier dynamisch eingefügt -->
                 </div>
@@ -155,35 +426,87 @@
             <div id="character-tab-content-wrapper">
 
                 <div id="character-tab-stats" class="character-tab-content active">
-                    <h2 data-lang-key="base_stats">Basis-Stats</h2>
-                    <div id="character-stats" class="card">
-                        <canvas id="stats-radar-chart" width="320" height="320"></canvas>
-                        <hr class="stat-separator">
-                        <div id="stats-list-container"></div>
-                    </div>
+                    <div id="stats-carousel-container">
+                        <div id="stats-carousel-track">
+                            <!-- Karte 1: Basis-Stats -->
+                            <div class="stats-card" data-card="base">
+                                <h2 data-lang-key="base_stats">Basis-Stats</h2>
+                                <div id="character-stats" class="card">
+                                    <canvas id="stats-radar-chart" width="320" height="320"></canvas>
+                                    <hr class="stat-separator">
+                                    <div id="stats-list-container"></div>
+                                </div>
+                            </div>
 
-                    <div id="focus-stats-section" style="display: none;">
-                        <h2 data-lang-key="focus_stats_title">Fokus-Stats</h2>
-                        <div class="card">
-                            <div id="focus-stats-container">
-                                <!-- Inhalt wird von JS geladen -->
+                            <!-- Karte 2: Focus-Stats -->
+                            <div class="stats-card" data-card="focus" id="focus-stats-section" style="display: none;">
+                                <h2 data-lang-key="focus_stats_title">Fokus-Stats</h2>
+                                <div class="card">
+                                    <div id="focus-stats-container">
+                                        <!-- Inhalt wird von JS geladen -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Karte 3: Gewichtsverlauf -->
+                            <div class="stats-card" data-card="weight" id="weight-tracking-section" style="display: none;">
+                                <h2 data-lang-key="weight_history">Gewichtsverlauf</h2>
+                                <div class="card">
+                                    <div id="weight-summary-container"></div>
+                                    <div id="weight-chart-container">
+                                        <canvas id="weight-chart"></canvas>
+                                    </div>
+                                    <hr class="stat-separator">
+                                    <div id="weight-entries-list"></div>
+                                    <button id="add-weight-entry-button" class="card-button secondary-button"
+                                        data-lang-key="add_weight_entry">Neuen Eintrag hinzufügen</button>
+                                </div>
+                            </div>
+
+                            <!-- Karte 4: Profil-Typ -->
+                            <div class="stats-card" data-card="profile" id="profile-type-section" style="display: none;">
+                                <h2 data-lang-key="profile_type_title">Profil-Typ</h2>
+                                <div id="profile-type-container" class="card"></div>
+                            </div>
+
+                            <!-- Karte 5: Durchhaltevermögen -->
+                            <div class="stats-card" data-card="consistency" id="consistency-section" style="display: none;">
+                                <h2 data-lang-key="consistency_title">Durchhaltevermögen</h2>
+                                <div id="consistency-container" class="card"></div>
+                            </div>
+
+                            <!-- Karte 6: Zeitmuster -->
+                            <div class="stats-card" data-card="time" id="time-patterns-section" style="display: none;">
+                                <h2 data-lang-key="time_patterns_title">Zeitmuster</h2>
+                                <div id="time-patterns-container" class="card"></div>
+                            </div>
+
+                            <!-- Karte 7: Ausdauer-Entwicklung -->
+                            <div class="stats-card" data-card="endurance" id="endurance-stats-section" style="display: none;">
+                                <h2 data-lang-key="endurance_progress_title">Ausdauer-Entwicklung</h2>
+                                <div id="endurance-stats-container" class="card"></div>
+                            </div>
+
+                            <!-- Karte 8: Mana & Gold -->
+                            <div class="stats-card" data-card="mana-gold" id="mana-gold-section" style="display: none;">
+                                <h2 data-lang-key="mana_gold_title">Mana & Gold</h2>
+                                <div id="mana-gold-container" class="card"></div>
+                            </div>
+
+                            <!-- Karte 9: Achievements -->
+                            <div class="stats-card" data-card="achievements" id="achievement-stats-section" style="display: none;">
+                                <h2 data-lang-key="achievement_stats_title">Achievements</h2>
+                                <div id="achievement-stats-container" class="card"></div>
+                            </div>
+
+                            <!-- Karte 10: Extra-Quests & Shop -->
+                            <div class="stats-card" data-card="extra-shop" id="extra-shop-section" style="display: none;">
+                                <h2 data-lang-key="extra_shop_title">Extra-Quests & Shop</h2>
+                                <div id="extra-shop-container" class="card"></div>
                             </div>
                         </div>
                     </div>
-
-                    <div id="weight-tracking-section" style="display: none;">
-                        <h2 data-lang-key="weight_history">Gewichtsverlauf</h2>
-                        <div class="card">
-                            <div id="weight-summary-container"></div>
-                            <div id="weight-chart-container">
-                                <canvas id="weight-chart"></canvas>
-                            </div>
-                            <hr class="stat-separator">
-                            <div id="weight-entries-list"></div>
-                            <button id="add-weight-entry-button" class="card-button secondary-button"
-                                data-lang-key="add_weight_entry">Neuen Eintrag hinzufügen</button>
-                        </div>
-                    </div>
+                    <div id="stats-carousel-dots"></div>
                 </div>
 
                 <div id="character-tab-inventory" class="character-tab-content">
@@ -348,6 +671,7 @@
             <button class="settings-tab" data-tab="training" data-lang-key="settings_training">Training</button>
             <button class="settings-tab" data-tab="extras" data-lang-key="settings_extras">Extras</button>
             <button class="settings-tab" data-tab="share" data-lang-key="settings_share">Teilen</button>
+            <button class="settings-tab" data-tab="account">Account</button>
         </div>
         
         <div class="popup-content">
@@ -509,7 +833,45 @@
                         <span data-lang-key="share_github">Zum Code</span>
                     </a>
                     
-                    <div class="share-version">v2.6.0</div>
+                    <div class="share-version">v2.9.0</div>
+                </div>
+            </div>
+
+            <!-- Tab: Account -->
+            <div id="settings-content-account" class="settings-tab-content">
+                <div class="settings-section">
+                    <div class="account-info">
+                        <div class="account-avatar">
+                            <span class="material-symbols-rounded">account_circle</span>
+                        </div>
+                        <div class="account-details">
+                            <p class="account-email" id="accountEmail">Nicht angemeldet</p>
+                            <p class="account-type" id="accountType">Lokaler Speicher</p>
+                        </div>
+                    </div>
+                    <div class="settings-actions">
+                        <button id="loginNowBtn" class="card-button" style="display:none;">
+                            <span class="material-symbols-rounded">login</span>
+                            Jetzt anmelden / registrieren
+                        </button>
+                        <button id="syncNowBtn" class="card-button secondary-button" style="display:none;">
+                            <span class="material-symbols-rounded">sync</span>
+                            Jetzt synchronisieren
+                        </button>
+                        <button id="logoutBtn" class="card-button secondary-button" style="display:none;">
+                            <span class="material-symbols-rounded">logout</span>
+                            Abmelden
+                        </button>
+                        <button id="deleteAccountBtn" class="card-button error-button" style="display:none;">
+                            <span class="material-symbols-rounded">delete_forever</span>
+                            Account loeschen
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-info-box">
+                    <span class="material-symbols-rounded">info</span>
+                    <p>Deine Daten werden automatisch in der Cloud gesichert. Ohne Account bleiben sie nur lokal im Browser und gehen bei Geraetewechsel oder Cache-Leeren verloren.</p>
                 </div>
             </div>
         </div>
@@ -646,7 +1008,13 @@
                 <div id="timer-countdown-overlay" class="hidden">
                     <div id="timer-countdown-number">5</div>
                 </div>
-                <div id="timer-display">00:00</div>
+                <div id="timer-circle-container">
+                    <svg id="timer-circle" viewBox="0 0 280 280">
+                        <circle class="timer-circle-bg" cx="140" cy="140" r="120"/>
+                        <circle id="timer-circle-progress" class="timer-circle-progress" cx="140" cy="140" r="120"/>
+                    </svg>
+                    <div id="timer-display">00:00</div>
+                </div>
                 <div id="timer-progress">
                     <div id="timer-progress-fill"></div>
                 </div>
@@ -684,6 +1052,13 @@
         </div>
     </div>
 
+    <div id="phase-info-popup" class="popup">
+        <div class="popup-drag-handle"></div>
+        <div class="popup-content">
+            <h3 id="phase-info-title"></h3>
+            <div id="phase-info-body"></div>
+        </div>
+    </div>
 
     <script>
         if (location.protocol.startsWith('http') && 'serviceWorker' in navigator) {
@@ -720,13 +1095,17 @@
     <script src="data/dungeons.js"></script>
     <script src="js/dungeons/dungeon_combat.js"></script>
     <script src="js/database.js"></script>
+    <script src="js/analytics.js"></script>
     <script src="js/training_system.js"></script>
     <script src="js/ui.js"></script>
+    <script src="js/character/charts/chart_canvas_base.js"></script>
+    <script src="js/character/page_character_cards.js"></script>
     <script src="js/character/page_character_stats.js"></script>
+    <script src="js/character/page_character_swipe.js"></script>
     <script src="js/character/page_character_inventory.js"></script>
     <script src="js/character/page_character_labels.js"></script>
     <script src="js/character/page_character_main.js"></script>
-    <script src="js/timer-popup.js?v=2.7.1"></script>
+    <script src="js/timer-popup.js"></script>
     <script src="js/page_exercises.js"></script>
     <script src="js/page_exercises_training.js"></script>
     <script src="js/page_shop.js"></script>
@@ -737,6 +1116,10 @@
     <script src="js/vibe-fokus/vibe_state.js"></script>
     <script src="js/vibe-fokus/page_fokus_timer.js"></script>
     <script src="js/vibe-fokus/page_fokus_main.js"></script>
+
+    <!-- Supabase Integration -->
+    <script src="js/supabase-config.js"></script>
+    <script src="js/supabase-client.js"></script>
 
     <script src="main.js"></script>
     <script src="js/fallback-check.js"></script>

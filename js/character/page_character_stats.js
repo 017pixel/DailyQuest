@@ -31,6 +31,54 @@ const DQ_STATS = {
         this.renderStats(char);
         this.renderFocusStats();
         this.renderWeightTracking(char, entries);
+        this._updateCardVisibility(char);
+        // Neue Karten im Hintergrund rendern
+        this._renderNewCards(char);
+    },
+
+    _updateCardVisibility(char) {
+        // Basis-Stats ist immer sichtbar
+        const baseCard = document.querySelector('.stats-card[data-card="base"]');
+        if (baseCard) baseCard.style.display = '';
+
+        // Focus-Stats ist immer sichtbar
+        const focusCard = document.getElementById('focus-stats-section');
+        if (focusCard) focusCard.style.display = '';
+
+        // Weight-Tracking nur wenn aktiviert
+        const weightCard = document.getElementById('weight-tracking-section');
+        if (weightCard) {
+            weightCard.style.display = char.weightTrackingEnabled ? '' : 'none';
+        }
+    },
+
+    async _renderNewCards(char) {
+        try {
+            const analyticsData = await DQ_ANALYTICS.getAllData();
+            if (!analyticsData) return;
+
+            // Profil-Typ
+            if (typeof DQ_CARDS !== 'undefined') DQ_CARDS.renderProfileTypeCard(analyticsData);
+            // Durchhaltevermoegen
+            if (typeof DQ_CARDS !== 'undefined') DQ_CARDS.renderConsistencyCard(analyticsData);
+            // Zeitmuster
+            if (typeof DQ_CARDS !== 'undefined') DQ_CARDS.renderTimePatternsCard(analyticsData);
+            // Ausdauer-Entwicklung
+            if (typeof DQ_CARDS !== 'undefined') DQ_CARDS.renderEnduranceCard(analyticsData);
+            // Mana & Gold
+            if (typeof DQ_CARDS !== 'undefined') DQ_CARDS.renderManaGoldCard(analyticsData);
+            // Achievements
+            if (typeof DQ_CARDS !== 'undefined') DQ_CARDS.renderAchievementStatsCard(char);
+            // Extra-Quests & Shop
+            if (typeof DQ_CARDS !== 'undefined') DQ_CARDS.renderExtraShopCard(analyticsData, char);
+
+            // Swipe-System aktualisieren nachdem Karten gerendert wurden
+            if (typeof DQ_SWIPE !== 'undefined') {
+                DQ_SWIPE.refresh();
+            }
+        } catch (e) {
+            console.error('Fehler beim Rendern der neuen Karten:', e);
+        }
     },
 
     renderStats(char) {
@@ -68,6 +116,7 @@ const DQ_STATS = {
 
         const totalMinutes = vibeState.sessions ? vibeState.sessions.reduce((sum, s) => sum + s.duration, 0) : 0;
         const totalSessions = vibeState.sessions ? vibeState.sessions.length : 0;
+        const avgMinutes = totalSessions > 0 ? Math.round(totalMinutes / totalSessions) : 0;
 
         const formatMinutes = (mins) => {
             const hours = Math.floor(mins / 60);
@@ -77,7 +126,7 @@ const DQ_STATS = {
         };
 
         const lang = DQ_CONFIG.userSettings.language || 'de';
-        
+
         // Gruppiere Sessions nach Label
         const labelData = (vibeState.sessions || []).reduce((acc, session) => {
             const label = session.label || 'Unbenannt';
@@ -93,26 +142,51 @@ const DQ_STATS = {
         const sortedLabels = Object.entries(labelData).sort(([, a], [, b]) => b.totalMinutes - a.totalMinutes);
 
         container.innerHTML = `
-            <div id="focus-summary-container">
-                <div class="focus-summary-item">
-                    <span class="label" data-lang-key="focus_total_time">${DQ_DATA.translations[lang].focus_total_time}</span>
-                    <span class="value">${formatMinutes(totalMinutes)}</span>
+            <div id="focus-summary-container" style="margin-bottom: 20px;">
+                <div class="focus-summary-item" style="padding: 12px 0; border-bottom: 1px solid var(--outline-color); display: flex; align-items: center; justify-content: space-between;">
+                    <div class="stat-left" style="display: flex; align-items: center; gap: 10px;">
+                        <span class="material-symbols-rounded" style="color: #9fb4cc; font-size: 22px; display: flex; align-items: center; height: 22px;">schedule</span>
+                        <span class="label" data-lang-key="focus_total_time" style="line-height: 22px;">${DQ_DATA.translations[lang].focus_total_time}</span>
+                    </div>
+                    <span class="value" style="font-size: 20px; font-weight: 600; line-height: 22px;">${formatMinutes(totalMinutes)}</span>
                 </div>
-                <div class="focus-summary-item">
-                    <span class="label" data-lang-key="focus_total_sessions">${DQ_DATA.translations[lang].focus_total_sessions}</span>
-                    <span class="value">${totalSessions}</span>
+                <div class="focus-summary-item" style="padding: 12px 0; border-bottom: 1px solid var(--outline-color); display: flex; align-items: center; justify-content: space-between;">
+                    <div class="stat-left" style="display: flex; align-items: center; gap: 10px;">
+                        <span class="material-symbols-rounded" style="color: #b8a9c9; font-size: 22px; display: flex; align-items: center; height: 22px;">counter_1</span>
+                        <span class="label" data-lang-key="focus_total_sessions" style="line-height: 22px;">${DQ_DATA.translations[lang].focus_total_sessions}</span>
+                    </div>
+                    <span class="value" style="font-size: 20px; font-weight: 600; line-height: 22px;">${totalSessions}</span>
+                </div>
+                <div class="focus-summary-item" style="padding: 12px 0; display: flex; align-items: center; justify-content: space-between;">
+                    <div class="stat-left" style="display: flex; align-items: center; gap: 10px;">
+                        <span class="material-symbols-rounded" style="color: #a8c9a8; font-size: 22px; display: flex; align-items: center; height: 22px;">calculate</span>
+                        <span class="label" style="line-height: 22px;">Durchschnitt / Sitzung</span>
+                    </div>
+                    <span class="value" style="font-size: 20px; font-weight: 600; line-height: 22px;">${formatMinutes(avgMinutes)}</span>
                 </div>
             </div>
             <hr class="stat-separator">
-            <div id="focus-labels-list">
-                ${sortedLabels.length > 0 ? sortedLabels.map(([label, data]) => `
-                    <div class="focus-label-item">
-                        <span class="name">${label}</span>
-                        <span class="time">${formatMinutes(data.totalMinutes)} (${data.sessionCount} Sitzungen)</span>
+            <div id="focus-labels-list" style="max-height: 200px;">
+                ${sortedLabels.length > 0 ? sortedLabels.map(([label, data], index) => `
+                    <div class="focus-label-item" style="padding: 10px 12px;">
+                        <div class="stat-left">
+                            <span class="material-symbols-rounded stat-icon" style="color: ${this._getPastelColor(index)}; font-size: 18px;">label</span>
+                            <span class="name">${label}</span>
+                        </div>
+                        <span class="time">${formatMinutes(data.totalMinutes)} <span style="opacity: 0.6; font-size: 12px;">(${data.sessionCount}x)</span></span>
                     </div>
-                `).join('') : `<p style="text-align: center; opacity: 0.7; margin: 16px 0;">Noch keine Fokus-Sitzungen</p>`}
+                `).join('') : `<p style="text-align: center; opacity: 0.7; margin: 20px 0;">Noch keine Fokus-Sitzungen</p>`}
             </div>
         `;
+    },
+
+    _getPastelColor(index) {
+        const pastelColors = [
+            '#9fb4cc', '#b8a9c9', '#a8c9a8', '#d4b8a0',
+            '#a0c4d4', '#c4a8b8', '#b8c4a0', '#d4c4a0',
+            '#a8b8d4', '#c9a8a8', '#a8d4c4', '#d4a8b8'
+        ];
+        return pastelColors[index % pastelColors.length];
     },
 
     
@@ -125,7 +199,9 @@ const DQ_STATS = {
         canvas.height = baseSize * dpr;
         canvas.style.width = `${baseSize}px`;
         canvas.style.height = `${baseSize}px`;
-        ctx.scale(dpr, dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
 
         const centerX = baseSize / 2;
         const centerY = baseSize / 2;
@@ -158,7 +234,7 @@ const DQ_STATS = {
             }
             ctx.closePath();
             ctx.strokeStyle = gridColor;
-            ctx.lineWidth = 1;
+            ctx.lineWidth = 1.5;
             ctx.stroke();
         }
 
@@ -168,6 +244,7 @@ const DQ_STATS = {
             ctx.moveTo(centerX, centerY);
             ctx.lineTo(centerX + radius * Math.cos(angle), centerY + radius * Math.sin(angle));
             ctx.strokeStyle = gridColor;
+            ctx.lineWidth = 1.5;
             ctx.stroke();
         }
 
@@ -188,7 +265,7 @@ const DQ_STATS = {
         ctx.fillStyle = `rgba(${primaryColorRgb}, 0.5)`;
         ctx.fill();
         ctx.strokeStyle = primaryColor;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 3;
         ctx.stroke();
     },
 
@@ -320,7 +397,9 @@ const DQ_STATS = {
         canvas.width = totalWidth * dpr;
         canvas.height = 220 * dpr;
         const ctx = canvas.getContext('2d');
-        ctx.scale(dpr, dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
 
         const height = 220;
         const padding = { top: 20, right: 20, bottom: 30, left: 40 };
@@ -338,8 +417,11 @@ const DQ_STATS = {
             if (data.length === 0) {
                 ctx.fillStyle = textColor;
                 ctx.textAlign = 'center';
-                ctx.font = '12px sans-serif';
-                ctx.fillText("Bitte ersten Eintrag hinzufügen, um Diagramm zu starten.", container.offsetWidth / 2, height / 2);
+                ctx.font = 'bold 15px sans-serif';
+                const centerX = container.offsetWidth / 2;
+                const centerY = height / 2;
+                ctx.fillText("Bitte ersten Eintrag hinzufügen,", centerX, centerY - 10);
+                ctx.fillText("um Diagramm zu starten.", centerX, centerY + 14);
                 return;
             }
             
@@ -358,7 +440,7 @@ const DQ_STATS = {
             ctx.translate(-scrollLeft, 0);
 
             ctx.strokeStyle = gridColor;
-            ctx.lineWidth = 1;
+            ctx.lineWidth = 1.5;
 
             const yGridLines = 5;
             for (let i = 0; i <= yGridLines; i++) {
@@ -372,7 +454,7 @@ const DQ_STATS = {
 
             ctx.fillStyle = textColor;
             ctx.textAlign = 'center';
-            ctx.font = '11px sans-serif';
+            ctx.font = 'bold 13px sans-serif';
             const xGridLines = Math.min(data.length - 1, Math.floor(totalWidth / 70));
             if (data.length > 1) {
                 for (let i = 0; i <= xGridLines; i++) {
@@ -396,7 +478,7 @@ const DQ_STATS = {
                 ctx.moveTo(padding.left + scrollLeft, y);
                 ctx.lineTo(totalWidth - padding.right + scrollLeft, y);
                 ctx.strokeStyle = textColor;
-                ctx.lineWidth = 0.8;
+                ctx.lineWidth = 1.5;
                 ctx.stroke();
                 ctx.setLineDash([]);
             }
@@ -407,7 +489,7 @@ const DQ_STATS = {
                 weights.forEach((weight, index) => ctx.lineTo(getX(index), getY(weight)));
             }
             ctx.strokeStyle = lineColor;
-            ctx.lineWidth = 1.5;
+            ctx.lineWidth = 3;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
             ctx.stroke();
@@ -415,7 +497,7 @@ const DQ_STATS = {
             ctx.fillStyle = pointColor;
             weights.forEach((weight, index) => {
                 ctx.beginPath();
-                ctx.arc(getX(index), getY(weight), 2.5, 0, 2 * Math.PI);
+                ctx.arc(getX(index), getY(weight), 4, 0, 2 * Math.PI);
                 ctx.fill();
             });
 
@@ -423,11 +505,11 @@ const DQ_STATS = {
 
             ctx.fillStyle = textColor;
             ctx.textAlign = 'right';
-            ctx.font = '11px sans-serif';
+            ctx.font = 'bold 13px sans-serif';
             for (let i = 0; i <= yGridLines; i++) {
                 const weight = minWeight + (weightRange / yGridLines) * i;
                 const y = getY(weight);
-                ctx.fillText(Math.round(weight), padding.left - 8 + scrollLeft, y + 4);
+                ctx.fillText(Math.round(weight), padding.left - 10 + scrollLeft, y + 5);
             }
         };
 
@@ -485,7 +567,9 @@ const DQ_STATS = {
             tx.oncomplete = resolve;
             tx.onerror = reject;
         });
-        
+
+        if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+
         DQ_UI.hideTopPopup();
         DQ_CHARACTER_MAIN.renderPage();
     },

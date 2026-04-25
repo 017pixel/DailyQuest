@@ -23,16 +23,22 @@ Object.assign(DQ_EXERCISES, {
         const difficulty = DQ_CONFIG.userSettings.difficulty || 3;
         const headerText = DQ_TRAINING_SYSTEM.getPhaseHeaderText(context);
         const summary = DQ_TRAINING_SYSTEM.getStageSummary(goal, context.stage, plan.completionMode, difficulty);
+
+        // TÃ¤gliche Quests laden fÃ¼r Fortschrittsberechnung
         const questsToday = await new Promise(resolve => {
             const tx = DQ_DB.db.transaction(['daily_quests'], 'readonly');
             const index = tx.objectStore('daily_quests').index('date');
             index.getAll(DQ_CONFIG.getTodayString()).onsuccess = e => resolve(e.target.result || []);
             tx.onerror = () => resolve([]);
         });
+
+        // TÃ¤glicher Fortschritt: abgeschlossene Quests / Gesamt-Quests
+        const totalQuests = questsToday.length;
+        const completedQuests = questsToday.filter(q => q.completed).length;
+        const dailyProgress = totalQuests > 0 ? Math.round((completedQuests / totalQuests) * 100) : 0;
+
+        // Phasen-Info
         const isInfinitePhase = context.stageWeeks >= 9999;
-        const progress = isInfinitePhase 
-            ? Infinity 
-            : Math.round(((context.stageWeek + 1) / context.stageWeeks) * 100);
         const phaseWeekText = lang === 'en'
             ? `Week ${context.stageWeek + 1}/${context.stageWeeks}`
             : `Woche ${context.stageWeek + 1}/${context.stageWeeks}`;
@@ -53,30 +59,55 @@ Object.assign(DQ_EXERCISES, {
                     ? 'Complete the quests directly to keep the flow simple.'
                     : 'Diese Phase wird direkt abgeschlossen und bleibt bewusst einfach.'));
 
+        // Phase Nummer extrahieren (z.B. "Phase 1" aus dem headerText)
+        const phaseMatch = headerText.match(/\d+/);
+        const phaseNumber = phaseMatch ? phaseMatch[0] : '?';
+        const pillText = lang === 'en' ? `Phase ${phaseNumber}` : `Phase ${phaseNumber}`;
+
         banner.hidden = false;
-        banner.innerHTML = `
-            <div class="training-phase-banner-card">
-                <details class="training-phase-details">
-                    <summary class="training-phase-summary">
-                        <span>${headerText}</span>
-                    </summary>
-                    <div class="training-phase-details-body">
-                        <p class="training-phase-detail-text">${detailText}</p>
-                        <div class="training-phase-banner-count">${lang === 'en' ? 'Progress' : 'Fortschritt'}: ${progress === Infinity ? '∞' : `${progress}%`}</div>
-                        <div class="training-phase-meta-grid">
-                            <div class="training-phase-meta-item">
-                                <span>${lang === 'en' ? 'Load' : 'Belastung'}</span>
-                                <strong>${summary}</strong>
-                            </div>
-                            <div class="training-phase-meta-item">
-                                <span>${lang === 'en' ? 'Phase' : 'Phasenstand'}</span>
-                                <strong>${phaseWeekText} · ${modeText}</strong>
+        banner.innerHTML = `<button class="phase-mini-pill" aria-label="${lang === 'en' ? 'Show phase details' : 'Phasendetails anzeigen'}">${pillText}</button>`;
+
+        // Click-Handler fÃ¼r Mini-Pille
+        const pill = banner.querySelector('.phase-mini-pill');
+        if (pill) {
+            pill.addEventListener('click', () => {
+                const popupTitle = document.getElementById('phase-info-title');
+                const popupBody = document.getElementById('phase-info-body');
+                const popup = document.getElementById('phase-info-popup');
+
+                if (popupTitle && popupBody && popup) {
+                    popupTitle.textContent = headerText;
+                    popupBody.innerHTML = `
+                        <div class="phase-info-section">
+                            <div class="phase-info-section-title">${lang === 'en' ? 'Description' : 'Beschreibung'}</div>
+                            <div class="phase-info-section-value" style="font-size:14px;font-weight:400;opacity:0.9;">${detailText}</div>
+                        </div>
+                        <div class="phase-info-section">
+                            <div class="phase-info-section-title">${lang === 'en' ? 'Daily Progress' : 'Täglicher Fortschritt'}</div>
+                            <div class="phase-info-section-value">${completedQuests} / ${totalQuests} ${lang === 'en' ? 'completed' : 'abgeschlossen'}</div>
+                            <div class="phase-info-progress-bar">
+                                <div class="phase-info-progress-fill" style="width: ${dailyProgress}%"></div>
                             </div>
                         </div>
-                    </div>
-                </details>
-            </div>
-        `;
+                        <div class="phase-info-daily-stats">
+                            <div class="phase-info-stat">
+                                <div class="phase-info-stat-label">${lang === 'en' ? 'Load' : 'Belastung'}</div>
+                                <div class="phase-info-stat-value">${summary}</div>
+                            </div>
+                            <div class="phase-info-stat">
+                                <div class="phase-info-stat-label">${lang === 'en' ? 'Phase' : 'Phasenstand'}</div>
+                                <div class="phase-info-stat-value">${phaseWeekText}</div>
+                            </div>
+                        </div>
+                        <div class="phase-info-section">
+                            <div class="phase-info-section-title">${lang === 'en' ? 'Mode' : 'Modus'}</div>
+                            <div class="phase-info-section-value">${modeText}</div>
+                        </div>
+                    `;
+                    DQ_UI.showPopup(popup);
+                }
+            });
+        }
     },
 
     renderQuests() {
@@ -174,6 +205,14 @@ Object.assign(DQ_EXERCISES, {
         };
     },
 
+    async getQuestById(questId) {
+        return new Promise(resolve => {
+            DQ_DB.db.transaction('daily_quests', 'readonly')
+                .objectStore('daily_quests')
+                .get(questId).onsuccess = e => resolve(e.target.result);
+        });
+    },
+
     async openEnduranceEntryPopup(questId) {
         this.pendingEnduranceQuestId = questId;
         const fields = DQ_UI.elements;
@@ -250,18 +289,38 @@ Object.assign(DQ_EXERCISES, {
         if (!quest) return;
 
         if (quest.completionMode === 'sets') {
-            const button = document.querySelector(`[data-quest-id="${questId}"] .complete-button-small`);
-            if (button) {
-                button.classList.add('animating');
-            }
-            
+            const card = document.querySelector(`[data-quest-id="${questId}"]`);
+            const button = card?.querySelector('.complete-button-small');
+            if (!button) return;
+
             const updatedQuest = await DQ_TRAINING_SYSTEM.advanceSetProgress(questId);
             if (!updatedQuest) return;
 
             if (updatedQuest.canComplete) {
                 await this.finalizeQuestCompletion(questId);
+                return;
+            }
+
+            // Direkte Animation statt komplettem Re-render
+            const doneSets = updatedQuest.setProgress.filter(Boolean).length;
+            const totalSets = updatedQuest.setPlan?.sets || updatedQuest.setProgress?.length || 1;
+            const counterEl = button.querySelector('.set-counter');
+
+            if (counterEl) {
+                counterEl.classList.add('slide-out');
+                setTimeout(() => {
+                    counterEl.textContent = doneSets;
+                    counterEl.classList.remove('slide-out');
+                    counterEl.classList.add('slide-in');
+                    setTimeout(() => counterEl.classList.remove('slide-in'), 350);
+                }, 300);
             } else {
-                setTimeout(() => this.renderQuests(), 300);
+                button.innerHTML = `<span class="set-counter slide-in">${doneSets}</span>/${totalSets}`;
+            }
+
+            // Button-Status aktualisieren
+            if (doneSets === totalSets) {
+                button.classList.add('set-completed');
             }
             return;
         }
@@ -449,6 +508,23 @@ Object.assign(DQ_EXERCISES, {
     },
     
     async completeFreeExercise(exerciseId) {
+        // --- ANTI-SPAM: Max 3 Abschluesse in 30 Sekunden ---
+        if (!this._freeTrainingCompletions) {
+            this._freeTrainingCompletions = [];
+        }
+        const now = Date.now();
+        // Alte Eintraege (>30s) entfernen
+        this._freeTrainingCompletions = this._freeTrainingCompletions.filter(ts => now - ts < 30000);
+        if (this._freeTrainingCompletions.length >= 3) {
+            const lang = DQ_CONFIG.userSettings.language || 'de';
+            const msg = lang === 'de'
+                ? 'Du machst Uebungen ganz schnell. Sicher, dass du sie auch alle machst?'
+                : 'You are completing exercises very fast. Are you sure you are actually doing them?';
+            DQ_UI.showCustomPopup(msg, 'penalty');
+            return;
+        }
+        this._freeTrainingCompletions.push(now);
+
         try {
             const db = DQ_DB.db;
             const tx = db.transaction(['exercises', 'character'], 'readwrite');
@@ -473,13 +549,18 @@ Object.assign(DQ_EXERCISES, {
             const exerciseTemplate = Object.values(DQ_DATA.exercisePool).flat().find(ex => ex.id === exercise.id);
             char = DQ_CONFIG.processStatGains(char, exerciseTemplate);
             char = DQ_CONFIG.levelUpCheck(char);
-            
+
+            if (typeof DQ_ANALYTICS !== 'undefined' && exerciseTemplate) {
+                DQ_ANALYTICS.logFreeTraining(exerciseTemplate.nameKey, scaledMana, scaledGold);
+            }
+
             charStore.put(char);
 
             await new Promise((resolve, reject) => {
                 tx.oncomplete = resolve;
                 tx.onerror = (event) => reject(event.target.error);
             });
+            if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
 
             DQ_UI.showCustomPopup(`Sehr gut! <span class=\"material-symbols-rounded icon-accent\">thumb_up</span><br>+${scaledMana} Mana <span class=\"material-symbols-rounded icon-mana\">auto_awesome</span> | +${scaledGold} Gold <span class=\"material-symbols-rounded icon-gold\">paid</span>`);
             DQ_CHARACTER_MAIN.renderPage();

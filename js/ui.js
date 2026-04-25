@@ -177,6 +177,8 @@ const DQ_UI = {
                     extraPadding = 220;
                 } else if (active.id === 'settings-content-main') {
                     extraPadding = 220;
+                } else if (active.id === 'settings-content-account') {
+                    extraPadding = 260;
                 }
                 const targetHeight = extraPadding + contentHeight;
                 settingsPopup.style.height = `${targetHeight}px`;
