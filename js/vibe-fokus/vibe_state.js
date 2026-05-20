@@ -76,5 +76,23 @@ const DQ_VIBE_STATE = {
             };
             tx.onerror = (e) => reject("Fehler beim Speichern des Vibe-Zustands: " + e.target.error);
         });
+    },
+
+    async reloadSessions() {
+        return new Promise((resolve) => {
+            const tx = DQ_DB.db.transaction('vibe_state', 'readonly');
+            const store = tx.objectStore('vibe_state');
+            const request = store.get('vibeState');
+
+            request.onsuccess = (e) => {
+                const loaded = e.target.result;
+                if (loaded && Array.isArray(loaded.sessions)) {
+                    this.state.sessions = loaded.sessions;
+                }
+                resolve();
+            };
+
+            tx.onerror = () => resolve();
+        });
     }
 };

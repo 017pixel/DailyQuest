@@ -271,7 +271,7 @@ const DQ_CONFIG = {
     }
 };
 
-const APP_VERSION = '2.9.0';
+const APP_VERSION = '2.9.1';
 const APP_UPDATE_FLAG_KEY = 'dq_seen_app_version';
 
 async function initializeApp() {

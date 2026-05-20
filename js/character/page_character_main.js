@@ -49,6 +49,7 @@ const DQ_CHARACTER_MAIN = {
             DQ_CONFIG.updateStreakDisplay();
 
             // Inhalte der Tabs rendern
+            await DQ_VIBE_STATE.reloadSessions();
             DQ_STATS.renderStatsPage(char, entries);
             DQ_INVENTORY.renderInventoryPage(char);
 

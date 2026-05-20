@@ -4,6 +4,21 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## Version 2.9.1 - Fokus-Stats Bugfix
+
+### Erstellt
+- Reload-Methode fuer Fokus-Sessions die Daten frisch aus der Datenbank laedt
+- Neuer Skill fuer Datenbank-Analyse mit Supabase CLI
+
+### Verändert
+- Durchschnittliche Fokuszeit auf der Charakter-Seite wird jetzt bei jedem Seitenaufruf aktualisiert
+- Fokus-Statistiken zeigen immer die aktuellen Werte nach App-Neustart oder Seitenwechsel
+
+### Geloescht
+- -
+
+---
+
 ## Version 2.9.0 - Supabase Sync Refinement & Audit
 
 ### Erstellt
