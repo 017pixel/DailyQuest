@@ -47,17 +47,7 @@ Object.assign(DQ_EXERCISES, {
             : (plan.completionMode === 'log'
                 ? (lang === 'en' ? 'Log mode' : 'Log-Modus')
                 : (lang === 'en' ? 'Direct mode' : 'Direkt-Modus'));
-        const detailText = plan.completionMode === 'sets'
-            ? (lang === 'en'
-                ? 'This phase builds a stable base with structured set work.'
-                : 'Diese Phase legt das Fundament für saubere Sätze und stabile Wiederholungen.')
-            : (plan.completionMode === 'log'
-                ? (lang === 'en'
-                    ? 'Track the full workload with distance and duration.'
-                    : 'Erfasse hier die gesamte Belastung mit Distanz und Dauer.')
-                : (lang === 'en'
-                    ? 'Complete the quests directly to keep the flow simple.'
-                    : 'Diese Phase wird direkt abgeschlossen und bleibt bewusst einfach.'));
+        const detailText = this.getPhaseDescription(context.stage?.labelKey, plan.completionMode, lang);
 
         // Phase Nummer extrahieren (z.B. "Phase 1" aus dem headerText)
         const phaseMatch = headerText.match(/\d+/);
@@ -108,6 +98,31 @@ Object.assign(DQ_EXERCISES, {
                 }
             });
         }
+    },
+
+    getPhaseDescription(labelKey, completionMode, lang) {
+        const de = lang === 'de';
+        const setsDesc = {
+            phase_foundation: de ? 'Fokus auf saubere Technik mit moderaten Wiederholungen. Das Fundament für alles Weitere.' : 'Focus on clean technique with moderate reps. The foundation for everything to come.',
+            phase_progress: de ? 'Die Wiederholungszahl wird erhöht. Die Muskulatur passt sich der steigenden Belastung an.' : 'Rep count increases. Muscles adapt to rising load.',
+            phase_volume: de ? 'Höhere Wiederholungen für mehr Muskelausdauer. Das Volumen steigt spürbar.' : 'Higher reps for more muscular endurance. Volume increases noticeably.',
+            phase_sets_up: de ? 'Jetzt steigt die Satzzahl bei moderaten Wiederholungen. Die Intensität nimmt zu.' : 'Set count rises with moderate reps. Intensity increases.',
+            phase_sets_more: de ? 'Noch mehr Sätze – die Belastung erreicht ein hohes Niveau. Jetzt zahlt sich die Grundlage aus.' : 'Even more sets – load reaches a high level. The foundation pays off now.',
+            phase_peak: de ? 'Höchstbelastung mit maximalen Sätzen und Wiederholungen. Die Spitzenphase.' : 'Peak load with maximum sets and reps. The peak phase.',
+            phase_endgame: de ? 'Endgame – dauerhafte Höchstleistung. Dieses Niveau wird gehalten.' : 'Endgame – sustained peak performance. This level is maintained.'
+        };
+        const enduranceDesc = {
+            phase_endurance_base: de ? 'Grundlagen-Ausdauer mit kurzen Distanzen und moderater Belastung.' : 'Base endurance with short distances and moderate load.',
+            phase_endurance_build: de ? 'Aufbau-Phase – Distanz und Dauer werden gesteigert.' : 'Build phase – distance and duration increase.',
+            phase_endurance_volume: de ? 'Doppelte Sätze, längere Einheiten. Das Ausdauer-Volumen wächst.' : 'Double sets, longer sessions. Endurance volume grows.',
+            phase_endurance_peak: de ? 'Peak-Phase – maximale Distanz und Dauer. Die Ausdauer-Spitze.' : 'Peak phase – maximum distance and duration. The endurance peak.',
+            phase_endurance_endgame: de ? 'Dauerhafte Ausdauer-Spitzenleistung auf höchstem Niveau.' : 'Sustained peak endurance performance at the highest level.'
+        };
+
+        if (completionMode === 'log') {
+            return enduranceDesc[labelKey] || (de ? 'Ausdauer-Training mit individuell angepasster Belastung.' : 'Endurance training with individually adjusted load.');
+        }
+        return setsDesc[labelKey] || (de ? 'Strukturiertes Training mit angepassten Sätzen und Wiederholungen.' : 'Structured training with adjusted sets and reps.');
     },
 
     renderQuests() {
@@ -352,26 +367,26 @@ Object.assign(DQ_EXERCISES, {
         const goal = DQ_CONFIG.userSettings.goal || 'muscle';
         const isSeniorMode = goal === 'senior';
 
-        // Finde das Template für Muskelgruppen und Stats
         const template = Object.values(DQ_DATA.exercisePool).flat().find(t => t.nameKey === exercise.nameKey);
         if (!template) return;
 
         const translatedName = (trans.exercise_names[exercise.nameKey] || exercise.nameKey);
         const explanation = (DQ_DATA.exerciseExplanations[lang][exercise.nameKey] || 'Keine Beschreibung verfügbar.');
-        
-        // Ziel & Belohnung berechnen
-        let targetValue = exercise.target || exercise.baseValue;
-        // Bei Quests ist der Target-Wert bereits fest in der DB, bei freiem Training muss er ggf. berechnet werden
-        if (!isQuest && exercise.type !== 'check' && exercise.type !== 'link' && exercise.type !== 'focus') {
-            targetValue = Math.ceil(exercise.baseValue + (exercise.baseValue * 0.4 * (difficulty - 1)));
-        }
-        let targetDisplay = this.formatTargetDisplay(exercise.type, targetValue);
 
-        // Belohnungen (bei Quests aus dem Quest-Objekt, sonst berechnet)
+        // Ziel-Anzeige: Quest mit setPlan zeigt Sets-Info, sonst formatTargetDisplay
+        let targetDisplay = '';
+        if (isQuest && DQ_TRAINING_SYSTEM) {
+            targetDisplay = DQ_TRAINING_SYSTEM.formatQuestTarget(exercise) || '';
+        } else if (!isQuest && exercise.type !== 'check' && exercise.type !== 'link' && exercise.type !== 'focus') {
+            const targetValue = Math.ceil(exercise.baseValue + (exercise.baseValue * 0.4 * (difficulty - 1)));
+            targetDisplay = this.formatTargetDisplay(exercise.type, targetValue);
+        }
+
+        // Belohnungen
         const scaledMana = isQuest ? exercise.manaReward : Math.ceil(exercise.manaReward * (1 + 0.2 * (difficulty - 1)));
         const scaledGold = isQuest ? exercise.goldReward : Math.ceil(exercise.goldReward * (1 + 0.15 * (difficulty - 1)));
 
-        // Finde alle Kategorien (Trainingspläne)
+        // Kategorien (Trainingspläne)
         const categories = [];
         for (const [catName, list] of Object.entries(DQ_DATA.exercisePool)) {
             if (list.some(item => item.nameKey === exercise.nameKey)) {
@@ -379,70 +394,67 @@ Object.assign(DQ_EXERCISES, {
             }
         }
 
-        // HTML Generierung
-        const muscleTags = (template.muscles || []).map(m => `<span class="info-badge muscle-badge">${trans[`muscle_${m}`] || m}</span>`).join('');
-        const categoryTags = categories.map(c => `<span class="info-badge cat-badge">${c}</span>`).join('');
+        // Badges
+        const muscleTags = (template.muscles || []).map(m => `<span class="info-badge muscle-badge">${trans[`muscle_${m}`] || m}</span>`).join('') || '<span class="info-badge">—</span>';
+        const categoryTags = categories.map(c => `<span class="info-badge cat-badge">${c}</span>`).join('') || '<span class="info-badge">—</span>';
 
+        // Phase-Info (nur für Quests)
+        const phaseInfo = (isQuest && !isSeniorMode && exercise.phaseSummary)
+            ? `<span class="info-badge phase-badge">${exercise.phaseSummary}</span>`
+            : '<span class="info-badge">—</span>';
+
+        // Stat-Boni
         let statsHtml = '';
         if (template.statPoints) {
             statsHtml = Object.entries(template.statPoints).map(([stat, val]) => {
                 const statName = stat.charAt(0).toUpperCase() + stat.slice(1);
-                return `<div class="info-stat-row"><span class="material-symbols-rounded icon-accent" style="font-size:16px;">add_circle</span> ${val} ${statName}</div>`;
+                return `<span class="info-stat-row"><span class="material-symbols-rounded" style="font-size:14px;">add_circle</span>${val} ${statName}</span>`;
             }).join('');
         }
         if (template.directStatGain) {
             statsHtml += Object.entries(template.directStatGain).map(([stat, val]) => {
                 const statName = stat.charAt(0).toUpperCase() + stat.slice(1);
-                return `<div class="info-stat-row"><span class="material-symbols-rounded icon-accent" style="font-size:16px;">bolt</span> ${val} ${statName} (Sofort)</div>`;
+                return `<span class="info-stat-row"><span class="material-symbols-rounded" style="font-size:14px;">bolt</span>${val} ${statName}</span>`;
             }).join('');
         }
+        if (!statsHtml) statsHtml = '<span class="info-badge">—</span>';
 
         const content = `
             <div class="enhanced-info-popup">
                 <h3 class="info-title">${translatedName}</h3>
-                ${isQuest && !isSeniorMode && (exercise.phaseLabel || exercise.phaseSummary) ? `
-                    <div class="info-section info-phase-section">
-                        <span class="info-section-label">${trans.training_phase_controls_title || 'Phase'}</span>
-                        <div class="info-badges-container">
-                            ${exercise.phaseLabel ? `<span class="info-badge phase-badge">${exercise.phaseLabel}</span>` : ''}
-                            ${exercise.phaseSummary ? `<span class="info-badge phase-badge">${exercise.phaseSummary}</span>` : ''}
-                        </div>
-                    </div>
-                ` : ''}
-                
-                <div class="info-grid">
-                    <div class="info-section">
-                        <span class="info-section-label">${trans.muscle_groups_label}</span>
-                        <div class="info-badges-container">${muscleTags || '-'}</div>
-                    </div>
 
-                    <div class="info-section">
-                        <span class="info-section-label">${trans.training_plans_label}</span>
-                        <div class="info-badges-container">${categoryTags || '-'}</div>
-                    </div>
+                <details class="info-instruction-box" open>
+                    <summary>${trans.show_instructions}</summary>
+                    <div class="info-instruction-text">${explanation}</div>
+                </details>
 
-                    <div class="info-section full-width">
-                        <span class="info-section-label">${trans.base_stats_label}</span>
-                        <div class="info-stats-list">${statsHtml || '-'}</div>
+                <div class="info-summary-table">
+                    <div class="info-summary-cell">
+                        <span class="info-summary-label">Phase</span>
+                        <div class="info-summary-value">${phaseInfo}</div>
                     </div>
-                </div>
-
-                <div class="info-section">
-                    <details class="info-details">
-                        <summary>${trans.show_instructions}</summary>
-                        <div class="info-explanation">${explanation}</div>
-                    </details>
+                    <div class="info-summary-cell">
+                        <span class="info-summary-label">${trans.muscle_groups_label}</span>
+                        <div class="info-summary-value">${muscleTags}</div>
+                    </div>
+                    <div class="info-summary-cell">
+                        <span class="info-summary-label">${trans.training_plans_label}</span>
+                        <div class="info-summary-value">${categoryTags}</div>
+                    </div>
+                    <div class="info-summary-cell">
+                        <span class="info-summary-label">${trans.base_stats_label}</span>
+                        <div class="info-summary-value" style="flex-direction:column;">${statsHtml}</div>
+                    </div>
                 </div>
 
                 <div class="info-footer">
                     ${targetDisplay ? `<div class="info-target"><strong>Ziel:</strong> ${targetDisplay}</div>` : ''}
-                    <div style="flex-grow: 1;"></div>
-                    <div class="info-reward-wrapper" style="display: flex; align-items: center; gap: 8px;">
+                    <div>
                         <span class="info-reward-label">Belohnung:</span>
-                        <div class="info-rewards">
-                            <span class="material-symbols-rounded icon-mana" style="font-size: 16px;">auto_awesome</span> ${scaledMana} 
-                            <span class="material-symbols-rounded icon-gold" style="margin-left:4px; font-size: 16px;">paid</span> ${scaledGold}
-                        </div>
+                        <span class="info-rewards">
+                            <span class="material-symbols-rounded icon-mana" style="font-size:16px;">auto_awesome</span>${scaledMana}
+                            <span class="material-symbols-rounded icon-gold" style="margin-left:4px;font-size:16px;">paid</span>${scaledGold}
+                        </span>
                     </div>
                 </div>
             </div>

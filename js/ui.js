@@ -8,6 +8,7 @@ const DQ_UI = {
         this.elements = elements;
         this.addEventListeners();
         this.mountDungeonSpawnChipIfNeeded();
+        this.setupSettingsOverlay();
     },
 
     addEventListeners() {
@@ -30,8 +31,6 @@ const DQ_UI = {
             popup.addEventListener('touchmove', (e) => this.handlePopupTouchMove(e), { passive: true });
             popup.addEventListener('touchend', (e) => this.handlePopupTouchEnd(e));
         });
-
-        this.elements.settingsButton.addEventListener('click', () => this.showPopup(this.elements.settingsPopup));
 
         this.elements.achievementsButton.addEventListener('click', async () => {
             try {
@@ -143,90 +142,146 @@ const DQ_UI = {
         });
         
         this.popupStack.push(popupElement);
-
-        if (popupElement.id === 'settings-popup') {
-            popupElement.style.height = 'auto';
-            requestAnimationFrame(() => {
-                this.initSettingsTabs();
-            });
-        }
     },
 
-    initSettingsTabs() {
-        const tabs = document.querySelectorAll('.settings-tab');
-        const contents = document.querySelectorAll('.settings-tab-content');
-        const settingsPopup = this.elements.settingsPopup;
-        
-        if (!tabs.length || !contents.length) return;
+    setupSettingsOverlay() {
+        const overlay = document.getElementById('settings-overlay');
+        if (!overlay || this._settingsInitialized) return;
+        this._settingsInitialized = true;
 
-        const syncSettingsHeight = () => {
-            if (!settingsPopup) return;
-            const active = settingsPopup.querySelector('.settings-tab-content.active');
-            if (!active) return;
-            
-            requestAnimationFrame(() => {
-                const contentHeight = active.scrollHeight;
-                let extraPadding = 200;
-                if (active.id === 'settings-content-training') {
-                    extraPadding = 280;
-                } else if (active.id === 'settings-content-share') {
-                    extraPadding = 340;
-                } else if (active.id === 'settings-content-extras') {
-                    extraPadding = 220;
-                } else if (active.id === 'settings-content-weight') {
-                    extraPadding = 220;
-                } else if (active.id === 'settings-content-main') {
-                    extraPadding = 220;
-                } else if (active.id === 'settings-content-account') {
-                    extraPadding = 260;
-                }
-                const targetHeight = extraPadding + contentHeight;
-                settingsPopup.style.height = `${targetHeight}px`;
-            });
-        };
+        this._settingsOverlay = overlay;
+        this._settingsSheet = overlay.querySelector('.settings-sheet');
+        this._settingsBg = overlay.querySelector('.settings-overlay-bg');
+        this._settingsHandle = overlay.querySelector('.settings-swipe-handle');
+        this._settingsTeaser = overlay.querySelector('.settings-teaser');
+        this._settingsSections = overlay.querySelectorAll('.settings-section');
+        this._settingsItems = overlay.querySelectorAll('.settings-item');
+        this._settingsShareLoaded = false;
 
-        const setActiveTab = async (target) => {
-            tabs.forEach(t => t.classList.remove('active'));
-            contents.forEach(c => c.classList.remove('active'));
+        this._settingsBg.addEventListener('click', () => this.closeSettingsOverlay());
 
-            const tab = document.querySelector(`.settings-tab[data-tab="${target}"]`);
-            const contentEl = document.getElementById(`settings-content-${target}`);
-
-            if (tab) tab.classList.add('active');
-            if (contentEl) {
-                contentEl.classList.add('active');
-                syncSettingsHeight();
-            }
-
-            if (target === 'share') {
-                await this.loadQRCodeLibrary();
-                setTimeout(() => {
-                    this.generateShareQRCode();
-                    syncSettingsHeight();
-                }, 100);
-            }
-        };
-
-        tabs.forEach(tab => {
-            tab.addEventListener('click', async () => {
-                await setActiveTab(tab.dataset.tab);
+        this._settingsItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const section = item.closest('.settings-section');
+                if (section) this._toggleSettingsSection(section);
             });
         });
 
         const copyBtn = document.getElementById('copy-url-btn');
         if (copyBtn) {
-            copyBtn.addEventListener('click', () => this.copyShareUrl());
+            copyBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.copyShareUrl();
+            });
         }
 
-        const mainTab = document.querySelector('.settings-tab[data-tab="main"]');
-        const mainContent = document.getElementById('settings-content-main');
-        if (mainTab && mainContent) {
-            tabs.forEach(t => t.classList.remove('active'));
-            contents.forEach(c => c.classList.remove('active'));
-            mainTab.classList.add('active');
-            mainContent.classList.add('active');
-            requestAnimationFrame(syncSettingsHeight);
+        if (this._settingsHandle) {
+            let touchStartY = 0;
+            let touchMoved = false;
+
+            this._settingsHandle.addEventListener('touchstart', (e) => {
+                touchStartY = e.touches[0].clientY;
+                touchMoved = false;
+            }, { passive: true });
+
+            this._settingsHandle.addEventListener('touchmove', (e) => {
+                const delta = e.touches[0].clientY - touchStartY;
+                if (delta > 20) touchMoved = true;
+            }, { passive: true });
+
+            this._settingsHandle.addEventListener('touchend', (e) => {
+                const delta = e.changedTouches[0].clientY - touchStartY;
+                if (touchMoved && delta > 50) this.closeSettingsOverlay();
+            });
         }
+    },
+
+    openSettingsOverlay() {
+        if (!this._settingsOverlay) {
+            this.setupSettingsOverlay();
+            if (!this._settingsOverlay) return;
+        }
+        this._settingsOverlay.classList.add('show');
+        this._syncSettingsSheetHeight();
+    },
+
+    closeSettingsOverlay() {
+        if (!this._settingsOverlay) return;
+        this._settingsOverlay.classList.remove('show');
+        this._settingsSections.forEach(s => {
+            s.classList.remove('open');
+            const b = s.querySelector('.settings-section-body');
+            if (b) {
+                requestAnimationFrame(() => { b.style.maxHeight = '0px'; });
+            }
+        });
+    },
+
+    _closeAllSettingsSections(except) {
+        this._settingsSections.forEach(s => {
+            if (s === except) return;
+            if (s.classList.contains('open')) {
+                s.classList.remove('open');
+                const b = s.querySelector('.settings-section-body');
+                if (b) {
+                    requestAnimationFrame(() => { b.style.maxHeight = '0px'; });
+                }
+            }
+        });
+    },
+
+    _syncSettingsSheetHeight() {
+        if (!this._settingsSheet) return;
+        requestAnimationFrame(() => {
+            const sections = this._settingsSections;
+            const sheet = this._settingsSheet;
+            const handle = this._settingsHandle;
+            const teaser = this._settingsTeaser;
+            let totalH = 0;
+            if (handle) totalH += handle.offsetHeight + 14;
+            if (teaser) totalH += teaser.offsetHeight + 16;
+            sections.forEach(s => {
+                const item = s.querySelector('.settings-item');
+                const body = s.querySelector('.settings-section-body');
+                if (item) totalH += item.offsetHeight;
+                totalH += s.classList.contains('open') ? (body ? body.scrollHeight : 0) : 0;
+            });
+            const minH = window.innerHeight * 0.76;
+            const maxH = window.innerHeight * 0.92;
+            const targetH = Math.min(Math.max(totalH + 30, minH), maxH);
+            sheet.style.maxHeight = targetH + 'px';
+        });
+    },
+
+    _toggleSettingsSection(section) {
+        const body = section.querySelector('.settings-section-body');
+        if (!body) return;
+
+        const willOpen = !section.classList.contains('open');
+
+        this._closeAllSettingsSections(willOpen ? section : null);
+
+        if (willOpen) {
+            section.classList.add('open');
+            requestAnimationFrame(() => { body.style.maxHeight = body.scrollHeight + 'px'; });
+
+            const isShare = section.querySelector('#qr-code-canvas');
+            if (isShare && !this._settingsShareLoaded) {
+                this._settingsShareLoaded = true;
+                this.loadQRCodeLibrary().then(() => {
+                    setTimeout(() => {
+                        this.generateShareQRCode();
+                        body.style.maxHeight = body.scrollHeight + 'px';
+                        this._syncSettingsSheetHeight();
+                    }, 100);
+                });
+            }
+        } else {
+            section.classList.remove('open');
+            requestAnimationFrame(() => { body.style.maxHeight = '0px'; });
+        }
+
+        this._syncSettingsSheetHeight();
     },
 
     async loadQRCodeLibrary() {
@@ -277,10 +332,6 @@ const DQ_UI = {
         if (this.popupStack.length === 0) return;
 
         const popupToHide = this.popupStack.pop();
-        
-        if (popupToHide.id === 'settings-popup') {
-            popupToHide.style.height = '';
-        }
         
         popupToHide.classList.remove('show');
 
@@ -400,7 +451,7 @@ const DQ_UI = {
             if (theme === 'light') {
                 metaThemeColor.setAttribute('content', '#f5efff');
             } else if (theme === 'oled') {
-                metaThemeColor.setAttribute('content', '#000000');
+                metaThemeColor.setAttribute('content', '#010000');
             } else {
                 metaThemeColor.setAttribute('content', '#1c1b1f');
             }

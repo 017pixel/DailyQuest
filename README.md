@@ -92,6 +92,31 @@ Detaillierte Informationen zur Architektur, zum Design und zur Theorie hinter Da
 
 ---
 
+## Tests
+
+Das Projekt enthaelt eine Test-Suite mit 10 spezialisierten Modultests. Alle Tests werden mit Node.js ausgefuehrt:
+
+```bash
+node tests/run.js
+```
+
+| # | Test | Bereich | Beschreibung |
+|---|------|---------|--------------|
+| 01 | `syntax` | Syntax | Prueft jede .js-Datei im Projekt auf syntaktische Korrektheit |
+| 02 | `data-structure` | Daten | Validiert Exercises, Achievements, Dungeons, Translations auf Vollstaendigkeit |
+| 03 | `translations` | Lokalisierung | Stellt sicher, dass alle DE/EN-Keys paarweise existieren und konsistent sind |
+| 04 | `pure-functions` | Logik | Unit-Tests fuer ageBand, difficulty-Multiplikator, scaleReps, formatDuration etc. |
+| 05 | `settings` | Konfiguration | Default-Werte, Typen, Validierung der User-Settings |
+| 06 | `html-ids` | DOM | Prueft, dass alle `getElementById`-Aufrufe in JS ein HTML-Gegenstueck haben |
+| 07 | `css-themes` | Styling | Stellt sicher, dass alle CSS-Variablen in Dark, Light und OLED definiert sind |
+| 08 | `training-plans` | Daten | Validiert Trainingsplaene, Slots, Stages und Goal-Aliases |
+| 09 | `service-worker` | PWA | Cache-Name, Precache-URLs auf Existenz, Manifest-Validierung |
+| 10 | `streak-penalty` | Spiellogik | Streak-Berechnung, Penalty-Reset, Level-Up-Progression, Stat-Gains |
+
+Die Tests decken Syntax, Datenintegritaet, Spiellogik, UI-Konsistenz und PWA-Infrastruktur ab.
+
+---
+
 ## Technologien und Sicherheit
 
 - **Frontend**: HTML5, CSS3, Vanilla JavaScript (ES6+).

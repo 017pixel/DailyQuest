@@ -28,7 +28,7 @@
 
     <!-- PWA Manifest & Theme -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1c1b1f" id="meta-theme-color">
+    <meta name="theme-color" content="#010000" id="meta-theme-color">
 
     <!-- Optimierte Icon-Links -->
     <link rel="icon" href="icon.png" type="image/png" sizes="any">
@@ -323,24 +323,10 @@
         <div class="pulse-circle pulse-4"></div>
     </div>
 
-    <!-- Notfall-Anzeige, standardmäßig unsichtbar -->
+    <!-- Notfall-Anzeige, standardmäßig unsichtbar; Inhalt wird von fallback-check.js gefüllt -->
     <div id="critical-error-fallback">
         <div class="fallback-overlay"></div>
-        <div class="fallback-message">
-            <div class="fallback-icon"><span class="material-symbols-rounded icon-accent">warning</span></div>
-            <h3>Initialisierungsfehler</h3>
-            <p>
-                DailyQuest konnte nicht korrekt gestartet werden. Dies wird oft durch veraltete oder inkonsistente
-                Browser-Daten verursacht.
-            </p>
-            <div class="fallback-actions">
-                <strong>Bitte versuche Folgendes:</strong>
-                <ol>
-                    <li>Lösche die Browser-Daten für diese Seite vollständig (Cache, Cookies und Website-Daten).</li>
-                    <li>Versuche, die App in einem anderen Browser zu öffnen.</li>
-                </ol>
-            </div>
-        </div>
+        <div class="fallback-message" id="fallback-message-card"></div>
     </div>
 
 
@@ -622,7 +608,7 @@
 
     <!-- Popups -->
     <div id="popup-overlay"></div>
-    <div id="info-popup" class="popup">
+    <div id="info-popup" class="popup popup-large">
         <div class="popup-drag-handle"></div>
         <div id="info-popup-content" class="popup-content"></div>
     </div>
@@ -661,217 +647,203 @@
         </div>
     </div>
 
-    <div id="settings-popup" class="popup">
-        <div class="popup-drag-handle"></div>
-        <h3 data-lang-key="settings">Einstellungen</h3>
-        
-        <div class="settings-tabs">
-            <button class="settings-tab active" data-tab="main" data-lang-key="settings_general">Main</button>
-            <button class="settings-tab" data-tab="weight" data-lang-key="settings_weight">Gewicht</button>
-            <button class="settings-tab" data-tab="training" data-lang-key="settings_training">Training</button>
-            <button class="settings-tab" data-tab="extras" data-lang-key="settings_extras">Extras</button>
-            <button class="settings-tab" data-tab="share" data-lang-key="settings_share">Teilen</button>
-            <button class="settings-tab" data-tab="account">Account</button>
-        </div>
-        
-        <div class="popup-content">
-            <!-- Tab: Main -->
-            <div id="settings-content-main" class="settings-tab-content active">
-                <div class="setting-item">
-                    <label for="character-name-input" data-lang-key="character_name">Name</label>
-                    <input type="text" id="character-name-input" placeholder="Unknown Hunter">
+    <!-- Settings Overlay (Accordion, slide-up) -->
+    <div id="settings-overlay" class="settings-overlay">
+        <div class="settings-overlay-bg"></div>
+        <div class="settings-sheet">
+            <div class="settings-swipe-handle"></div>
+
+            <div class="settings-teaser">
+                <div class="settings-teaser-icon">
+                    <span class="material-symbols-rounded settings-teaser-gear">settings</span>
                 </div>
-                <div class="setting-item">
-                    <label for="character-age-input" data-lang-key="age">Alter</label>
-                    <input type="number" id="character-age-input" min="1" max="100" step="1" placeholder="34">
-                </div>
-                <div class="setting-item">
-                    <label for="language-select">
-                        <span data-lang-key="language">Sprache</span>
-                        <span class="beta-tag">BETA</span>
-                    </label>
-                    <select id="language-select">
-                        <option value="de">Deutsch</option>
-                        <option value="en">English (Beta)</option>
-                    </select>
-                </div>
-                <div class="setting-item">
-                    <label data-lang-key="theme">Theme</label>
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="theme-toggle">
-                        <label for="theme-toggle" class="slider"></label>
-                    </div>
-                </div>
-                <div class="setting-item" id="oled-setting-item">
-                    <label for="oled-toggle">
-                        <span>OLED Dark Mode</span>
-                        <small style="display:block;opacity:0.6;font-size:11px;">Ultra-schwarz für AMOLED Displays</small>
-                    </label>
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="oled-toggle">
-                        <label for="oled-toggle" class="slider"></label>
-                    </div>
+                <div class="settings-teaser-text">
+                    <span class="settings-teaser-title">Einstellungen</span>
+                    <span class="settings-teaser-subtitle">App nach deinem Geschmack</span>
                 </div>
             </div>
-            
-            <!-- Tab: Gewicht -->
-            <div id="settings-content-weight" class="settings-tab-content">
-                <div class="setting-item">
-                    <label data-lang-key="weight_tracking_enable">Tracking aktiv</label>
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="weight-tracking-toggle">
-                        <label for="weight-tracking-toggle" class="slider"></label>
+
+            <!-- Allgemein -->
+            <div class="settings-section">
+                <button class="settings-item">
+                    <span class="settings-item-label">Allgemein</span>
+                    <span class="material-symbols-rounded settings-item-arrow">expand_more</span>
+                </button>
+                <div class="settings-section-body">
+                    <div class="settings-subpage-item">
+                        <label for="character-name-input" data-lang-key="character_name">Name</label>
+                        <input type="text" id="character-name-input" placeholder="Unknown Hunter">
                     </div>
-                </div>
-                <div id="weight-tracking-options">
-                    <div class="setting-item">
-                        <label for="target-weight-input" data-lang-key="target_weight">Zielgewicht (kg)</label>
-                        <input type="number" id="target-weight-input" placeholder="75.0" step="0.1">
+                    <div class="settings-subpage-item">
+                        <label for="character-age-input" data-lang-key="age">Alter</label>
+                        <input type="number" id="character-age-input" min="1" max="100" step="1" placeholder="34">
                     </div>
-                    <div class="setting-item">
-                        <label for="weight-direction-select" data-lang-key="weight_goal">Ziel</label>
-                        <select id="weight-direction-select">
-                            <option value="lose" data-lang-key="goal_lose_weight">Abnehmen</option>
-                            <option value="gain" data-lang-key="goal_gain_weight">Zunehmen</option>
+                    <div class="settings-subpage-item">
+                        <label for="language-select"><span data-lang-key="language">Sprache</span><span class="beta-tag">BETA</span></label>
+                        <select id="language-select">
+                            <option value="de">Deutsch</option>
+                            <option value="en">English (Beta)</option>
                         </select>
                     </div>
-                    <div class="popup-actions">
-                        <button id="delete-weight-data-button" class="card-button secondary-button"
-                            data-lang-key="delete_weight_data_button">Alle Gewichtsdaten löschen</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Tab: Training -->
-            <div id="settings-content-training" class="settings-tab-content">
-                <div class="settings-warning-box">
-                    <span class="material-symbols-rounded warning-icon" style="font-size:20px;">warning</span>
-                    <p data-lang-key="settings_warning_text">Aenderungen an diesen Einstellungen generieren deine heutigen Quests neu. Bisheriger Fortschritt fuer heute geht dabei verloren.</p>
-                </div>
-
-                <div class="setting-item slider-item">
-                    <label for="difficulty-slider" data-lang-key="difficulty">Schwierigkeit (Dailies)</label>
-                    <div class="slider-container">
-                        <input type="range" id="difficulty-slider" min="1" max="5" value="3">
-                        <span id="difficulty-value">3</span>
-                    </div>
-                </div>
-                <div class="setting-item">
-                    <label for="goal-select" data-lang-key="training_goal">Trainingsziel</label>
-                    <select id="goal-select">
-                        <option value="muscle" data-lang-key="goal_muscle">Muskelaufbau</option>
-                        <option value="endurance" data-lang-key="goal_endurance">Ausdauer</option>
-                        <option value="fatloss" data-lang-key="goal_fatloss">Abnehmen</option>
-                        <option value="kraft_abnehmen" data-lang-key="goal_kraft_abnehmen">Kraft + Abnehmen</option>
-                        <option value="calisthenics" data-lang-key="goal_calisthenics">Calisthenics</option>
-                        <option value="senior" data-lang-key="goal_senior">Senioren-Training</option>
-                        <option value="sick" data-lang-key="goal_sick">Krank</option>
-                    </select>
-                </div>
-                <div class="setting-item">
-                    <label for="restdays-select" data-lang-key="rest_days">Rest Days / Woche</label>
-                    <select id="restdays-select">
-                        <option value="0">0</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                    </select>
-                </div>
-                <div class="setting-item">
-                    <label data-lang-key="has_equipment">Equipment vorhanden (Hanteln/Langhantel)</label>
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="equipment-toggle">
-                        <label for="equipment-toggle" class="slider"></label>
-                    </div>
-                </div>
-                <div class="setting-item phase-controls-item">
-                    <div class="phase-controls-copy">
-                        <strong data-lang-key="training_phase_controls_title">Phase</strong>
-                        <small data-lang-key="training_phase_controls_hint">Ändert nur die aktive Phase, nicht den Basisplan.</small>
-                    </div>
-                </div>
-                <div class="phase-buttons-row">
-                    <button type="button" id="phase-repeat-button" class="card-button secondary-button phase-btn" data-lang-key="training_phase_repeat">Wdh.</button>
-                    <button type="button" id="phase-skip-button" class="card-button secondary-button phase-btn" data-lang-key="training_phase_skip">Überspringen</button>
-                    <button type="button" id="phase-extend-button" class="card-button secondary-button phase-btn" data-lang-key="training_phase_extend">Verlängern</button>
-                </div>
-            </div>
-            
-            <!-- Tab: Extras -->
-            <div id="settings-content-extras" class="settings-tab-content">
-                <div class="setting-item-section-title" data-lang-key="settings_tutorial">Tutorial</div>
-                <div class="data-actions">
-                    <button type="button" id="reset-tutorial-button" class="card-button secondary-button full-width-button" data-lang-key="restart_training_button" onclick="resetTutorialAndIntro()">
-                        Einen Neuanfang beginnen
-                    </button>
-                </div>
-                
-                <div class="setting-item-section-title" data-lang-key="settings_data_prompt">Was möchtest du machen? Daten ...</div>
-                <div class="data-actions">
-                    <button id="export-data-button" class="card-button secondary-button"
-                        data-lang-key="export_data_short">Exportieren</button>
-                    <label for="import-data-input" class="card-button secondary-button"
-                        data-lang-key="import_data_short">Importieren</label>
-                    <input type="file" id="import-data-input" accept="*/*" style="display: none;">
-                </div>
-            </div>
-            
-            <!-- Tab: Teilen -->
-            <div id="settings-content-share" class="settings-tab-content">
-                <div class="share-section">
-                    <h4 data-lang-key="share_title">Teile DailyQuest!</h4>
-                    <p data-lang-key="share_description">Scanne den QR-Code oder teile den Link!</p>
-                    
-                    <div class="qr-code-wrapper">
-                        <div id="qr-code-canvas"></div>
-                    </div>
-                    
-                    <button class="card-button secondary-button share-copy-btn" id="copy-url-btn" data-lang-key="share_copy">Link kopieren</button>
-                    
-                    <a href="https://github.com/017pixel/DailyQuest" target="_blank" class="share-github-link">
-                        <span class="material-symbols-rounded">code</span>
-                        <span data-lang-key="share_github">Zum Code</span>
-                    </a>
-                    
-                    <div class="share-version">v2.9.1</div>
-                </div>
-            </div>
-
-            <!-- Tab: Account -->
-            <div id="settings-content-account" class="settings-tab-content">
-                <div class="settings-section">
-                    <div class="account-info">
-                        <div class="account-avatar">
-                            <span class="material-symbols-rounded">account_circle</span>
+                    <div class="settings-subpage-item">
+                        <label data-lang-key="theme">Dark / Light Mode</label>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="theme-toggle">
+                            <label for="theme-toggle" class="slider"></label>
                         </div>
+                    </div>
+                    <div class="settings-subpage-item" id="oled-setting-item">
+                        <label for="oled-toggle"><span>OLED Dark Mode</span><small style="display:block;opacity:0.6;font-size:11px;">Ultra-schwarz für AMOLED Displays</small></label>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="oled-toggle">
+                            <label for="oled-toggle" class="slider"></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gewicht -->
+            <div class="settings-section">
+                <button class="settings-item">
+                    <span class="settings-item-label">Gewicht</span>
+                    <span class="material-symbols-rounded settings-item-arrow">expand_more</span>
+                </button>
+                <div class="settings-section-body">
+                    <div class="settings-subpage-item">
+                        <label data-lang-key="weight_tracking_enable">Tracking aktiv</label>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="weight-tracking-toggle">
+                            <label for="weight-tracking-toggle" class="slider"></label>
+                        </div>
+                    </div>
+                    <div id="weight-tracking-options">
+                        <div class="settings-subpage-item">
+                            <label for="target-weight-input" data-lang-key="target_weight">Zielgewicht (kg)</label>
+                            <input type="number" id="target-weight-input" placeholder="75.0" step="0.1">
+                        </div>
+                        <div class="settings-subpage-item">
+                            <label for="weight-direction-select" data-lang-key="weight_goal">Ziel</label>
+                            <select id="weight-direction-select">
+                                <option value="lose" data-lang-key="goal_lose_weight">Abnehmen</option>
+                                <option value="gain" data-lang-key="goal_gain_weight">Zunehmen</option>
+                            </select>
+                        </div>
+                        <button id="delete-weight-data-button" class="settings-danger-btn" data-lang-key="delete_weight_data_button">Alle Gewichtsdaten löschen</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Training -->
+            <div class="settings-section">
+                <button class="settings-item">
+                    <span class="settings-item-label">Training</span>
+                    <span class="material-symbols-rounded settings-item-arrow">expand_more</span>
+                </button>
+                <div class="settings-section-body">
+                    <div class="settings-warning-box">
+                        <span class="material-symbols-rounded warning-icon" style="font-size:20px;">warning</span>
+                        <p data-lang-key="settings_warning_text">Änderungen an diesen Einstellungen generieren deine heutigen Quests neu. Bisheriger Fortschritt für heute geht dabei verloren.</p>
+                    </div>
+                    <div class="settings-subpage-item">
+                        <label for="difficulty-slider" data-lang-key="difficulty">Schwierigkeit</label>
+                        <div class="slider-container">
+                            <input type="range" id="difficulty-slider" min="1" max="5" value="3">
+                            <span id="difficulty-value">3</span>
+                        </div>
+                    </div>
+                    <div class="settings-subpage-item">
+                        <label for="goal-select" data-lang-key="training_goal">Trainingsziel</label>
+                        <select id="goal-select">
+                            <option value="muscle" data-lang-key="goal_muscle">Muskelaufbau</option>
+                            <option value="endurance" data-lang-key="goal_endurance">Ausdauer</option>
+                            <option value="fatloss" data-lang-key="goal_fatloss">Abnehmen</option>
+                            <option value="kraft_abnehmen" data-lang-key="goal_kraft_abnehmen">Kraft + Abnehmen</option>
+                            <option value="calisthenics" data-lang-key="goal_calisthenics">Calisthenics</option>
+                            <option value="senior" data-lang-key="goal_senior">Senioren-Training</option>
+                            <option value="sick" data-lang-key="goal_sick">Krank</option>
+                        </select>
+                    </div>
+                    <div class="settings-subpage-item">
+                        <label for="restdays-select" data-lang-key="rest_days">Rest Days / Woche</label>
+                        <select id="restdays-select">
+                            <option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                        </select>
+                    </div>
+                    <div class="settings-subpage-item">
+                        <label data-lang-key="has_equipment">Equipment vorhanden (Hanteln/Langhantel)</label>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="equipment-toggle">
+                            <label for="equipment-toggle" class="slider"></label>
+                        </div>
+                    </div>
+                    <div class="settings-subpage-section-title" data-lang-key="training_phase_controls_title">Phase</div>
+                    <p class="settings-subpage-hint" data-lang-key="training_phase_controls_hint">Ändert nur die aktive Phase, nicht den Basisplan.</p>
+                    <div class="phase-buttons-row">
+                        <button type="button" id="phase-repeat-button" class="settings-phase-btn" data-lang-key="training_phase_repeat">Wdh.</button>
+                        <button type="button" id="phase-skip-button" class="settings-phase-btn" data-lang-key="training_phase_skip">Überspr.</button>
+                        <button type="button" id="phase-extend-button" class="settings-phase-btn" data-lang-key="training_phase_extend">Verläng.</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Extras -->
+            <div class="settings-section">
+                <button class="settings-item">
+                    <span class="settings-item-label">Extras</span>
+                    <span class="material-symbols-rounded settings-item-arrow">expand_more</span>
+                </button>
+                <div class="settings-section-body">
+                    <div class="settings-subpage-section-title" data-lang-key="settings_tutorial">Tutorial</div>
+                    <button type="button" id="reset-tutorial-button" class="settings-action-btn" data-lang-key="restart_training_button">Einen Neuanfang beginnen</button>
+                    <div class="settings-subpage-section-title" data-lang-key="settings_data_prompt">Daten</div>
+                    <button id="export-data-button" class="settings-action-btn" data-lang-key="export_data_short">Exportieren</button>
+                    <label for="import-data-input" class="settings-action-btn" data-lang-key="import_data_short">Importieren</label>
+                    <input type="file" id="import-data-input" accept="*/*" style="display:none;">
+                </div>
+            </div>
+
+            <!-- Teilen -->
+            <div class="settings-section">
+                <button class="settings-item">
+                    <span class="settings-item-label">Teilen</span>
+                    <span class="material-symbols-rounded settings-item-arrow">expand_more</span>
+                </button>
+                <div class="settings-section-body">
+                    <div class="share-section">
+                        <h4 data-lang-key="share_title">Teile DailyQuest!</h4>
+                        <p data-lang-key="share_description">Scanne den QR-Code oder teile den Link!</p>
+                        <div class="qr-code-wrapper"><div id="qr-code-canvas"></div></div>
+                        <button class="settings-action-btn share-copy-btn" id="copy-url-btn" data-lang-key="share_copy">Link kopieren</button>
+                        <a href="https://github.com/017pixel/DailyQuest" target="_blank" class="share-github-link"><span class="material-symbols-rounded">code</span><span data-lang-key="share_github">Zum Code</span></a>
+                        <div class="share-version">v2.10.0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account -->
+            <div class="settings-section">
+                <button class="settings-item">
+                    <span class="settings-item-label">Account</span>
+                    <span class="material-symbols-rounded settings-item-arrow">expand_more</span>
+                </button>
+                <div class="settings-section-body">
+                    <div class="account-info">
+                        <div class="account-avatar"><span class="material-symbols-rounded">account_circle</span></div>
                         <div class="account-details">
                             <p class="account-email" id="accountEmail">Nicht angemeldet</p>
                             <p class="account-type" id="accountType">Lokaler Speicher</p>
                         </div>
                     </div>
-                    <div class="settings-actions">
-                        <button id="loginNowBtn" class="card-button" style="display:none;">
-                            <span class="material-symbols-rounded">login</span>
-                            Jetzt anmelden / registrieren
-                        </button>
-                        <button id="syncNowBtn" class="card-button secondary-button" style="display:none;">
-                            <span class="material-symbols-rounded">sync</span>
-                            Jetzt synchronisieren
-                        </button>
-                        <button id="logoutBtn" class="card-button secondary-button" style="display:none;">
-                            <span class="material-symbols-rounded">logout</span>
-                            Abmelden
-                        </button>
-                        <button id="deleteAccountBtn" class="card-button error-button" style="display:none;">
-                            <span class="material-symbols-rounded">delete_forever</span>
-                            Account loeschen
-                        </button>
+                    <div class="settings-subpage-actions">
+                        <button id="loginNowBtn" class="settings-action-btn" style="display:none;"><span class="material-symbols-rounded">login</span>Anmelden / Registrieren</button>
+                        <button id="syncNowBtn" class="settings-action-btn" style="display:none;"><span class="material-symbols-rounded">sync</span>Synchronisieren</button>
+                        <button id="logoutBtn" class="settings-action-btn" style="display:none;"><span class="material-symbols-rounded">logout</span>Abmelden</button>
+                        <button id="deleteAccountBtn" class="settings-danger-btn" style="display:none;"><span class="material-symbols-rounded">delete_forever</span>Account löschen</button>
                     </div>
-                </div>
-
-                <div class="settings-info-box">
-                    <span class="material-symbols-rounded">info</span>
-                    <p>Deine Daten werden automatisch in der Cloud gesichert. Ohne Account bleiben sie nur lokal im Browser und gehen bei Geraetewechsel oder Cache-Leeren verloren.</p>
+                    <div class="settings-info-box">
+                        <span class="material-symbols-rounded">info</span>
+                        <p>Deine Daten werden automatisch in der Cloud gesichert. Ohne Account bleiben sie nur lokal im Browser und gehen bei Gerätewechsel oder Cache-Leeren verloren.</p>
+                    </div>
                 </div>
             </div>
         </div>

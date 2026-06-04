@@ -4,6 +4,29 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## Version 2.10.0 - Einstellungen Redesign & Bugfixes
+
+### Erstellt
+- Einstellungen komplett ueberarbeitet (luftiger Header, einheitliches Popup-Design, Glow-Effekt)
+- Test-Suite mit 10 Modultests (Syntax, Daten, Uebersetzungen, Logik, CSS, PWA)
+- Update-Popup modernisiert (einzeilige Uebersicht statt mehrseitigem Carousel)
+- Notfall-Bildschirm mit zwei Stufen (freundlicher Hinweis oder technische Details)
+- Theme-aware Spin-Buttons fuer Zahlenfelder in allen drei Themes
+
+### Veraendert
+- Einstellungen schliessen nicht mehr versehentlich (Event-Listener-Leak behoben)
+- Trainingsphase und Daily Quests bleiben nach App-Update erhalten
+- Popup-Overlay liegt jetzt ueber dem Einstellungs-Menue (Buttons sichtbar)
+- Swipe-Geste zum Schliessen nur noch am oberen Handle aktiv
+- Kopieren-Button unter QR-Code ist jetzt zentriert
+
+### Geloescht
+- Gruener Einstellungs-Banner durch cleanen Header mit Icon-Box ersetzt
+- Ungenutzte Lerndateien geloescht
+- Veraltete Supabase-Migrationsanleitung entfernt
+
+---
+
 ## Version 2.9.1 - Fokus-Stats Bugfix
 
 ### Erstellt

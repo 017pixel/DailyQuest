@@ -212,8 +212,7 @@
     position: relative; /* für Icon-Overlay des Radar-Diagramms */
 }
 #stats-radar-chart {
-    max-width: 100%;
-    height: auto;
+    display: block;
 }
 .chart-label-layer { overflow: visible; }
 .stat-chart-icon.material-symbols-rounded { font-size: 28px; line-height: 1; }

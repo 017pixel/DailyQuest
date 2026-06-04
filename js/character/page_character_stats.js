@@ -84,7 +84,16 @@ const DQ_STATS = {
     renderStats(char) {
         const canvas = document.getElementById('stats-radar-chart');
         if (canvas) {
-            this.createRadarChart(canvas, char.stats);
+            const containerEl = canvas.parentElement;
+            if (containerEl) {
+                const containerStyle = getComputedStyle(containerEl);
+                const paddingX = parseFloat(containerStyle.paddingLeft) + parseFloat(containerStyle.paddingRight);
+                const availableWidth = containerEl.clientWidth - paddingX;
+                const displaySize = Math.min(320, Math.max(200, availableWidth));
+                this.createRadarChart(canvas, char.stats, displaySize);
+            } else {
+                this.createRadarChart(canvas, char.stats);
+            }
         }
 
         const statsListContainer = document.getElementById('stats-list-container');
@@ -190,8 +199,7 @@ const DQ_STATS = {
     },
 
     
-    createRadarChart(canvas, stats) {
-        const baseSize = 320;
+    createRadarChart(canvas, stats, baseSize = 320) {
         const ctx = canvas.getContext('2d');
         
         const dpr = window.devicePixelRatio || 1;
@@ -249,7 +257,7 @@ const DQ_STATS = {
         }
 
         // Zeichnen der Text-Labels (ersetzt durch Icon-Overlay)
-        this.renderRadarIconLabels(canvas, centerX, centerY, radius, statKeys);
+        this.renderRadarIconLabels(canvas, centerX, centerY, radius, statKeys, baseSize);
         
         ctx.beginPath();
         for (let i = 0; i < numAxes; i++) {
@@ -270,13 +278,10 @@ const DQ_STATS = {
     },
 
     // Overlay für Radar-Labels mit Icons, damit nichts vom Canvas abgeschnitten wird
-    renderRadarIconLabels(canvas, centerX, centerY, radius, statKeys) {
+    renderRadarIconLabels(canvas, centerX, centerY, radius, statKeys, baseSize) {
         try {
-            const baseSize = 320;
             const parent = canvas.parentElement;
             if (!parent) return;
-            // Stelle sicher, dass der Karten-Container als Bezug dient
-            // (CSS fügt position:relative zu #character-stats hinzu)
             let layer = document.getElementById('stats-chart-label-layer');
             if (!layer) {
                 layer = document.createElement('div');
@@ -286,24 +291,33 @@ const DQ_STATS = {
             }
             const parentRect = parent.getBoundingClientRect();
             const canvasRect = canvas.getBoundingClientRect();
+            const displayWidth = canvasRect.width;
+            const displayHeight = canvasRect.height;
+            const scaleX = displayWidth / baseSize;
+            const scaleY = displayHeight / baseSize;
+
             layer.style.position = 'absolute';
             layer.style.left = `${canvasRect.left - parentRect.left}px`;
             layer.style.top = `${canvasRect.top - parentRect.top}px`;
-            layer.style.width = `${baseSize}px`;
-            layer.style.height = `${baseSize}px`;
+            layer.style.width = `${displayWidth}px`;
+            layer.style.height = `${displayHeight}px`;
             layer.style.pointerEvents = 'none';
             layer.innerHTML = '';
 
-            const iconSize = 28; // muss mit CSS .stat-chart-icon übereinstimmen
-            const edgePadding = 2; // kleiner Sicherheitsabstand zum Rand
-            const maxLabelRadius = (baseSize / 2) - (iconSize / 2) - edgePadding;
-            let labelRadius = radius * 1.08 + 18; // etwas mehr Abstand nach außen
-            labelRadius = Math.min(labelRadius, maxLabelRadius); // niemals abschneiden
+            const iconSize = Math.round(28 * Math.min(scaleX, scaleY));
+            const edgePadding = 2;
+            const scaledCenterX = centerX * scaleX;
+            const scaledCenterY = centerY * scaleY;
+            const scaledRadius = radius * Math.min(scaleX, scaleY);
+            const maxLabelRadius = (displayWidth / 2) - (iconSize / 2) - edgePadding;
+            let labelRadius = scaledRadius * 1.08 + (18 * Math.min(scaleX, scaleY));
+            labelRadius = Math.min(labelRadius, maxLabelRadius);
+
             const numAxes = statKeys.length;
             for (let i = 0; i < numAxes; i++) {
                 const angle = (i * 2 * Math.PI / numAxes) - (Math.PI / 2);
-                const x = centerX + labelRadius * Math.cos(angle);
-                const y = centerY + labelRadius * Math.sin(angle);
+                const x = scaledCenterX + labelRadius * Math.cos(angle);
+                const y = scaledCenterY + labelRadius * Math.sin(angle);
                 const key = statKeys[i];
                 const meta = this.statMeta[key];
                 const el = document.createElement('span');
@@ -314,6 +328,7 @@ const DQ_STATS = {
                 el.style.top = `${y}px`;
                 el.style.transform = 'translate(-50%, -50%)';
                 el.style.color = meta.color;
+                el.style.fontSize = `${iconSize}px`;
                 layer.appendChild(el);
             }
         } catch (e) {

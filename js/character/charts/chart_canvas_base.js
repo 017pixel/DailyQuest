@@ -24,6 +24,16 @@ const DQ_CHARTS = {
         text: null  // wird aus CSS gelesen
     },
 
+    formatNumber(num) {
+        if (num === null || num === undefined) return '0';
+        const abs = Math.abs(num);
+        const sign = num < 0 ? '-' : '';
+        if (abs < 1000) return sign + Math.round(abs);
+        if (abs < 10000) return sign + (abs / 1000).toFixed(1) + 'k';
+        if (abs < 1000000) return sign + Math.round(abs / 1000) + 'k';
+        return sign + (abs / 1000000).toFixed(1) + 'M';
+    },
+
     getThemeColors() {
         const style = getComputedStyle(document.documentElement);
         return {
@@ -84,19 +94,42 @@ const DQ_CHARTS = {
         if (maxVal === minVal) { maxVal += 1; minVal -= 1; }
         const range = maxVal - minVal;
 
-        const getX = (index) => padding.left + (index / (data.length - 1 || 1)) * (width - padding.left - padding.right);
-        const getY = (value) => height - padding.bottom - ((value - minVal) / range) * (height - padding.top - padding.bottom);
+        // Y-Labels formatieren & breitestes Label messen fuer dynamisches Padding
+        const yGridLines = 4;
+        const yLabels = [];
+        ctx.font = 'bold 13px sans-serif';
+        let maxLabelWidth = 0;
+        for (let i = 0; i <= yGridLines; i++) {
+            const val = minVal + (range / yGridLines) * i;
+            const label = this.formatNumber(val);
+            yLabels.push({ val, label });
+            const w = ctx.measureText(label).width;
+            if (w > maxLabelWidth) maxLabelWidth = w;
+        }
+
+        const minLeftPad = padding.left;
+        const maxLeftPad = Math.floor(width * 0.3);
+        const requiredLeftPad = Math.ceil(maxLabelWidth) + 16;
+        const adjustedLeftPad = Math.min(maxLeftPad, Math.max(minLeftPad, requiredLeftPad));
+
+        const adjPad = {
+            top: padding.top,
+            right: padding.right,
+            bottom: padding.bottom,
+            left: adjustedLeftPad
+        };
+
+        const getX = (index) => adjPad.left + (index / (data.length - 1 || 1)) * (width - adjPad.left - adjPad.right);
+        const getY = (value) => height - adjPad.bottom - ((value - minVal) / range) * (height - adjPad.top - adjPad.bottom);
 
         // Grid
         ctx.strokeStyle = colors.grid;
         ctx.lineWidth = 1;
-        const yGridLines = 4;
         for (let i = 0; i <= yGridLines; i++) {
-            const val = minVal + (range / yGridLines) * i;
-            const y = getY(val);
+            const y = getY(yLabels[i].val);
             ctx.beginPath();
-            ctx.moveTo(padding.left, y);
-            ctx.lineTo(width - padding.right, y);
+            ctx.moveTo(adjPad.left, y);
+            ctx.lineTo(width - adjPad.right, y);
             ctx.stroke();
         }
 
@@ -104,10 +137,9 @@ const DQ_CHARTS = {
         ctx.fillStyle = colors.text;
         ctx.textAlign = 'right';
         ctx.font = 'bold 13px sans-serif';
-        for (let i = 0; i <= yGridLines; i++) {
-            const val = minVal + (range / yGridLines) * i;
-            ctx.fillText(Math.round(val), padding.left - 8, getY(val) + 4);
-        }
+        yLabels.forEach(({ val, label }) => {
+            ctx.fillText(label, adjPad.left - 8, getY(val) + 4);
+        });
 
         // X-Achse Labels
         ctx.textAlign = 'center';
@@ -115,7 +147,7 @@ const DQ_CHARTS = {
         const xStep = Math.max(1, Math.floor(data.length / 6));
         data.forEach((d, i) => {
             if (i % xStep === 0 || i === data.length - 1) {
-                ctx.fillText(d.label, getX(i), height - padding.bottom + 14);
+                ctx.fillText(d.label, getX(i), height - adjPad.bottom + 14);
             }
         });
 
@@ -127,12 +159,12 @@ const DQ_CHARTS = {
 
             // Fuellung
             ctx.beginPath();
-            ctx.moveTo(getX(0), height - padding.bottom);
+            ctx.moveTo(getX(0), height - adjPad.bottom);
             data.forEach((d, i) => {
                 const val = d.values ? d.values[s] : d.value;
                 ctx.lineTo(getX(i), getY(val));
             });
-            ctx.lineTo(getX(data.length - 1), height - padding.bottom);
+            ctx.lineTo(getX(data.length - 1), height - adjPad.bottom);
             ctx.closePath();
             ctx.fillStyle = this._hexToRgba(color, fillOpacity);
             ctx.fill();
@@ -190,23 +222,46 @@ const DQ_CHARTS = {
         const minVal = 0;
         const range = maxVal - minVal || 1;
 
-        const chartWidth = width - padding.left - padding.right;
+        // Y-Labels formatieren & breitestes Label messen
+        const yGridLines = 4;
+        const yLabels = [];
+        ctx.font = 'bold 13px sans-serif';
+        let maxLabelWidth = 0;
+        for (let i = 0; i <= yGridLines; i++) {
+            const val = minVal + (range / yGridLines) * i;
+            const label = this.formatNumber(val);
+            yLabels.push({ val, label });
+            const w = ctx.measureText(label).width;
+            if (w > maxLabelWidth) maxLabelWidth = w;
+        }
+
+        const minLeftPad = padding.left;
+        const maxLeftPad = Math.floor(width * 0.3);
+        const requiredLeftPad = Math.ceil(maxLabelWidth) + 16;
+        const adjustedLeftPad = Math.min(maxLeftPad, Math.max(minLeftPad, requiredLeftPad));
+
+        const adjPad = {
+            top: padding.top,
+            right: padding.right,
+            bottom: padding.bottom,
+            left: adjustedLeftPad
+        };
+
+        const chartWidth = width - adjPad.left - adjPad.right;
         const barWidth = (chartWidth / data.length) * 0.6;
         const barGap = (chartWidth / data.length) * 0.4;
 
-        const getX = (index) => padding.left + index * (barWidth + barGap) + barGap / 2;
-        const getY = (value) => height - padding.bottom - ((value - minVal) / range) * (height - padding.top - padding.bottom);
+        const getX = (index) => adjPad.left + index * (barWidth + barGap) + barGap / 2;
+        const getY = (value) => height - adjPad.bottom - ((value - minVal) / range) * (height - adjPad.top - adjPad.bottom);
 
         // Grid
         ctx.strokeStyle = colors.grid;
         ctx.lineWidth = 1;
-        const yGridLines = 4;
         for (let i = 0; i <= yGridLines; i++) {
-            const val = minVal + (range / yGridLines) * i;
-            const y = getY(val);
+            const y = getY(yLabels[i].val);
             ctx.beginPath();
-            ctx.moveTo(padding.left, y);
-            ctx.lineTo(width - padding.right, y);
+            ctx.moveTo(adjPad.left, y);
+            ctx.lineTo(width - adjPad.right, y);
             ctx.stroke();
         }
 
@@ -214,16 +269,15 @@ const DQ_CHARTS = {
         ctx.fillStyle = colors.text;
         ctx.textAlign = 'right';
         ctx.font = 'bold 13px sans-serif';
-        for (let i = 0; i <= yGridLines; i++) {
-            const val = minVal + (range / yGridLines) * i;
-            ctx.fillText(Math.round(val), padding.left - 8, getY(val) + 4);
-        }
+        yLabels.forEach(({ val, label }) => {
+            ctx.fillText(label, adjPad.left - 8, getY(val) + 4);
+        });
 
         // Balken
         data.forEach((d, i) => {
             const x = getX(i);
             const y = getY(d.value);
-            const h = height - padding.bottom - y;
+            const h = height - adjPad.bottom - y;
             const color = d.color || barColor;
 
             ctx.fillStyle = color;
@@ -233,13 +287,13 @@ const DQ_CHARTS = {
             ctx.fillStyle = colors.text;
             ctx.textAlign = 'center';
             ctx.font = 'bold 13px sans-serif';
-            ctx.fillText(d.label, x + barWidth / 2, height - padding.bottom + 16);
+            ctx.fillText(d.label, x + barWidth / 2, height - adjPad.bottom + 16);
 
             // Wert
             if (showValues && d.value > 0) {
                 ctx.fillStyle = colors.text;
                 ctx.font = 'bold 13px sans-serif';
-                ctx.fillText(d.value, x + barWidth / 2, y - 6);
+                ctx.fillText(this.formatNumber(d.value), x + barWidth / 2, y - 6);
             }
         });
     },

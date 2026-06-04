@@ -3,24 +3,24 @@ if (typeof window.DQ_DATA === 'undefined') {
 }
 
 const DQ_TRAINING_PLAN_SHARED_REP_STAGES = [
-    { labelKey: 'phase_foundation', weeks: 1, sets: 2, reps: 8 },
-    { labelKey: 'phase_progress', weeks: 1, sets: 2, reps: 10 },
-    { labelKey: 'phase_volume', weeks: 1, sets: 2, reps: 12 },
-    { labelKey: 'phase_sets_up', weeks: 1, sets: 3, reps: 8 },
-    { labelKey: 'phase_sets_more', weeks: 1, sets: 3, reps: 10 },
-    { labelKey: 'phase_peak', weeks: 1, sets: 3, reps: 12 },
-    { labelKey: 'phase_endgame', weeks: 1, sets: 4, reps: 10 },
+    { labelKey: 'phase_foundation', weeks: 2, sets: 2, reps: 8 },
+    { labelKey: 'phase_progress', weeks: 2, sets: 2, reps: 10 },
+    { labelKey: 'phase_volume', weeks: 2, sets: 2, reps: 12 },
+    { labelKey: 'phase_sets_up', weeks: 2, sets: 3, reps: 8 },
+    { labelKey: 'phase_sets_more', weeks: 2, sets: 3, reps: 10 },
+    { labelKey: 'phase_peak', weeks: 2, sets: 3, reps: 12 },
+    { labelKey: 'phase_endgame', weeks: 2, sets: 4, reps: 10 },
     { labelKey: 'phase_endgame', weeks: 9999, sets: 4, reps: 12 }
 ];
 
 const DQ_TRAINING_PLAN_ENDURANCE_STAGES = [
-    { labelKey: 'phase_endurance_base', weeks: 1, sets: 1, duration: 20, distance: 2.0, power: 4 },
-    { labelKey: 'phase_endurance_base', weeks: 1, sets: 1, duration: 25, distance: 2.5, power: 4.5 },
-    { labelKey: 'phase_endurance_build', weeks: 1, sets: 1, duration: 28, distance: 3.0, power: 5 },
-    { labelKey: 'phase_endurance_build', weeks: 1, sets: 1, duration: 32, distance: 3.5, power: 5.5 },
-    { labelKey: 'phase_endurance_volume', weeks: 1, sets: 2, duration: 30, distance: 4.0, power: 6 },
-    { labelKey: 'phase_endurance_volume', weeks: 1, sets: 2, duration: 35, distance: 4.5, power: 6.5 },
-    { labelKey: 'phase_endurance_peak', weeks: 1, sets: 2, duration: 40, distance: 5.0, power: 7 },
+    { labelKey: 'phase_endurance_base', weeks: 2, sets: 1, duration: 20, distance: 2.0, power: 4 },
+    { labelKey: 'phase_endurance_base', weeks: 2, sets: 1, duration: 25, distance: 2.5, power: 4.5 },
+    { labelKey: 'phase_endurance_build', weeks: 2, sets: 1, duration: 28, distance: 3.0, power: 5 },
+    { labelKey: 'phase_endurance_build', weeks: 2, sets: 1, duration: 32, distance: 3.5, power: 5.5 },
+    { labelKey: 'phase_endurance_volume', weeks: 2, sets: 2, duration: 30, distance: 4.0, power: 6 },
+    { labelKey: 'phase_endurance_volume', weeks: 2, sets: 2, duration: 35, distance: 4.5, power: 6.5 },
+    { labelKey: 'phase_endurance_peak', weeks: 2, sets: 2, duration: 40, distance: 5.0, power: 7 },
     { labelKey: 'phase_endurance_endgame', weeks: 9999, sets: 2, duration: 45, distance: 5.5, power: 7.5 }
 ];
 

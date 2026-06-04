@@ -5,6 +5,8 @@
     --background-gradient: linear-gradient(180deg, #1f1c24 0%, #121212 100%);
     --surface-color: #1c1b1f;
     --surface-container-high: #2a292d;
+    --header-color: #1c1b1f;
+    --bottom-nav-color: #1c1b1f;
     --primary-color: #5f8575;
     --primary-color-rgb: 95, 133, 117;
     --secondary-button-color: #4a4458;
@@ -26,6 +28,8 @@ html[data-theme='light'] {
     --background-gradient: linear-gradient(180deg, #f5efff 0%, #fef7ff 100%);
     --surface-color: #e8e0e9;
     --surface-container-high: #ded8e1;
+    --header-color: #e8e0e9;
+    --bottom-nav-color: #e8e0e9;
     --primary-color: #4a6559;
     --primary-color-rgb: 74, 101, 89;
     --secondary-button-color: #625b71;
@@ -47,6 +51,8 @@ html[data-theme='oled'] {
     --background-gradient: linear-gradient(180deg, #000000 0%, #000000 100%);
     --surface-color: #0a0a0a;
     --surface-container-high: #141414;
+    --header-color: #010000;
+    --bottom-nav-color: #121411;
     --primary-color: #5f8575;
     --primary-color-rgb: 95, 133, 117;
     --secondary-button-color: #1a1a2e;
@@ -265,7 +271,7 @@ html[data-theme='light'] .popup-content::-webkit-scrollbar-thumb {
 }
 
 
-/* Stile für die Notfall-Anzeige */
+/* Stile fuer die Notfall-Anzeige */
 #critical-error-fallback {
     position: fixed;
     top: 0;
@@ -276,7 +282,7 @@ html[data-theme='light'] .popup-content::-webkit-scrollbar-thumb {
     display: none;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 24px;
 }
 
 #critical-error-fallback.visible {
@@ -289,8 +295,8 @@ html[data-theme='light'] .popup-content::-webkit-scrollbar-thumb {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(5px);
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(12px);
 }
 
 .fallback-message {
@@ -298,27 +304,61 @@ html[data-theme='light'] .popup-content::-webkit-scrollbar-thumb {
     z-index: 101;
     background-color: var(--surface-color);
     color: var(--on-surface-color);
-    padding: 24px;
-    border-radius: 16px;
+    padding: 32px 24px;
+    border-radius: 20px;
     border: 1px solid var(--outline-color);
-    max-width: 400px;
+    max-width: 380px;
     text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 .fallback-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
+}
+.fallback-icon .material-symbols-rounded {
+    font-size: 44px;
+    color: var(--primary-color);
 }
 
 .fallback-message h3 {
-    color: var(--primary-color);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--on-surface-color);
     margin-bottom: 12px;
+    line-height: 1.3;
 }
 
 .fallback-message p {
-    opacity: 0.8;
-    line-height: 1.5;
-    margin-bottom: 24px;
+    font-size: 14px;
+    opacity: 0.75;
+    line-height: 1.55;
+    margin-bottom: 16px;
+}
+
+.fallback-btn-primary {
+    display: inline-block;
+    background: var(--primary-color);
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 28px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 4px;
+    margin-bottom: 8px;
+    transition: background 0.2s, transform 0.15s;
+}
+.fallback-btn-primary:active {
+    transform: scale(0.97);
+}
+
+.fallback-hint {
+    font-size: 12px;
+    opacity: 0.5;
+    margin-top: 12px;
+    margin-bottom: 0;
+    line-height: 1.45;
 }
 
 .fallback-actions {
@@ -326,19 +366,25 @@ html[data-theme='light'] .popup-content::-webkit-scrollbar-thumb {
     background-color: var(--surface-container-high);
     padding: 16px;
     border-radius: 12px;
+    margin-top: 16px;
 }
 
 .fallback-actions strong {
     display: block;
-    margin-bottom: 12px;
+    font-size: 13px;
+    margin-bottom: 10px;
+    opacity: 0.8;
 }
 
 .fallback-actions ol {
-    padding-left: 20px;
+    padding-left: 18px;
 }
 
 .fallback-actions li {
-    margin-bottom: 8px;
+    font-size: 13px;
+    margin-bottom: 6px;
+    opacity: 0.7;
+    line-height: 1.45;
 }
 
 
@@ -352,7 +398,7 @@ html[data-theme='light'] .popup-content::-webkit-scrollbar-thumb {
     justify-content: space-between;
     align-items: center;
     padding: 12px 16px;
-    background-color: var(--surface-color);
+    background-color: var(--header-color);
     border-bottom: 1px solid var(--outline-color);
     z-index: 10;
     height: 60px;
@@ -444,7 +490,7 @@ h2 {
     display: flex;
     justify-content: space-evenly;
     align-items: stretch;
-    background-color: var(--surface-color);
+    background-color: var(--bottom-nav-color);
     height: 75px;
     z-index: 10;
     border-top: 1px solid var(--outline-color);

@@ -340,8 +340,154 @@
 .enhanced-info-popup {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
     text-align: left;
+}
+
+.info-title {
+    font-size: 20px;
+    color: var(--primary-color);
+    margin: 0 0 2px 0;
+    text-align: center;
+}
+
+/* Instruction box – always open by default, collapsible */
+.info-instruction-box {
+    background: var(--surface-container-high);
+    border: 1px solid var(--outline-color);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.info-instruction-box summary {
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--primary-color);
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    list-style: none;
+}
+
+.info-instruction-box summary::-webkit-details-marker { display: none; }
+
+.info-instruction-box summary::after {
+    content: '\25BC';
+    font-size: 10px;
+    color: var(--primary-color);
+    transition: transform 0.25s ease;
+}
+
+.info-instruction-box[open] summary::after {
+    transform: rotate(-180deg);
+}
+
+.info-instruction-text {
+    font-size: 13px;
+    line-height: 1.7;
+    padding: 0 12px 12px 12px;
+    text-align: left;
+    word-wrap: break-word;
+}
+
+/* Summary table – compact 2-col grid */
+.info-summary-table {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 14px;
+    font-size: 11px;
+    padding: 10px 0;
+    border-top: 1px solid var(--outline-color);
+}
+
+.info-summary-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.info-summary-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.55;
+}
+
+.info-summary-value {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+/* Badges – shared */
+.info-badge {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 8px;
+    background-color: var(--surface-container-high);
+    border: 1px solid var(--outline-color);
+    color: var(--on-surface-color);
+    white-space: nowrap;
+}
+
+.muscle-badge {
+    background-color: rgba(var(--primary-color-rgb), 0.15);
+    border-color: rgba(var(--primary-color-rgb), 0.4);
+}
+
+.cat-badge {
+    background-color: rgba(91, 151, 212, 0.15);
+    border-color: rgba(91, 151, 212, 0.4);
+}
+
+.phase-badge {
+    background-color: rgba(var(--primary-color-rgb), 0.1);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+/* Stat rows inside summary */
+.info-stat-row {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--on-surface-color);
+}
+
+/* Footer – target left, reward right */
+.info-footer {
+    margin-top: 4px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--outline-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.info-target strong {
+    color: var(--primary-color);
+}
+
+.info-reward-label {
+    font-weight: 700;
+    color: var(--on-surface-color);
+    margin-right: 6px;
+}
+
+.info-rewards {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+    white-space: nowrap;
 }
 
 .info-title {

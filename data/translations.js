@@ -99,26 +99,20 @@ DQ_DATA.translations = {
         cancel: "Abbrechen",
         rest_days: "Rest Days / Woche", 
         update_notice_title: "DailyQuest wurde aktualisiert",
-        update_notice_intro: "Neues Timer-Feature und verbesserte Buttons warten auf dich!",
-        update_notice_phase: "Dein Fortschritt und alle Daten bleiben wie gewohnt erhalten.",
-        update_notice_data: "Alle bisherigen Daten bleiben wie gewohnt erhalten.",
-        update_notice_footer: "Viel Spaß mit den neuen Features!",
+
+        update_notice_intro: "Das ist neu in dieser Version:",
+
+        update_notice_page1_point1: "Redesign der Einstellungen",
+
+        update_notice_page1_point2: "Bug Fixes (Einstellungen schließen nicht mehr von alleine)",
+
+        update_notice_page2_point1: "Design-Upgrades (moderneres Erscheinungsbild)",
+
+        update_notice_page2_point2: "Update-System verbessert (Fortschritt bleibt erhalten)",
+
         update_notice_step_label: "Seite",
-        update_notice_next: "Weiter",
-        update_notice_prev: "Zurück",
+
         update_notice_finish: "Los geht's!",
-        update_notice_page1_title: "1. Neues Timer-Popup",
-        update_notice_page1_body: "Bei Übungen wie Plank, Side Plank und Hollow Body Hold gibt es jetzt ein Timer-Popup mit Countdown.",
-        update_notice_page1_point1: "Timer-Popup mit 65% Bildschirmgröße",
-        update_notice_page1_point2: "5-Sekunden Countdown vor Start mit GO!",
-        update_notice_page2_title: "2. Grüne Buttons",
-        update_notice_page2_body: "Interaktive Buttons wie Kaufen und Ausrüsten sind jetzt grün für bessere Sichtbarkeit.",
-        update_notice_page2_point1: "Grüne Kauf-Buttons im Shop",
-        update_notice_page2_point2: "Grüne Ausrüsten-Buttons im Inventar",
-        update_notice_page3_title: "3. Dateninkonsistenzen behoben",
-        update_notice_page3_body: "Mehrere Bugfixes wurden implementiert, unter anderem beim Senior-Modus.",
-        update_notice_page3_point1: "Senior-Modus zeigt wieder 6 Aufgaben",
-        update_notice_page3_point2: "Mana und Gold Werte angepasst",
         
         // --- FILTER ---
         filter_all: "Alle", 
@@ -410,26 +404,20 @@ DQ_DATA.translations = {
         cancel: "Cancel",
         rest_days: "Rest Days / Week", 
         update_notice_title: "DailyQuest was updated",
-        update_notice_intro: "New Timer feature and improved buttons await you!",
-        update_notice_phase: "Your progress and all data remain intact as usual.",
-        update_notice_data: "All your previous data remains intact as usual.",
-        update_notice_footer: "Have fun with the new features!",
+
+        update_notice_intro: "What's new in this version:",
+
+        update_notice_page1_point1: "Settings redesign",
+
+        update_notice_page1_point2: "Bug fixes (settings no longer close randomly)",
+
+        update_notice_page2_point1: "Design upgrades (cleaner look and feel)",
+
+        update_notice_page2_point2: "Improved update system (progress is preserved)",
+
         update_notice_step_label: "Page",
-        update_notice_next: "Next",
-        update_notice_prev: "Back",
+
         update_notice_finish: "Let's go!",
-        update_notice_page1_title: "1. New Timer Popup",
-        update_notice_page1_body: "Exercises like Plank, Side Plank and Hollow Body Hold now have a Timer popup with countdown.",
-        update_notice_page1_point1: "Timer popup at 65% screen size",
-        update_notice_page1_point2: "5-second countdown before start with GO!",
-        update_notice_page2_title: "2. Green Buttons",
-        update_notice_page2_body: "Interactive buttons like Buy and Equip are now green for better visibility.",
-        update_notice_page2_point1: "Green Buy buttons in Shop",
-        update_notice_page2_point2: "Green Equip buttons in Inventory",
-        update_notice_page3_title: "3. Data inconsistencies fixed",
-        update_notice_page3_body: "Several bug fixes have been implemented, including for Senior mode.",
-        update_notice_page3_point1: "Senior mode shows 6 quests again",
-        update_notice_page3_point2: "Mana and Gold values adjusted",
 
         // --- FILTERS ---
         filter_all: "All",

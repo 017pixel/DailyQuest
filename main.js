@@ -271,7 +271,7 @@ const DQ_CONFIG = {
     }
 };
 
-const APP_VERSION = '2.9.1';
+const APP_VERSION = '2.10.0';
 const APP_UPDATE_FLAG_KEY = 'dq_seen_app_version';
 
 async function initializeApp() {
@@ -299,7 +299,7 @@ async function initializeApp() {
             infoPopupContent: document.getElementById('info-popup-content'),
             notificationPopup: document.getElementById('notification-popup'),
             notificationPopupContent: document.getElementById('notification-popup-content'),
-            settingsPopup: document.getElementById('settings-popup'),
+            settingsPopup: document.getElementById('settings-overlay'),
             sellPopup: document.getElementById('sell-popup'),
             settingsButton: document.getElementById('settings-button'),
             languageSelect: document.getElementById('language-select'),
@@ -703,6 +703,7 @@ function addSettingsListeners(elements) {
 
     elements.settingsButton.addEventListener('click', () => {
         updateSettingsUI();
+        DQ_UI.openSettingsOverlay();
     });
 
     elements.languageSelect.addEventListener('change', (e) => saveSetting('language', e.target.value));
@@ -743,9 +744,6 @@ function addSettingsListeners(elements) {
     });
 
     elements.restdaysSelect.addEventListener('change', (e) => {
-        handleRestDaysChange(parseInt(e.target.value, 10));
-    });
-    elements.restdaysSelect.addEventListener('input', (e) => {
         handleRestDaysChange(parseInt(e.target.value, 10));
     });
 
@@ -843,11 +841,12 @@ async function resetTutorialAndIntro() {
     const lang = DQ_CONFIG.userSettings.language || 'de';
     const trans = DQ_DATA.translations[lang] || DQ_DATA.translations.de;
     
-    // Zuerst alle Popups schliessen, damit das Warn-Popup ganz vorne liegt
+    // Settings-Overlay explizit schliessen, damit das Warn-Popup vorne liegt
     DQ_UI.hideAllPopups();
-    
-    // Kurze Verzoegerung, damit das Einstellungs-Popup sicher geschlossen ist
-    await new Promise(resolve => setTimeout(resolve, 150));
+    DQ_UI.closeSettingsOverlay();
+
+    // Warten bis die Slide-Down-Transition (0.4s) abgeschlossen ist
+    await new Promise(resolve => setTimeout(resolve, 400));
     
     // --- POPUP 1: Erste Warnung ---
     const popup1Content = `
@@ -931,19 +930,14 @@ try {
 function getUpdateNoticePages(trans) {
     return [
         {
-            title: trans.update_notice_page1_title,
-            body: trans.update_notice_page1_body,
-            points: [trans.update_notice_page1_point1, trans.update_notice_page1_point2]
-        },
-        {
-            title: trans.update_notice_page2_title,
-            body: trans.update_notice_page2_body,
-            points: [trans.update_notice_page2_point1, trans.update_notice_page2_point2]
-        },
-        {
-            title: trans.update_notice_page3_title,
-            body: trans.update_notice_page3_body,
-            points: [trans.update_notice_page3_point1, trans.update_notice_page3_point2]
+            title: trans.update_notice_title || 'DailyQuest wurde aktualisiert',
+            body: trans.update_notice_intro || 'Das ist neu in dieser Version:',
+            points: [
+                trans.update_notice_page1_point1 || 'Redesign der Einstellungen',
+                trans.update_notice_page1_point2 || 'Bug Fixes',
+                trans.update_notice_page2_point1 || 'Design-Upgrades (kleine Anpassungen)',
+                trans.update_notice_page2_point2 || 'Technische Updates',
+            ]
         }
     ];
 }
@@ -958,40 +952,23 @@ async function showUpdateNotice() {
         const page = pages[pageIndex];
         const content = `
             <div class="training-reset-message update-notice-box">
-                <h3>${trans.update_notice_title}</h3>
-                <p>${trans.update_notice_step_label || 'Seite'} ${pageIndex + 1}/3</p>
-                <h4>${page.title}</h4>
+                <h3>${page.title}</h3>
                 <p>${page.body}</p>
                 <ul>
                     ${page.points.map(point => `<li>${point}</li>`).join('')}
                 </ul>
                 <div class="popup-actions">
-                    <button type="button" id="update-notice-prev-button" class="card-button secondary-button"${pageIndex === 0 ? ' disabled' : ''}>${trans.update_notice_prev}</button>
-                    <button type="button" id="update-notice-next-button" class="card-button">${pageIndex === pages.length - 1 ? trans.update_notice_finish : trans.update_notice_next}</button>
+                    <button type="button" id="update-notice-next-button" class="card-button">${trans.update_notice_finish || 'Los geht\'s!'}</button>
                 </div>
             </div>
         `;
 
         DQ_UI.showCustomPopup(content, 'info');
 
-        const prevButton = document.getElementById('update-notice-prev-button');
         const nextButton = document.getElementById('update-notice-next-button');
-        if (prevButton) {
-            prevButton.addEventListener('click', () => {
-                if (pageIndex > 0) {
-                    pageIndex--;
-                    render();
-                }
-            }, { once: true });
-        }
         if (nextButton) {
             nextButton.addEventListener('click', () => {
-                if (pageIndex < pages.length - 1) {
-                    pageIndex++;
-                    render();
-                } else {
-                    DQ_UI.hideAllPopups();
-                }
+                DQ_UI.hideAllPopups();
             }, { once: true });
         }
     };
@@ -1021,23 +998,25 @@ function saveSetting(key, value) {
                 }
             };
             tx.oncomplete = () => {
-                if (key === 'name' || key === 'age' || key === 'weightTrackingEnabled') {
-                    DQ_CHARACTER_MAIN.renderPage();
-                }
                 if (key === 'age') {
                     const settingsTx = DQ_DB.db.transaction(['settings'], 'readwrite');
                     settingsTx.objectStore('settings').put(DQ_CONFIG.userSettings);
                     settingsTx.oncomplete = () => {
+                        DQ_CHARACTER_MAIN.renderPage();
                         updateSettingsUI();
                         if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
                         resolve();
                     };
                     settingsTx.onerror = () => {
+                        DQ_CHARACTER_MAIN.renderPage();
                         updateSettingsUI();
                         if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
                         resolve();
                     };
                     return;
+                }
+                if (key === 'name' || key === 'weightTrackingEnabled') {
+                    DQ_CHARACTER_MAIN.renderPage();
                 }
                 if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
                 resolve();
@@ -1152,12 +1131,6 @@ async function handlePostUpdateMigration() {
         return;
     }
 
-    const goal = DQ_CONFIG.userSettings.goal || 'muscle';
-    if (!['sick', 'restday'].includes(goal) && typeof DQ_TRAINING_SYSTEM !== 'undefined') {
-        await DQ_TRAINING_SYSTEM.resetPhaseState(goal);
-        DQ_CONFIG.forceQuestRefresh = true;
-    }
-
     DQ_CONFIG.pendingUpdateNotice = true;
     localStorage.setItem(APP_UPDATE_FLAG_KEY, APP_VERSION);
 }
@@ -1240,14 +1213,23 @@ async function generateDailyQuestsIfNeeded(forceRegenerate = false) {
     }
 
     if (questsToday.length > 0 && forceRegenerate) {
-        console.log('Erzwinge Neugenerierung: Lösche alte Quests für heute...');
-        await new Promise(resolve => {
-            const tx = DQ_DB.db.transaction(['daily_quests'], 'readwrite');
-            const store = tx.objectStore('daily_quests');
-            questsToday.forEach(q => store.delete(q.questId));
-            tx.oncomplete = resolve;
-            tx.onerror = resolve;
-        });
+        const hasStartedQuests = questsToday.some(q =>
+            q.completed || (Array.isArray(q.setProgress) && q.setProgress.some(Boolean)) || q.enduranceLog
+        );
+
+        if (hasStartedQuests) {
+            console.log('Heutige Quests haben Fortschritt — Neugenerierung abgebrochen.');
+            forceRegenerate = false;
+        } else {
+            console.log('Erzwinge Neugenerierung: Lösche alte Quests für heute...');
+            await new Promise(resolve => {
+                const tx = DQ_DB.db.transaction(['daily_quests'], 'readwrite');
+                const store = tx.objectStore('daily_quests');
+                questsToday.forEach(q => store.delete(q.questId));
+                tx.oncomplete = resolve;
+                tx.onerror = resolve;
+            });
+        }
     }
 
     if (goal === 'restday' || goal === 'sick') {
