@@ -102,11 +102,11 @@ DQ_DATA.translations = {
 
         update_notice_intro: "Das ist neu in dieser Version:",
 
-        update_notice_page1_point1: "Redesign der Einstellungen",
+        update_notice_page1_point1: "Popups per Klick schliessen (neben Swipe-Down)",
 
-        update_notice_page1_point2: "Bug Fixes (Einstellungen schließen nicht mehr von alleine)",
+        update_notice_page1_point2: "Bug Fixes (Einstellungen schliessen nicht mehr von alleine)",
 
-        update_notice_page2_point1: "Design-Upgrades (moderneres Erscheinungsbild)",
+        update_notice_page2_point1: "Redesign der Einstellungen (moderneres Design)",
 
         update_notice_page2_point2: "Update-System verbessert (Fortschritt bleibt erhalten)",
 
@@ -407,11 +407,11 @@ DQ_DATA.translations = {
 
         update_notice_intro: "What's new in this version:",
 
-        update_notice_page1_point1: "Settings redesign",
+        update_notice_page1_point1: "Close popups by tapping outside (alongside swipe-down)",
 
         update_notice_page1_point2: "Bug fixes (settings no longer close randomly)",
 
-        update_notice_page2_point1: "Design upgrades (cleaner look and feel)",
+        update_notice_page2_point1: "Settings redesign (cleaner look and feel)",
 
         update_notice_page2_point2: "Improved update system (progress is preserved)",
 

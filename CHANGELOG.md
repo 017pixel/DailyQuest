@@ -4,6 +4,15 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## Version 2.10.1 - Popup Click-to-Close Fix
+
+### Veraendert
+- Popups koennen wieder per Klick auf den Hintergrund geschlossen werden
+- Klick auf Padding-Flaeche des Popups schliesst es ebenfalls
+- Swipe-Down-Mechanik bleibt weiterhin erhalten
+
+---
+
 ## Version 2.10.0 - Einstellungen Redesign & Bugfixes
 
 ### Erstellt

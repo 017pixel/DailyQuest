@@ -23,6 +23,9 @@ const DQ_UI = {
                 if (this.popupStack.length > 1 && event.currentTarget === this.popupStack[this.popupStack.length - 2]) {
                     this.hideTopPopup();
                 }
+                if (event.target === event.currentTarget) {
+                    this.hideTopPopup();
+                }
             });
         });
 

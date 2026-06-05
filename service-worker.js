@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dailyquest-cache-v22';
+const CACHE_NAME = 'dailyquest-cache-v23';
 
 const urlsToCache = [
   '/',
