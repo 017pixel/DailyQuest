@@ -178,23 +178,26 @@ const DQ_UI = {
             });
         }
 
-        if (this._settingsHandle) {
-            let touchStartY = 0;
-            let touchMoved = false;
-
-            this._settingsHandle.addEventListener('touchstart', (e) => {
-                touchStartY = e.touches[0].clientY;
-                touchMoved = false;
+        if (this._settingsSheet) {
+            this._settingsSheet.addEventListener('touchstart', (e) => {
+                this._settingsTouchStartY = e.touches[0].clientY;
             }, { passive: true });
 
-            this._settingsHandle.addEventListener('touchmove', (e) => {
-                const delta = e.touches[0].clientY - touchStartY;
-                if (delta > 20) touchMoved = true;
+            this._settingsSheet.addEventListener('touchmove', (e) => {
+                const deltaY = e.touches[0].clientY - this._settingsTouchStartY;
+                if (deltaY > 0 && this._settingsSheet.scrollTop <= 0) {
+                    this._settingsSheet.style.transition = 'none';
+                    this._settingsSheet.style.transform = `translateY(${deltaY}px)`;
+                }
             }, { passive: true });
 
-            this._settingsHandle.addEventListener('touchend', (e) => {
-                const delta = e.changedTouches[0].clientY - touchStartY;
-                if (touchMoved && delta > 50) this.closeSettingsOverlay();
+            this._settingsSheet.addEventListener('touchend', (e) => {
+                const deltaY = e.changedTouches[0].clientY - this._settingsTouchStartY;
+                this._settingsSheet.style.transition = '';
+                this._settingsSheet.style.transform = '';
+                if (deltaY > 100 && this._settingsSheet.scrollTop <= 0) {
+                    this.closeSettingsOverlay();
+                }
             });
         }
     },
