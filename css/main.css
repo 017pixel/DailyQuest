@@ -880,6 +880,7 @@ h2 {
     border: 1px solid var(--outline-color);
     border-radius: 14px;
     padding: 16px;
+    margin-top: 14px;
     margin-bottom: 12px;
 }
 
