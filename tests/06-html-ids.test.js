@@ -28,7 +28,6 @@ const DYNAMIC_IDS = new Set([
     'reset-popup1-cancel', 'reset-popup1-continue',
     'reset-popup2-cancel', 'reset-popup2-confirm',
     'update-notice-prev-button', 'update-notice-next-button',
-    'cloud-load-confirm', 'cloud-load-cancel',
     'start-stop-btn', 'timer-warning-box',
     'free-training-container', 'daily-quest-container',
     'focus-label-list',

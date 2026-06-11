@@ -602,7 +602,7 @@ const DQ_SUPABASE = {
     // ==========================================
     // DATA SYNC: SUPABASE -> LOCAL
     // ==========================================
-    async loadFromSupabase() {
+    async loadFromSupabase(options = {}) {
         if (!this.client || !this.currentUser) return;
         if (!navigator.onLine) {
             console.log('Offline. Lade von Supabase uebersprungen.');
@@ -631,6 +631,7 @@ const DQ_SUPABASE = {
 
             if (!data || !data.app_data || Object.keys(data.app_data).length === 0) {
                 console.log('Keine Cloud-Daten gefunden. Lokale Daten behalten.');
+                localStorage.removeItem('dq_sync_conflict');
                 return;
             }
 
@@ -652,67 +653,40 @@ const DQ_SUPABASE = {
                         }
                     });
                 }
+                localStorage.removeItem('dq_sync_conflict');
                 window.location.reload();
             } else {
                 const cloudDate = new Date(data.updated_at).getTime();
                 const localDate = parseInt(localStorage.getItem('dq_last_local_update') || '0', 10);
 
-                if (cloudDate > localDate) {
-                    console.log('Cloud-Daten sind neuer als lokale Daten.');
-
-                    // Pruefe ob DQ_UI bereits initialisiert ist (Popup kann sonst nicht angezeigt werden)
-                    const uiReady = (typeof DQ_UI !== 'undefined' && DQ_UI.elements && DQ_UI.elements.popupOverlay);
-                    if (!uiReady) {
-                        console.log('UI noch nicht initialisiert. Ueberspringe Cloud-Daten-Dialog, lade lokale Daten hoch.');
-                        await this.syncToSupabase();
-                        return;
-                    }
-
-                    const content = `
-                        <h3>Cloud-Daten gefunden</h3>
-                        <p>Es wurden neuere Daten in der Cloud gefunden. Moechtest du sie laden? Dadurch werden deine aktuellen lokalen Daten ueberschrieben.</p>
-                        <div class="popup-actions">
-                            <button id="cloud-load-cancel" class="card-button secondary-button">Lokal behalten</button>
-                            <button id="cloud-load-confirm" class="card-button">Cloud laden</button>
-                        </div>
-                    `;
-                    try {
-                        DQ_UI.showCustomPopup(content, 'info');
-                    } catch (popupErr) {
-                        console.warn('Konnte Cloud-Daten-Dialog nicht anzeigen:', popupErr.message);
-                        await this.syncToSupabase();
-                        return;
-                    }
-
-                    const confirmBtn = document.getElementById('cloud-load-confirm');
-                    const cancelBtn = document.getElementById('cloud-load-cancel');
-
-                    if (confirmBtn) {
-                        confirmBtn.addEventListener('click', async () => {
-                            DQ_UI.hideAllPopups();
-                            await this.importIndexedDB(data.app_data);
-                            if (data.streak_data) {
-                                const { streak, lastDate } = data.streak_data;
-                                if (typeof streak === 'number') {
-                                    DQ_CONFIG.setStreakData(streak, lastDate || null);
-                                }
-                                ['dq_seen_app_version', 'lastPenaltyCheck'].forEach(key => {
-                                    if (data.streak_data[key] !== undefined) {
-                                        localStorage.setItem(key, data.streak_data[key]);
-                                    }
-                                });
+                // Force-Cloud: manueller Cloud-Load aus Settings (ueberschreibt lokale Daten)
+                if (options.forceCloud) {
+                    console.log('Manueller Cloud-Import: Ueberschreibe lokale Daten mit Cloud-Daten.');
+                    await this.importIndexedDB(data.app_data);
+                    if (data.streak_data) {
+                        const { streak, lastDate } = data.streak_data;
+                        if (typeof streak === 'number') {
+                            DQ_CONFIG.setStreakData(streak, lastDate || null);
+                        }
+                        ['dq_seen_app_version', 'lastPenaltyCheck'].forEach(key => {
+                            if (data.streak_data[key] !== undefined) {
+                                localStorage.setItem(key, data.streak_data[key]);
                             }
-                            window.location.reload();
-                        }, { once: true });
+                        });
                     }
-                    if (cancelBtn) {
-                        cancelBtn.addEventListener('click', () => {
-                            DQ_UI.hideAllPopups();
-                            this.syncToSupabase();
-                        }, { once: true });
-                    }
+                    localStorage.removeItem('dq_sync_conflict');
+                    window.location.reload();
+                    return;
+                }
+
+                if (cloudDate > localDate) {
+                    console.log('Cloud-Daten sind neuer als lokale Daten. Setze Konflikt-Flag, behalte lokale Daten.');
+                    localStorage.setItem('dq_sync_conflict', 'true');
+                    localStorage.setItem('dq_cloud_updated_at', data.updated_at);
+                    await this.syncToSupabase();
                 } else {
                     console.log('Lokale Daten sind aktueller. Lade hoch...');
+                    localStorage.removeItem('dq_sync_conflict');
                     await this.syncToSupabase();
                 }
             }
@@ -839,6 +813,12 @@ const DQ_SUPABASE = {
         const syncNowBtn = document.getElementById('syncNowBtn');
         const deleteAccountBtn = document.getElementById('deleteAccountBtn');
         const accountAvatar = document.querySelector('.account-avatar .material-symbols-rounded');
+        const syncStatus = document.getElementById('sync-status');
+        const syncStatusLabel = document.getElementById('syncStatusLabel');
+        const syncStatusDetail = document.getElementById('syncStatusDetail');
+        const syncStatusIcon = document.querySelector('.sync-status-icon');
+        const cloudLoadBtn = document.getElementById('cloudLoadBtn');
+        const localPushBtn = document.getElementById('localPushBtn');
 
         if (this.currentUser) {
             const isAnonymous = this.currentUser.is_anonymous;
@@ -849,6 +829,34 @@ const DQ_SUPABASE = {
             if (syncNowBtn) syncNowBtn.style.display = 'flex';
             if (deleteAccountBtn) deleteAccountBtn.style.display = 'flex';
             if (accountAvatar) accountAvatar.textContent = isAnonymous ? 'shield' : 'cloud_done';
+
+            // Sync-Status: nur fuer eingeloggte, nicht-anonyme User
+            if (!isAnonymous && syncStatus) {
+                const hasConflict = localStorage.getItem('dq_sync_conflict') === 'true';
+                if (hasConflict) {
+                    syncStatus.style.display = 'block';
+                    if (syncStatusLabel) syncStatusLabel.textContent = 'Cloud-Daten und lokale Daten nicht auf gleichem Stand';
+                    const cloudDate = localStorage.getItem('dq_cloud_updated_at');
+                    if (syncStatusDetail && cloudDate) {
+                        const localDate = parseInt(localStorage.getItem('dq_last_local_update') || '0', 10);
+                        const localStr = localDate ? new Date(localDate).toLocaleString() : 'unbekannt';
+                        const cloudStr = new Date(cloudDate).toLocaleString();
+                        syncStatusDetail.textContent = `Cloud: ${cloudStr} | Lokal: ${localStr}`;
+                    }
+                    if (syncStatusIcon) syncStatusIcon.classList.add('warning');
+                    if (cloudLoadBtn) cloudLoadBtn.style.display = 'flex';
+                    if (localPushBtn) localPushBtn.style.display = 'flex';
+                } else {
+                    syncStatus.style.display = 'block';
+                    if (syncStatusLabel) syncStatusLabel.textContent = 'Daten synchron';
+                    if (syncStatusDetail) syncStatusDetail.textContent = '';
+                    if (syncStatusIcon) syncStatusIcon.classList.remove('warning');
+                    if (cloudLoadBtn) cloudLoadBtn.style.display = 'none';
+                    if (localPushBtn) localPushBtn.style.display = 'none';
+                }
+            } else if (syncStatus) {
+                syncStatus.style.display = 'none';
+            }
         } else {
             if (accountEmail) accountEmail.textContent = 'Nicht angemeldet';
             if (accountType) accountType.textContent = 'Nur lokal (nicht synchronisiert)';
@@ -857,6 +865,7 @@ const DQ_SUPABASE = {
             if (syncNowBtn) syncNowBtn.style.display = 'none';
             if (deleteAccountBtn) deleteAccountBtn.style.display = 'none';
             if (accountAvatar) accountAvatar.textContent = 'account_circle';
+            if (syncStatus) syncStatus.style.display = 'none';
         }
     },
 
@@ -868,6 +877,8 @@ const DQ_SUPABASE = {
         const logoutBtn = document.getElementById('logoutBtn');
         const syncNowBtn = document.getElementById('syncNowBtn');
         const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+        const cloudLoadBtn = document.getElementById('cloudLoadBtn');
+        const localPushBtn = document.getElementById('localPushBtn');
 
         if (loginNowBtn) {
             loginNowBtn.addEventListener('click', () => {
@@ -897,8 +908,35 @@ const DQ_SUPABASE = {
             syncNowBtn.addEventListener('click', async () => {
                 DQ_UI.showCustomPopup('<h3>Sync...</h3><p>Daten werden synchronisiert...</p>', 'info');
                 await this.syncToSupabase();
+                localStorage.removeItem('dq_sync_conflict');
+                localStorage.removeItem('dq_cloud_updated_at');
+                this.updateAccountUI();
                 DQ_UI.hideAllPopups();
                 DQ_UI.showCustomPopup('<h3>Sync abgeschlossen</h3><p>Deine Daten wurden erfolgreich in der Cloud gespeichert.</p>', 'info');
+            });
+        }
+
+        if (cloudLoadBtn) {
+            cloudLoadBtn.addEventListener('click', async () => {
+                if (!confirm('Cloud-Daten laden? Deine aktuellen lokalen Daten werden durch die Cloud-Daten ueberschrieben.')) return;
+                DQ_UI.showCustomPopup('<h3>Lade Cloud-Daten...</h3><p>Bitte warten...</p>', 'info');
+                await this.loadFromSupabase({ forceCloud: true });
+                DQ_UI.hideAllPopups();
+                DQ_UI.showCustomPopup('<h3>Fertig</h3><p>Cloud-Daten geladen. Die Seite wird neu geladen.</p>', 'info');
+                setTimeout(() => window.location.reload(), 1500);
+            });
+        }
+
+        if (localPushBtn) {
+            localPushBtn.addEventListener('click', async () => {
+                if (!confirm('Lokale Daten in die Cloud hochladen? Die Cloud-Daten werden ueberschrieben.')) return;
+                DQ_UI.showCustomPopup('<h3>Lade lokale Daten hoch...</h3><p>Bitte warten...</p>', 'info');
+                await this.syncToSupabase();
+                localStorage.removeItem('dq_sync_conflict');
+                localStorage.removeItem('dq_cloud_updated_at');
+                this.updateAccountUI();
+                DQ_UI.hideAllPopups();
+                DQ_UI.showCustomPopup('<h3>Fertig</h3><p>Deine lokalen Daten wurden in die Cloud uebertragen.</p>', 'info');
             });
         }
 

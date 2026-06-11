@@ -834,6 +834,19 @@
                             <p class="account-type" id="accountType">Lokaler Speicher</p>
                         </div>
                     </div>
+                    <div id="sync-status" class="sync-status" style="display:none;">
+                        <div class="sync-status-header">
+                            <span class="sync-status-icon material-symbols-rounded">cloud_sync</span>
+                            <div class="sync-status-text">
+                                <p id="syncStatusLabel">Cloud-Daten und lokale Daten nicht auf gleichem Stand</p>
+                                <p id="syncStatusDetail"></p>
+                            </div>
+                        </div>
+                        <div class="settings-subpage-actions" id="syncConflictActions">
+                            <button id="cloudLoadBtn" class="settings-action-btn"><span class="material-symbols-rounded">cloud_download</span>Cloud-Daten laden (lokal ueberschreiben)</button>
+                            <button id="localPushBtn" class="settings-action-btn"><span class="material-symbols-rounded">cloud_upload</span>Lokale Daten in die Cloud bringen</button>
+                        </div>
+                    </div>
                     <div class="settings-subpage-actions">
                         <button id="loginNowBtn" class="settings-action-btn" style="display:none;"><span class="material-symbols-rounded">login</span>Anmelden / Registrieren</button>
                         <button id="syncNowBtn" class="settings-action-btn" style="display:none;"><span class="material-symbols-rounded">sync</span>Synchronisieren</button>
