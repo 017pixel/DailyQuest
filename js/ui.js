@@ -50,10 +50,18 @@ const DQ_UI = {
     },
 
     handleNavClick(button) {
+        const targetPageId = button.dataset.page;
+
+        // Extra Quest blockieren wenn deaktiviert
+        if (targetPageId === 'page-extra-quest' && DQ_CONFIG.userSettings.extraQuestEnabled === false) {
+            const exercisesBtn = document.querySelector('.nav-button[data-page="page-exercises"]');
+            if (exercisesBtn) this.handleNavClick(exercisesBtn);
+            return;
+        }
+
         const currentActive = document.querySelector('.nav-button.active');
         if (currentActive) currentActive.classList.remove('active');
         button.classList.add('active');
-        const targetPageId = button.dataset.page;
         this.elements.pages.forEach(page => {
             const isTarget = page.id === targetPageId;
             page.classList.toggle('active', isTarget);
@@ -104,6 +112,9 @@ const DQ_UI = {
     async checkAndShowProgressiveTutorial(pageId) {
         // Nur wenn das Progressive Tutorial verfügbar ist
         if (typeof DQ_TUTORIAL_PROGRESSIVE === 'undefined') return;
+
+        // Extra Quest ueberspringen wenn deaktiviert
+        if (pageId === 'page-extra-quest' && DQ_CONFIG.userSettings.extraQuestEnabled === false) return;
 
         // Mapping von Page-IDs zu Feature-Namen
         const pageToFeatureMap = {

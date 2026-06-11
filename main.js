@@ -721,6 +721,13 @@ function addSettingsListeners(elements) {
             saveSetting('theme', e.target.checked ? 'oled' : 'dark');
         });
     }
+    const extraQuestToggle = document.getElementById('extra-quest-toggle');
+    if (extraQuestToggle) {
+        extraQuestToggle.addEventListener('change', (e) => {
+            saveSetting('extraQuestEnabled', e.target.checked);
+            updateExtraQuestVisibility();
+        });
+    }
     elements.characterNameInput.addEventListener('change', (e) => saveSetting('name', e.target.value));
     if (elements.characterAgeInput) {
         elements.characterAgeInput.addEventListener('change', (e) => saveSetting('age', parseInt(e.target.value, 10) || null));
@@ -1060,7 +1067,7 @@ function loadSettings() {
             if (e.target.result) {
                 DQ_CONFIG.userSettings = e.target.result;
             } else {
-                DQ_CONFIG.userSettings = { id: 1, language: 'de', theme: 'dark', difficulty: 3, goal: 'muscle', restDays: 2, hasEquipment: true, weightTrackingEnabled: true, age: null };
+                DQ_CONFIG.userSettings = { id: 1, language: 'de', theme: 'dark', difficulty: 3, goal: 'muscle', restDays: 2, hasEquipment: true, weightTrackingEnabled: true, age: null, extraQuestEnabled: true };
                 tx.objectStore('settings').add(DQ_CONFIG.userSettings);
             }
             if (typeof DQ_TRAINING_SYSTEM !== 'undefined') {
@@ -1077,8 +1084,12 @@ function loadSettings() {
             if (typeof DQ_CONFIG.userSettings.weightTrackingEnabled !== 'boolean') {
                 DQ_CONFIG.userSettings.weightTrackingEnabled = true;
             }
+            if (typeof DQ_CONFIG.userSettings.extraQuestEnabled !== 'boolean') {
+                DQ_CONFIG.userSettings.extraQuestEnabled = true;
+            }
             tx.objectStore('settings').put(DQ_CONFIG.userSettings);
             updateSettingsUI();
+            updateExtraQuestVisibility();
             DQ_UI.applyTheme();
             resolve();
         };
@@ -1097,6 +1108,9 @@ function updateSettingsUI() {
     
     // Default zu true, wenn nicht gesetzt
     elements.equipmentToggle.checked = DQ_CONFIG.userSettings.hasEquipment !== false;
+
+    const extraQuestToggle = document.getElementById('extra-quest-toggle');
+    if (extraQuestToggle) extraQuestToggle.checked = DQ_CONFIG.userSettings.extraQuestEnabled !== false;
 
     DQ_DB.db.transaction('character', 'readonly').objectStore('character').get(1).onsuccess = e => {
         if (e.target.result) {
@@ -1121,6 +1135,23 @@ function updateSettingsUI() {
     if (elements.phaseExtendButton) elements.phaseExtendButton.disabled = !isPhaseGoal;
 
     updateDifficultySliderStyle(elements.difficultySlider);
+}
+
+function updateExtraQuestVisibility() {
+    const extraQuestNav = document.querySelector('.nav-button[data-page="page-extra-quest"]');
+    const extraQuestPage = document.getElementById('page-extra-quest');
+    const enabled = DQ_CONFIG.userSettings.extraQuestEnabled !== false;
+
+    if (extraQuestNav) extraQuestNav.style.display = enabled ? '' : 'none';
+    if (extraQuestPage) extraQuestPage.style.display = enabled ? '' : 'none';
+
+    if (!enabled) {
+        const currentActive = document.querySelector('.nav-button.active');
+        if (currentActive && currentActive.dataset.page === 'page-extra-quest') {
+            const exercisesBtn = document.querySelector('.nav-button[data-page="page-exercises"]');
+            if (exercisesBtn) DQ_UI.handleNavClick(exercisesBtn);
+        }
+    }
 }
 
 async function handlePostUpdateMigration() {
