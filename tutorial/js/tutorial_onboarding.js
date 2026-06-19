@@ -261,7 +261,7 @@
         this.showText('Was ist dein Trainingsziel?');
         await this.delay(600);
 
-        textContainer.insertAdjacentHTML(`
+        textContainer.insertAdjacentHTML('beforeend', `
             <div id="tutorial-goal-selection" class="tutorial-selection-container">
                 <button class="tutorial-choice-btn" data-preset="kraft">
                     <span class="material-symbols-rounded">fitness_center</span>
