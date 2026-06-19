@@ -4,6 +4,27 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## Version 2.11.0 - Konfetti-Effekt & Quest-Regenerierung
+
+### Erstellt
+- Konfetti-Effekt bei Streak-Erhöhung: Bunte Partikel explosion von links und rechts mit realistischer Physik (Schwerkraft, Luftwiderstand, Rotation)
+- Adaptive Performance-Tiers (low/mid/high) je nach Geraet – funktioniert auf Low-End-Handys ohne Ruckeln
+- Konfetti-Einstellung in Einstellungen → Allgemein deaktivierbar (Default: an)
+- Einheitliche Funktion `applyTrainingSettingChange` fuer Training-Settings-Aenderungen
+
+### Veraendert
+- Schwierigkeit/Phase aendern skaliert nur die Parameter offener Quests (Wdh/Dauer/Mana/Gold), tauscht aber nicht die Übungen aus – neue Übungen kommen erst am naechsten Tag
+- Trainingsziel/Rest Days aenderungen wirken erst am naechsten Tag, heutige Quests bleiben unangetastet
+- Equipment-Off ersetzt nur unbrauchbare Hantel-Quests (wenn alle offen) durch Koerpergewicht-Alternativen
+- Erledigte Quests werden bei Settings-Aenderungen nie mehr angefasst (Kern-Regel)
+- Bug behoben: Nach Aenderung von Schwierigkeit mit bereits erledigten Quests wurden 12 statt 6 Quests angezeigt
+- 7 fehlende DE-Uebersetzungs-Keys ergaenzt (Profil-Typ, Zeitmuster, Ausdauer-Entwicklung etc.)
+
+### Geloescht
+- Warn-Hinweis in Training-Einstellungen entfernt ("Aenderungen generieren Quests neu")
+
+---
+
 ## Version 2.10.1 - Popup Click-to-Close Fix
 
 ### Veraendert

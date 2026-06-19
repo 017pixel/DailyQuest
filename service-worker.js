@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dailyquest-cache-v23';
+const CACHE_NAME = 'dailyquest-cache-v24';
 
 const urlsToCache = [
   '/',
@@ -37,6 +37,7 @@ const urlsToCache = [
   '/js/page_shop.js',
   '/js/page_extra_quest.js',
   '/js/page_achievements.js',
+  '/js/confetti.js',
   '/js/training_system.js',
   '/js/dungeons/dungeon_combat.js',
   '/js/dungeons/page_dungeon_main.js',

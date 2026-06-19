@@ -381,6 +381,148 @@ const DQ_TRAINING_SYSTEM = {
         return { goal, quests, state, plan, stageContext, questIds };
     },
 
+    // Re-skaliert offene Quests: gleiche Übungen (nameKey), aber Parameter
+    // (reps/duration/mana/gold/phase) werden mit aktueller Difficulty / neuem
+    // stageContext neu berechnet. Erledigte Quests werden nie angetastet.
+    async rescaleOpenQuests(openQuests, todayStr, opts = {}) {
+        if (!Array.isArray(openQuests) || openQuests.length === 0) return [];
+        const settings = DQ_CONFIG.userSettings || {};
+        const difficulty = opts.difficulty != null ? opts.difficulty : (settings.difficulty || 3);
+        const hasEquipment = settings.hasEquipment !== false;
+        const allTemplates = Object.values(DQ_DATA.exercisePool).flat();
+        const updated = [];
+
+        for (const quest of openQuests) {
+            const template = allTemplates.find(ex => ex.nameKey === quest.nameKey);
+            if (!template) { updated.push(quest); continue; }
+
+            const goal = quest.goal || this.normalizeGoal(settings.goal || 'muscle');
+
+            if (goal === 'restday' || goal === 'sick') {
+                // Einfacher Pfad ohne Slot/Plan — Difficulty-Skalierung wie main.js
+                let targetValue = template.baseValue;
+                if (template.type !== 'check' && template.type !== 'link' && template.type !== 'focus') {
+                    targetValue = Math.ceil(template.baseValue + (template.baseValue * 0.4 * (difficulty - 1)));
+                }
+                quest.target = targetValue;
+                quest.manaReward = Math.ceil(template.mana * (1 + 0.2 * (difficulty - 1)));
+                quest.goldReward = Math.ceil(template.gold * (1 + 0.15 * (difficulty - 1)));
+                quest.bonusInfoSynced = true;
+                updated.push(quest);
+                continue;
+            }
+
+            const plan = this.getPlan(goal);
+            const state = await this.getState(goal);
+            const stageContext = opts.stageContext
+                ? opts.stageContext
+                : this.getStageForState(plan, state);
+            const slot = plan.slots.find(s => s.key === quest.slotKey) || plan.slots[0];
+
+            const rebuilt = this.buildQuest(goal, plan, state, stageContext, slot, template, todayStr, 0, difficulty, hasEquipment);
+
+            quest.target = rebuilt.target;
+            quest.targetLabel = rebuilt.targetLabel;
+            quest.setPlan = rebuilt.setPlan;
+            quest.phaseIndex = rebuilt.phaseIndex;
+            quest.phaseLabel = rebuilt.phaseLabel;
+            quest.phaseName = rebuilt.phaseName;
+            quest.phaseSummary = rebuilt.phaseSummary;
+            quest.loadFactor = rebuilt.loadFactor;
+            quest.manaReward = rebuilt.manaReward;
+            quest.goldReward = rebuilt.goldReward;
+            quest.equipmentHint = rebuilt.equipmentHint;
+            quest.bonusInfoSynced = true;
+            if (quest.completionMode === 'sets' && Array.isArray(quest.setProgress) && quest.setPlan) {
+                const newLen = quest.setPlan.sets || 1;
+                while (quest.setProgress.length < newLen) quest.setProgress.push(false);
+                if (quest.setProgress.length > newLen) quest.setProgress.length = newLen;
+                quest.canComplete = quest.setProgress.length > 0 && quest.setProgress.every(Boolean);
+            }
+
+            updated.push(quest);
+        }
+
+        await new Promise(resolve => {
+            const tx = DQ_DB.db.transaction(['daily_quests'], 'readwrite');
+            const store = tx.objectStore('daily_quests');
+            updated.forEach(q => store.put(q));
+            tx.oncomplete = resolve;
+            tx.onerror = resolve;
+        });
+
+        return updated;
+    },
+
+    // Ersetzt gezielt unbrauchbare Quests (z.B. Hantel-Quests nach Equipment-Off)
+    // durch nicht-Equipment-Alternativen aus dem gleichen Slot. Andere Quests und
+    // erledigte Quests bleiben unangetastet.
+    async regenerateSpecificQuests(questsToReplace, excludeNameKeys, todayStr) {
+        if (!Array.isArray(questsToReplace) || questsToReplace.length === 0) return [];
+        const settings = DQ_CONFIG.userSettings || {};
+        const goal = this.normalizeGoal(settings.goal || 'muscle');
+        const hasEquipment = settings.hasEquipment !== false;
+        const difficulty = settings.difficulty || 3;
+        const exclude = new Set(excludeNameKeys || []);
+        const allTemplates = Object.values(DQ_DATA.exercisePool).flat();
+        const newQuests = [];
+
+        if (goal === 'restday' || goal === 'sick') {
+            const blockedSet = new Set(this.blockedQuestNameKeys || []);
+            let pool = [...(DQ_DATA.exercisePool[goal] || DQ_DATA.exercisePool.muscle)]
+                .filter(ex => !blockedSet.has(ex.nameKey) && !exclude.has(ex.nameKey));
+            if (!hasEquipment) pool = pool.filter(ex => !ex.needsEquipment);
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+            for (let i = 0; i < questsToReplace.length && i < pool.length; i++) {
+                const t = pool[i];
+                let targetValue = t.baseValue;
+                if (t.type !== 'check' && t.type !== 'link' && t.type !== 'focus') {
+                    targetValue = Math.ceil(t.baseValue + (t.baseValue * 0.4 * (difficulty - 1)));
+                }
+                newQuests.push({
+                    questId: questsToReplace[i].questId,
+                    date: todayStr, nameKey: t.nameKey, type: t.type, target: targetValue,
+                    manaReward: Math.ceil(t.mana * (1 + 0.2 * (difficulty - 1))),
+                    goldReward: Math.ceil(t.gold * (1 + 0.15 * (difficulty - 1))),
+                    completed: false, goal: goal, completionMode: 'tap', setProgress: [],
+                    bonusInfoSynced: true
+                });
+                exclude.add(t.nameKey);
+            }
+        } else {
+            const plan = this.getPlan(goal);
+            const state = await this.getState(goal);
+            const stageContext = this.getStageForState(plan, state);
+            const picked = [];
+            for (const oldQuest of questsToReplace) {
+                const slot = plan.slots.find(s => s.key === oldQuest.slotKey) || plan.slots[0];
+                const template = this.pickCandidate(slot, state.recentExercises || [], hasEquipment, picked.concat([...exclude]), goal);
+                if (!template) { newQuests.push(oldQuest); continue; }
+                const rebuilt = this.buildQuest(goal, plan, state, stageContext, slot, template, todayStr, 0, difficulty, hasEquipment);
+                rebuilt.questId = oldQuest.questId;
+                newQuests.push(rebuilt);
+                picked.push(template.nameKey);
+                exclude.add(template.nameKey);
+            }
+            state.recentExercises = (state.recentExercises || []).concat(picked).slice(-12);
+            state.updatedAt = Date.now();
+            await this.saveState(state);
+        }
+
+        await new Promise(resolve => {
+            const tx = DQ_DB.db.transaction(['daily_quests'], 'readwrite');
+            const store = tx.objectStore('daily_quests');
+            newQuests.forEach(q => store.put(q));
+            tx.oncomplete = resolve;
+            tx.onerror = resolve;
+        });
+
+        return newQuests;
+    },
+
     formatQuestTarget(quest) {
         if (quest.completionMode === 'log') {
             if (quest.targetLabel) return quest.targetLabel;

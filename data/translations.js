@@ -11,10 +11,10 @@ DQ_DATA.translations = {
         // --- HAUPTNAVIGATION & SEITENTITEL ---
         exercises: "Übungen",
         fokus_page_title: "Fokus",
-        character: "Charakter", 
-        shop: "Shop", 
+        character: "Charakter",
+        shop: "Shop",
         extra_quest_nav: "Extra-Quest",
-        
+
         // --- TABS ---
         character_tab_stats: "Player-Stats",
         character_tab_inventory: "Inventar",
@@ -24,16 +24,16 @@ DQ_DATA.translations = {
         shop_tab_plants: "Pflanzen",
 
         // --- ALLGEMEIN ---
-        base_stats: "Basis-Stats", 
-        equipment: "Ausrüstung", 
+        base_stats: "Basis-Stats",
+        equipment: "Ausrüstung",
         inventory: "Inventar",
-        settings: "Einstellungen", 
-        language: "Sprache", 
+        settings: "Einstellungen",
+        language: "Sprache",
         theme: "Theme",
         save_button: "Speichern",
-        
+
         // --- EINSTELLUNGEN ---
-        settings_general: "Allgemein", 
+        settings_general: "Allgemein",
         settings_training: "Training",
         settings_extras: "Extras",
         settings_share: "Teilen",
@@ -45,16 +45,17 @@ DQ_DATA.translations = {
         share_github: "Zum Code",
         share_copied: "Link kopiert!",
         weight_tracking_enable: "Tracking aktiv",
+        confetti_setting: "Konfetti-Effekt",
         target_weight: "Zielgewicht (kg)",
         weight_goal: "Ziel",
         goal_lose_weight: "Abnehmen",
         goal_gain_weight: "Zunehmen",
-        difficulty: "Schwierigkeit (Dailies)", 
+        difficulty: "Schwierigkeit (Dailies)",
         training_goal: "Trainingsziel",
-        goal_muscle: "Muskelaufbau", 
-        goal_endurance: "Ausdauer", 
-        goal_fatloss: "Abnehmen", 
-        goal_kraft_abnehmen: "Kraft + Abnehmen", 
+        goal_muscle: "Muskelaufbau",
+        goal_endurance: "Ausdauer",
+        goal_fatloss: "Abnehmen",
+        goal_kraft_abnehmen: "Kraft + Abnehmen",
         goal_calisthenics: "Calisthenics",
         goal_senior: "Senioren-Training",
         goal_sick: "Krank",
@@ -97,7 +98,7 @@ DQ_DATA.translations = {
         endurance_entry_hint: "Trage Strecke und Zeit ein.",
         endurance_entry_button: "Eintragen",
         cancel: "Abbrechen",
-        rest_days: "Rest Days / Woche", 
+        rest_days: "Rest Days / Woche",
         update_notice_title: "DailyQuest wurde aktualisiert",
 
         update_notice_intro: "Das ist neu in dieser Version:",
@@ -113,16 +114,16 @@ DQ_DATA.translations = {
         update_notice_step_label: "Seite",
 
         update_notice_finish: "Los geht's!",
-        
+
         // --- FILTER ---
-        filter_all: "Alle", 
-        filter_weapon: "Waffen", 
-        filter_armor: "Rüstung", 
+        filter_all: "Alle",
+        filter_weapon: "Waffen",
+        filter_armor: "Rüstung",
         filter_mana: "Mana",
-        filter_muscle: "Kraft", 
-        filter_endurance: "Ausdauer", 
-        filter_fatloss: "Fettverbrennung", 
-        filter_bodyweight: "Körpergewicht", 
+        filter_muscle: "Kraft",
+        filter_endurance: "Ausdauer",
+        filter_fatloss: "Fettverbrennung",
+        filter_bodyweight: "Körpergewicht",
         filter_senior: "Senioren",
         filter_learning: "Lernen",
         filter_restday: "Erholung",
@@ -134,8 +135,8 @@ DQ_DATA.translations = {
         filter_special: "Spezial",
 
         // --- SEITEN-SPEZIFISCH ---
-        daily_quests: "Daily Quests", 
-        free_training: "Freies Training", 
+        daily_quests: "Daily Quests",
+        free_training: "Freies Training",
         character_name: "Name",
         penalty_title: "STRAFE WIRD VOLLZOGEN",
         penalty_text: "Du warst inaktiv. Deine Nachlässigkeit hat Konsequenzen.",
@@ -146,9 +147,9 @@ DQ_DATA.translations = {
         stat_increase_title: "STAT ERHÖHT!",
         stat_increase_text: "Dein Attribut '{statName}' wurde um 1 erhöht!",
         show_instructions: "Anleitung anzeigen",
-        streak: "Streak", 
+        streak: "Streak",
         streak_desc: "Tage am Stück aktiv!",
-        export_data_short: "Exportieren", 
+        export_data_short: "Exportieren",
         import_data_short: "Importieren",
         extra_quest_page_title: "Extra-Quest",
         extra_quest_title: "Stelle dich der Herausforderung",
@@ -222,7 +223,7 @@ DQ_DATA.translations = {
         ach_streak_desc: "Halte deine tägliche Serie aufrecht, um besondere Belohnungen für deine Ausdauer freizuschalten.",
         ach_focus_name: "Fokus-Meister",
         ach_focus_desc: "Sammle Fokusminuten, um deine geistige Ausdauer zu beweisen und deine Willenskraft zu stärken.",
-        
+
         // --- SUCHE ---
         search_exercise_title: "Übung suchen",
         search_exercise_placeholder: "Übungsname...",
@@ -274,7 +275,7 @@ DQ_DATA.translations = {
             reverse_flys: "Reverse Flys", single_leg_glute_bridge: "Einbeinige Brücke",
             plank: "Plank", situps: "Situps", knee_push_ups: "Knie Liegestütze", tricep_dips_chair: "Trizep Dips",
             lunges: "Ausfallschritte", sumo_squats: "Sumo Squats", glute_bridges: "Brücke",
-            tricep_extensions: "Trizepsheben", side_plank: "Seitliche Plank", 
+            tricep_extensions: "Trizepsheben", side_plank: "Seitliche Plank",
             pilates_5_exercises: "Pilates",
             drink_tea: "Tee trinken", short_walk: "Spaziergang", stretch_5min: "Dehnen",
             take_nap: "Mittagsschlaf", take_medicine: "Medizin",
@@ -310,7 +311,14 @@ DQ_DATA.translations = {
         reset_popup2_cancel: "Abbrechen",
         reset_in_progress: "Spiel wird zurueckgesetzt...",
         reset_success: "Zuruecksetzen abgeschlossen. Starte neu...",
-        restday_info_box: "Heute ist ein Restday. Erhole dich heute!"
+        restday_info_box: "Heute ist ein Restday. Erhole dich heute!",
+        profile_type_title: "Profil-Typ",
+        consistency_title: "Durchhaltevermögen",
+        time_patterns_title: "Zeitmuster",
+        endurance_progress_title: "Ausdauer-Entwicklung",
+        mana_gold_title: "Mana & Gold",
+        achievement_stats_title: "Achievements",
+        extra_shop_title: "Extra-Quests & Shop"
     },
     en: {
         // --- MAIN NAVIGATION & PAGE TITLES ---
@@ -350,6 +358,7 @@ DQ_DATA.translations = {
         share_github: "View Code",
         share_copied: "Link copied!",
         weight_tracking_enable: "Enable Tracking",
+        confetti_setting: "Confetti Effect",
         target_weight: "Target Weight (kg)",
         weight_goal: "Goal",
         goal_lose_weight: "Lose Weight",
@@ -402,7 +411,7 @@ DQ_DATA.translations = {
         endurance_entry_hint: "Enter distance and time.",
         endurance_entry_button: "Log",
         cancel: "Cancel",
-        rest_days: "Rest Days / Week", 
+        rest_days: "Rest Days / Week",
         update_notice_title: "DailyQuest was updated",
 
         update_notice_intro: "What's new in this version:",
@@ -506,7 +515,7 @@ DQ_DATA.translations = {
         delete_weight_data_button: "Delete All Weight Data",
         weight_entry_info: "For best results, weigh yourself in the morning. Enter only the number (e.g., 75.5). You can weigh yourself multiple times a day.",
         current_weight_input: "Current Weight (kg)",
-        
+
         // --- ACHIEVEMENTS ---
         achievements_title: "Achievements",
         ach_claim_button: "Claim",
@@ -578,7 +587,7 @@ DQ_DATA.translations = {
             reverse_flys: "Reverse Flys", single_leg_glute_bridge: "Single Leg Glute Bridge",
             plank: "Plank", situps: "Situps", knee_push_ups: "Knee Push-ups", tricep_dips_chair: "Tricep Dips",
             lunges: "Lunges", sumo_squats: "Sumo Squats", glute_bridges: "Glute Bridges",
-            tricep_extensions: "Tricep Extensions", side_plank: "Side Plank", 
+            tricep_extensions: "Tricep Extensions", side_plank: "Side Plank",
             pilates_5_exercises: "Pilates",
             drink_tea: "Drink Tea", short_walk: "Short Walk", stretch_5min: "Stretching",
             take_nap: "Nap", take_medicine: "Medicine",

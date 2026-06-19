@@ -188,6 +188,7 @@ const DQ_CONFIG = {
                     console.log(`Streak für heute vergeben: ${streak}.`);
                     DQ_UI.showCustomPopup(`Tages-Streak erhöht auf ${streak}!`);
                     this.updateStreakDisplay();
+                    if (typeof DQ_CONFETTI !== 'undefined') DQ_CONFETTI.burst();
                 }
             }
         };
@@ -271,7 +272,7 @@ const DQ_CONFIG = {
     }
 };
 
-const APP_VERSION = '2.10.1';
+const APP_VERSION = '2.11.0';
 const APP_UPDATE_FLAG_KEY = 'dq_seen_app_version';
 
 async function initializeApp() {
@@ -606,7 +607,7 @@ async function migrateItemNames() {
         if (items) {
             items.forEach(item => {
                 let changed = false;
-                
+
                 // Bekannte Namensänderungen
                 const migration = migrations.find(m => m.id === item.id);
                 if (migration && item.name === migration.oldName) {
@@ -687,6 +688,77 @@ function updateDifficultySliderStyle(slider) {
     slider.style.background = `linear-gradient(to right, ${primaryColor} ${percentage}%, ${trackColor} ${percentage}%)`;
 }
 
+// Einheitliche Behandlung von Training-Settings-Änderungen.
+// Kern-Regel: Erledigte Quests werden nie angetastet. Neue Übungen kommen erst
+// am nächsten Tag (Mitternacht-Cycle). Difficulty/Phase skalieren nur die
+// Parameter offener Quests (gleiche Übungen). Goal/RestDays wirken erst morgen.
+// Ausnahme: Equipment-Off bei alle-offen ersetzt unbrauchbare Hantel-Quests.
+async function applyTrainingSettingChange(changeType) {
+    const todayStr = DQ_CONFIG.getTodayString();
+    const questsToday = await new Promise((resolve, reject) => {
+        const tx = DQ_DB.db.transaction(['daily_quests'], 'readonly');
+        const index = tx.objectStore('daily_quests').index('date');
+        const request = index.getAll(todayStr);
+        request.onsuccess = e => resolve(e.target.result || []);
+        request.onerror = e => reject(e.target.error);
+    });
+
+    if (questsToday.length === 0) {
+        await generateDailyQuestsIfNeeded(true);
+        DQ_EXERCISES.renderQuests();
+        return;
+    }
+
+    const completed = questsToday.filter(q => q.completed);
+    const open = questsToday.filter(q => !q.completed);
+
+    if (open.length === 0) {
+        console.log('Alle heutigen Quests erledigt — Änderung gilt ab morgen.');
+        DQ_EXERCISES.renderQuests();
+        return;
+    }
+
+    if (changeType === 'difficulty' || changeType === 'phase') {
+        let stageContext = null;
+        if (changeType === 'phase') {
+            const goal = DQ_CONFIG.userSettings.goal || 'muscle';
+            const state = await DQ_TRAINING_SYSTEM.getState(goal);
+            const plan = DQ_TRAINING_SYSTEM.getPlan(goal);
+            stageContext = DQ_TRAINING_SYSTEM.getStageForState(plan, state);
+        }
+        await DQ_TRAINING_SYSTEM.rescaleOpenQuests(open, todayStr, {
+            difficulty: DQ_CONFIG.userSettings.difficulty || 3,
+            stageContext: stageContext
+        });
+        console.log(`${changeType}-Änderung: offene Quests re-skaliert.`);
+    } else if (changeType === 'equipment') {
+        const hasEquipment = DQ_CONFIG.userSettings.hasEquipment !== false;
+        if (!hasEquipment && open.length === questsToday.length) {
+            const allTemplates = Object.values(DQ_DATA.exercisePool).flat();
+            const questNeedsEquipment = q => {
+                const t = allTemplates.find(ex => ex.nameKey === q.nameKey);
+                return !!t && !!t.needsEquipment;
+            };
+            const unbrauchbar = open.filter(questNeedsEquipment);
+            if (unbrauchbar.length > 0) {
+                const exclude = completed.map(q => q.nameKey).concat(open.filter(q => !questNeedsEquipment(q)).map(q => q.nameKey));
+                await DQ_TRAINING_SYSTEM.regenerateSpecificQuests(unbrauchbar, exclude, todayStr);
+                console.log(`Equipment-Off: ${unbrauchbar.length} unbrauchbare Quest(s) ersetzt.`);
+            } else {
+                console.log('Equipment-Off: keine unbrauchbaren Quests — Änderung gilt ab morgen.');
+            }
+        } else {
+            console.log('Equipment-Änderung: gilt ab morgen (oder Quests teilweise erledigt).');
+        }
+    } else {
+        console.log(`${changeType}-Änderung: gilt ab morgen.`);
+    }
+
+    localStorage.setItem('dq_last_local_update', String(Date.now()));
+    if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+    DQ_EXERCISES.renderQuests();
+}
+
 function addSettingsListeners(elements) {
     let restDaysRefreshRunning = false;
     const handleRestDaysChange = async (value) => {
@@ -694,8 +766,7 @@ function addSettingsListeners(elements) {
         restDaysRefreshRunning = true;
         try {
             await saveSetting('restDays', value);
-            await generateDailyQuestsIfNeeded(true);
-            DQ_EXERCISES.renderQuests();
+            await applyTrainingSettingChange('restDays');
         } finally {
             restDaysRefreshRunning = false;
         }
@@ -728,6 +799,12 @@ function addSettingsListeners(elements) {
             updateExtraQuestVisibility();
         });
     }
+    const confettiToggle = document.getElementById('confetti-toggle');
+    if (confettiToggle) {
+        confettiToggle.addEventListener('change', (e) => {
+            saveSetting('confettiEnabled', e.target.checked);
+        });
+    }
     elements.characterNameInput.addEventListener('change', (e) => saveSetting('name', e.target.value));
     if (elements.characterAgeInput) {
         elements.characterAgeInput.addEventListener('change', (e) => saveSetting('age', parseInt(e.target.value, 10) || null));
@@ -740,14 +817,12 @@ function addSettingsListeners(elements) {
 
     elements.difficultySlider.addEventListener('change', async (e) => {
         await saveSetting('difficulty', parseInt(e.target.value, 10));
-        await generateDailyQuestsIfNeeded(true);
-        DQ_EXERCISES.renderQuests();
+        await applyTrainingSettingChange('difficulty');
     });
 
     elements.goalSelect.addEventListener('change', async (e) => {
         await saveSetting('goal', e.target.value);
-        await generateDailyQuestsIfNeeded(true);
-        DQ_EXERCISES.renderQuests();
+        await applyTrainingSettingChange('goal');
     });
 
     elements.restdaysSelect.addEventListener('change', (e) => {
@@ -756,31 +831,27 @@ function addSettingsListeners(elements) {
 
     elements.equipmentToggle.addEventListener('change', async (e) => {
         await saveSetting('hasEquipment', e.target.checked);
-        await generateDailyQuestsIfNeeded(true);
-        DQ_EXERCISES.renderQuests();
+        await applyTrainingSettingChange('equipment');
     });
 
     if (elements.phaseRepeatButton) {
         elements.phaseRepeatButton.addEventListener('click', async () => {
             await DQ_TRAINING_SYSTEM.applyPhaseAction(DQ_CONFIG.userSettings.goal || 'muscle', 'repeat');
-            await generateDailyQuestsIfNeeded(true);
-            DQ_EXERCISES.renderQuests();
+            await applyTrainingSettingChange('phase');
             DQ_UI.showCustomPopup(`<h3>${DQ_TRAINING_SYSTEM.t('training_phase', 'Phase')}</h3><p>${DQ_TRAINING_SYSTEM.t('phase_action_repeat_success', 'Phase erfolgreich wiederholt.')}</p>`, 'info');
         });
     }
     if (elements.phaseSkipButton) {
         elements.phaseSkipButton.addEventListener('click', async () => {
             await DQ_TRAINING_SYSTEM.applyPhaseAction(DQ_CONFIG.userSettings.goal || 'muscle', 'skip');
-            await generateDailyQuestsIfNeeded(true);
-            DQ_EXERCISES.renderQuests();
+            await applyTrainingSettingChange('phase');
             DQ_UI.showCustomPopup(`<h3>${DQ_TRAINING_SYSTEM.t('training_phase', 'Phase')}</h3><p>${DQ_TRAINING_SYSTEM.t('phase_action_skip_success', 'Phase erfolgreich übersprungen.')}</p>`, 'info');
         });
     }
     if (elements.phaseExtendButton) {
         elements.phaseExtendButton.addEventListener('click', async () => {
             await DQ_TRAINING_SYSTEM.applyPhaseAction(DQ_CONFIG.userSettings.goal || 'muscle', 'extend');
-            await generateDailyQuestsIfNeeded(true);
-            DQ_EXERCISES.renderQuests();
+            await applyTrainingSettingChange('phase');
             DQ_UI.showCustomPopup(`<h3>${DQ_TRAINING_SYSTEM.t('training_phase', 'Phase')}</h3><p>${DQ_TRAINING_SYSTEM.t('phase_action_extend_success', 'Phase erfolgreich verlängert.')}</p>`, 'info');
         });
     }
@@ -847,14 +918,14 @@ async function resetAllGameData() {
 async function resetTutorialAndIntro() {
     const lang = DQ_CONFIG.userSettings.language || 'de';
     const trans = DQ_DATA.translations[lang] || DQ_DATA.translations.de;
-    
+
     // Settings-Overlay explizit schliessen, damit das Warn-Popup vorne liegt
     DQ_UI.hideAllPopups();
     DQ_UI.closeSettingsOverlay();
 
     // Warten bis die Slide-Down-Transition (0.4s) abgeschlossen ist
     await new Promise(resolve => setTimeout(resolve, 400));
-    
+
     // --- POPUP 1: Erste Warnung ---
     const popup1Content = `
         <div class="training-reset-message">
@@ -866,22 +937,22 @@ async function resetTutorialAndIntro() {
             </div>
         </div>
     `;
-    
+
     DQ_UI.showCustomPopup(popup1Content, 'penalty');
-    
+
     const cancelBtn1 = document.getElementById('reset-popup1-cancel');
     const continueBtn = document.getElementById('reset-popup1-continue');
-    
+
     if (cancelBtn1) {
         cancelBtn1.addEventListener('click', () => {
             DQ_UI.hideAllPopups();
         }, { once: true });
     }
-    
+
     if (continueBtn) {
         continueBtn.addEventListener('click', async () => {
             DQ_UI.hideAllPopups();
-            
+
             // --- POPUP 2: Letzte Bestaetigung ---
             const popup2Content = `
                 <div class="training-reset-message">
@@ -894,27 +965,27 @@ async function resetTutorialAndIntro() {
                     </div>
                 </div>
             `;
-            
+
             setTimeout(() => {
                 DQ_UI.showCustomPopup(popup2Content, 'penalty');
-                
+
                 const cancelBtn2 = document.getElementById('reset-popup2-cancel');
                 const confirmBtn2 = document.getElementById('reset-popup2-confirm');
-                
+
                 if (cancelBtn2) {
                     cancelBtn2.addEventListener('click', () => {
                         DQ_UI.hideAllPopups();
                     }, { once: true });
                 }
-                
+
                 if (confirmBtn2) {
                     confirmBtn2.addEventListener('click', async () => {
                         try {
                             DQ_UI.hideAllPopups();
                             DQ_UI.showCustomPopup(trans.reset_in_progress || 'Spiel wird zurueckgesetzt...', 'info');
-                            
+
                             await resetAllGameData();
-                            
+
                             // Weiterleitung zum Tutorial
                             window.location.href = window.location.pathname + '?tutorial=true';
                         } catch (error) {
@@ -940,9 +1011,9 @@ function getUpdateNoticePages(trans) {
             title: trans.update_notice_title || 'DailyQuest wurde aktualisiert',
             body: trans.update_notice_intro || 'Das ist neu in dieser Version:',
             points: [
-                trans.update_notice_page1_point1 || 'Redesign der Einstellungen',
-                trans.update_notice_page1_point2 || 'Bug Fixes',
-                trans.update_notice_page2_point1 || 'Design-Upgrades (kleine Anpassungen)',
+                trans.update_notice_page1_point1 || 'Konfetti-Effekt bei Streak-Erhöhung',
+                trans.update_notice_page1_point2 || 'Smartere Quest-Logik bei Settings-Änderungen',
+                trans.update_notice_page2_point1 || 'Bugfix: Keine doppelten Quests mehr',
                 trans.update_notice_page2_point2 || 'Technische Updates',
             ]
         }
@@ -1067,7 +1138,7 @@ function loadSettings() {
             if (e.target.result) {
                 DQ_CONFIG.userSettings = e.target.result;
             } else {
-                DQ_CONFIG.userSettings = { id: 1, language: 'de', theme: 'dark', difficulty: 3, goal: 'muscle', restDays: 2, hasEquipment: true, weightTrackingEnabled: true, age: null, extraQuestEnabled: true };
+                DQ_CONFIG.userSettings = { id: 1, language: 'de', theme: 'dark', difficulty: 3, goal: 'muscle', restDays: 2, hasEquipment: true, weightTrackingEnabled: true, age: null, extraQuestEnabled: true, confettiEnabled: true };
                 tx.objectStore('settings').add(DQ_CONFIG.userSettings);
             }
             if (typeof DQ_TRAINING_SYSTEM !== 'undefined') {
@@ -1087,6 +1158,9 @@ function loadSettings() {
             if (typeof DQ_CONFIG.userSettings.extraQuestEnabled !== 'boolean') {
                 DQ_CONFIG.userSettings.extraQuestEnabled = true;
             }
+            if (typeof DQ_CONFIG.userSettings.confettiEnabled !== 'boolean') {
+                DQ_CONFIG.userSettings.confettiEnabled = true;
+            }
             tx.objectStore('settings').put(DQ_CONFIG.userSettings);
             updateSettingsUI();
             updateExtraQuestVisibility();
@@ -1105,12 +1179,15 @@ function updateSettingsUI() {
     elements.difficultyValue.textContent = DQ_CONFIG.userSettings.difficulty || 3;
     elements.goalSelect.value = DQ_CONFIG.userSettings.goal || 'muscle';
     elements.restdaysSelect.value = String(DQ_CONFIG.userSettings.restDays ?? 2);
-    
+
     // Default zu true, wenn nicht gesetzt
     elements.equipmentToggle.checked = DQ_CONFIG.userSettings.hasEquipment !== false;
 
     const extraQuestToggle = document.getElementById('extra-quest-toggle');
     if (extraQuestToggle) extraQuestToggle.checked = DQ_CONFIG.userSettings.extraQuestEnabled !== false;
+
+    const confettiToggle = document.getElementById('confetti-toggle');
+    if (confettiToggle) confettiToggle.checked = DQ_CONFIG.userSettings.confettiEnabled !== false;
 
     DQ_DB.db.transaction('character', 'readonly').objectStore('character').get(1).onsuccess = e => {
         if (e.target.result) {
@@ -1250,7 +1327,7 @@ async function generateDailyQuestsIfNeeded(forceRegenerate = false) {
 
         if (hasStartedQuests) {
             console.log('Heutige Quests haben Fortschritt — Neugenerierung abgebrochen.');
-            forceRegenerate = false;
+            return;
         } else {
             console.log('Erzwinge Neugenerierung: Lösche alte Quests für heute...');
             await new Promise(resolve => {

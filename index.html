@@ -706,6 +706,13 @@
                             <label for="extra-quest-toggle" class="slider"></label>
                         </div>
                     </div>
+                    <div class="settings-subpage-item">
+                        <label for="confetti-toggle"><span data-lang-key="confetti_setting">Konfetti-Effekt</span></label>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="confetti-toggle" checked>
+                            <label for="confetti-toggle" class="slider"></label>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -747,10 +754,6 @@
                     <span class="material-symbols-rounded settings-item-arrow">expand_more</span>
                 </button>
                 <div class="settings-section-body">
-                    <div class="settings-warning-box">
-                        <span class="material-symbols-rounded warning-icon" style="font-size:20px;">warning</span>
-                        <p data-lang-key="settings_warning_text">Änderungen an diesen Einstellungen generieren deine heutigen Quests neu. Bisheriger Fortschritt für heute geht dabei verloren.</p>
-                    </div>
                     <div class="settings-subpage-item">
                         <label for="difficulty-slider" data-lang-key="difficulty">Schwierigkeit</label>
                         <div class="slider-container">
@@ -822,7 +825,7 @@
                         <div class="qr-code-wrapper"><div id="qr-code-canvas"></div></div>
                         <button class="settings-action-btn share-copy-btn" id="copy-url-btn" data-lang-key="share_copy">Link kopieren</button>
                         <a href="https://github.com/017pixel/DailyQuest" target="_blank" class="share-github-link"><span class="material-symbols-rounded">code</span><span data-lang-key="share_github">Zum Code</span></a>
-                        <div class="share-version">v2.10.1</div>
+                        <div class="share-version">v2.11.0</div>
                     </div>
                 </div>
             </div>
@@ -1103,6 +1106,7 @@
     <script src="js/page_shop.js"></script>
     <script src="js/page_extra_quest.js"></script>
     <script src="js/page_achievements.js"></script>
+    <script src="js/confetti.js"></script>
     <!-- Dungeons (Phase 1 routing skeleton) -->
     <script src="js/dungeons/page_dungeon_main.js"></script>
     <script src="js/vibe-fokus/vibe_state.js"></script>
