@@ -9,6 +9,8 @@ const DQ_TUTORIAL_MAIN = {
     age: 34,
     hasEquipment: false,
     trainingGoal: '',
+    trainingPlanType: 'predefined',
+    customPlanId: null,
     seniorMode: false,
     seniorModeOptOut: false,
     continueButton: null,
@@ -19,6 +21,8 @@ const DQ_TUTORIAL_MAIN = {
         this.age = 34;
         this.hasEquipment = false;
         this.trainingGoal = '';
+        this.trainingPlanType = 'predefined';
+        this.customPlanId = null;
         this.seniorMode = false;
         this.seniorModeOptOut = false;
         this.waitingForContinue = false;

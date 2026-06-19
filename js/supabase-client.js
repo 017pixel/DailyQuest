@@ -502,7 +502,7 @@ const DQ_SUPABASE = {
                 'character', 'exercises', 'shop', 'daily_quests', 'extra_quest',
                 'weight_entries', 'vibe_state', 'dungeon_progress', 'tutorial_state',
                 'tutorial_dynamic_state', 'training_plan_state', 'training_activity_log',
-                'settings', 'focus_labels'
+                'settings', 'focus_labels', 'custom_plans'
             ];
 
             for (const storeName of stores) {

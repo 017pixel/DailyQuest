@@ -44,6 +44,9 @@ const DYNAMIC_IDS = new Set([
     'tutorial-name-submit', 'tutorial-name-input-container',
     'tutorial-equipment-selection', 'tutorial-goal-selection',
     'tutorial-progressive-overlay',
+    'tutorial-plan-selection', 'tutorial-custom-input',
+    'tutorial-plan-prompt', 'tutorial-plan-generate', 'tutorial-plan-loading',
+    'goal-select',
 ]);
 
 function run() {

@@ -52,6 +52,24 @@ DQ_DATA.translations = {
         goal_gain_weight: "Zunehmen",
         difficulty: "Schwierigkeit (Dailies)",
         training_goal: "Trainingsziel",
+        goal_setup_btn: "Einrichten",
+        goal_setup_title: "Trainingsziel einrichten",
+        goal_setup_current: "Dein aktueller Plan:",
+        goal_regenerate: "Neuen Plan generieren",
+        goal_generate_title: "Neuen Trainingsplan",
+        goal_presets: "Schnellwahl",
+        goal_preset_kraft: "Kraft & Muskelaufbau",
+        goal_preset_ausdauer: "Ausdauer & Cardio",
+        goal_preset_abnehmen: "Gewicht verlieren",
+        goal_custom: "Oder eigene Beschreibung",
+        goal_custom_placeholder: "z.B. starke Beine und mehr Flexibilitaet",
+        goal_generate_btn: "Plan generieren",
+        goal_generating: "Plan wird generiert...",
+        goal_success_title: "Plan erstellt!",
+        goal_error_title: "Fehler bei Generierung",
+        goal_error_msg: "Ein Fallback-Plan wird genutzt.",
+        goal_regen_limit: "Regenerations-Limit erreicht (max 3/Tag).",
+        current_plan: "Aktuell:",
         goal_muscle: "Muskelaufbau",
         goal_endurance: "Ausdauer",
         goal_fatloss: "Abnehmen",
@@ -103,13 +121,13 @@ DQ_DATA.translations = {
 
         update_notice_intro: "Das ist neu in dieser Version:",
 
-        update_notice_page1_point1: "Popups per Klick schliessen (neben Swipe-Down)",
+        update_notice_page1_point1: "KI-Trainingsplan: Personalisierte Pläne mit Mistral AI erstellen",
 
-        update_notice_page1_point2: "Bug Fixes (Einstellungen schliessen nicht mehr von alleine)",
+        update_notice_page1_point2: "Drei Presets (Kraft/Ausdauer/Abnehmen) oder eigene Ziele eingeben",
 
-        update_notice_page2_point1: "Redesign der Einstellungen (moderneres Design)",
+        update_notice_page2_point1: "Intelligentes Balancing: 6 Quests/Tag mit abwechslungsreichen Übungen",
 
-        update_notice_page2_point2: "Update-System verbessert (Fortschritt bleibt erhalten)",
+        update_notice_page2_point2: "Rest Days respektieren Erholungsübungen und passen sich automatisch an",
 
         update_notice_step_label: "Seite",
 
@@ -365,6 +383,24 @@ DQ_DATA.translations = {
         goal_gain_weight: "Gain Weight",
         difficulty: "Difficulty (Dailies)",
         training_goal: "Training Goal",
+        goal_setup_btn: "Configure",
+        goal_setup_title: "Configure Training Goal",
+        goal_setup_current: "Your current plan:",
+        goal_regenerate: "Generate new plan",
+        goal_generate_title: "New Training Plan",
+        goal_presets: "Quick selection",
+        goal_preset_kraft: "Strength & Muscle",
+        goal_preset_ausdauer: "Endurance & Cardio",
+        goal_preset_abnehmen: "Weight loss",
+        goal_custom: "Or custom description",
+        goal_custom_placeholder: "e.g. strong legs and more flexibility",
+        goal_generate_btn: "Generate plan",
+        goal_generating: "Generating plan...",
+        goal_success_title: "Plan created!",
+        goal_error_title: "Generation failed",
+        goal_error_msg: "A fallback plan is being used.",
+        goal_regen_limit: "Regeneration limit reached (max 3/day).",
+        current_plan: "Current:",
         goal_muscle: "Muscle Building",
         goal_endurance: "Endurance",
         goal_fatloss: "Fat Loss",
@@ -416,13 +452,13 @@ DQ_DATA.translations = {
 
         update_notice_intro: "What's new in this version:",
 
-        update_notice_page1_point1: "Close popups by tapping outside (alongside swipe-down)",
+        update_notice_page1_point1: "AI Training Plans: Personalized plans with Mistral AI",
 
-        update_notice_page1_point2: "Bug fixes (settings no longer close randomly)",
+        update_notice_page1_point2: "Three presets (Strength/Endurance/Weight Loss) or custom goals",
 
-        update_notice_page2_point1: "Settings redesign (cleaner look and feel)",
+        update_notice_page2_point1: "Smart balancing: 6 daily quests with varied exercises",
 
-        update_notice_page2_point2: "Improved update system (progress is preserved)",
+        update_notice_page2_point2: "Rest days now respect recovery exercises automatically",
 
         update_notice_step_label: "Page",
 

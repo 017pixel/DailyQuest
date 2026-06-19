@@ -1,0 +1,6 @@
+
+[functions.mistral-proxy]
+enabled = true
+verify_jwt = false
+import_map = "./functions/mistral-proxy/deno.json"
+entrypoint = "./functions/mistral-proxy/index.ts"

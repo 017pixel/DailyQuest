@@ -261,51 +261,113 @@
         this.showText('Was ist dein Trainingsziel?');
         await this.delay(600);
 
-        textContainer.insertAdjacentHTML('beforeend', `
+        textContainer.insertAdjacentHTML(`
             <div id="tutorial-goal-selection" class="tutorial-selection-container">
-                <button class="tutorial-choice-btn" data-goal="muscle">
-                    <span class="material-symbols-rounded">exercise</span>
-                    <span>Muskelaufbau</span>
-                    <span class="choice-description">Kraft und Muskelmasse aufbauen</span>
+                <button class="tutorial-choice-btn" data-preset="kraft">
+                    <span class="material-symbols-rounded">fitness_center</span>
+                    <span>Kraft &amp; Muskelaufbau</span>
+                    <span class="choice-description">Staerke, Masse, Hanteln</span>
                 </button>
-                <button class="tutorial-choice-btn" data-goal="endurance">
+                <button class="tutorial-choice-btn" data-preset="ausdauer">
                     <span class="material-symbols-rounded">directions_run</span>
-                    <span>Ausdauer</span>
-                    <span class="choice-description">Kondition und Durchhaltevermögen</span>
+                    <span>Ausdauer &amp; Cardio</span>
+                    <span class="choice-description">Kondition, Laufen, HIIT</span>
                 </button>
-                <button class="tutorial-choice-btn" data-goal="fatloss">
-                    <span class="material-symbols-rounded">trending_down</span>
-                    <span>Abnehmen</span>
-                    <span class="choice-description">Gewicht reduzieren und fit werden</span>
+                <button class="tutorial-choice-btn" data-preset="abnehmen">
+                    <span class="material-symbols-rounded">local_fire_department</span>
+                    <span>Gewicht verlieren</span>
+                    <span class="choice-description">Fatburn, Diet, Cardio</span>
                 </button>
-                <button class="tutorial-choice-btn" data-goal="senior">
-                    <span class="material-symbols-rounded">chair</span>
-                    <span>Senioren-Training</span>
-                    <span class="choice-description">Stuhlübungen, Balance und sanfte Mobilität</span>
+                <button class="tutorial-choice-btn" data-preset="custom">
+                    <span class="material-symbols-rounded">edit</span>
+                    <span>Custom: Eigener Plan</span>
+                    <span class="choice-description">Beschreibe dein Ziel</span>
                 </button>
+                <div id="tutorial-custom-input" style="display:none;margin-top:12px;">
+                    <input type="text" id="tutorial-plan-prompt" class="tutorial-input"
+                        placeholder="z.B. starke Beine und mehr Flexibilitaet"
+                        maxlength="200" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--outline-color);background:var(--surface-container-high);color:var(--on-surface-color);font-size:15px;">
+                </div>
+                <button id="tutorial-plan-generate" class="card-button hidden" style="margin-top:12px;">Plan generieren</button>
+                <div id="tutorial-plan-loading" class="hidden" style="text-align:center;padding:20px;">
+                    <span class="material-symbols-rounded" style="font-size:40px;animation:spin 2s linear infinite;">progress_activity</span>
+                    <p style="margin-top:12px;opacity:0.7;">KI erstellt deinen Plan...</p>
+                </div>
             </div>
         `);
 
-        const buttons = document.querySelectorAll('[data-goal]');
-        buttons.forEach(btn => {
+        const customBtn = document.querySelector('[data-preset="custom"]');
+        const customInput = document.getElementById('tutorial-custom-input');
+        const generateBtn = document.getElementById('tutorial-plan-generate');
+        const loadingDiv = document.getElementById('tutorial-plan-loading');
+        const selectionDiv = document.getElementById('tutorial-goal-selection');
+
+        customBtn.addEventListener('click', () => {
+            customInput.style.display = 'block';
+            generateBtn.classList.remove('hidden');
+        });
+
+        document.querySelectorAll('[data-preset]').forEach(btn => {
+            if (btn.dataset.preset === 'custom') return;
             btn.addEventListener('click', async () => {
-                this.trainingGoal = btn.dataset.goal;
-                const selection = document.getElementById('tutorial-goal-selection');
-                if (selection) {
-                    selection.classList.add('fade-out');
-                    await this.delay(500);
-                }
-
-                await this.hideText();
-                await this.delay(250);
-
-                // NEU: Auth-Screen nach Trainingsplan-Erstellung (Equipment + Goal)
-                await this.showAuthDuringTutorial();
-
-                await this.initializeCharacterWithName(this.playerName);
-                await this.showWelcomeSequence();
+                await this.handleTutorialPlanSelection(btn.dataset.preset, null, selectionDiv, loadingDiv);
             });
         });
+
+        generateBtn.addEventListener('click', async () => {
+            const prompt = document.getElementById('tutorial-plan-prompt').value.trim();
+            if (prompt.length < 3) return;
+            await this.handleTutorialPlanSelection('custom', prompt, selectionDiv, loadingDiv);
+        });
+    },
+
+    async handleTutorialPlanSelection(preset, customPrompt, selectionDiv, loadingDiv) {
+        if (selectionDiv) {
+            selectionDiv.classList.add('fade-out');
+            await this.delay(300);
+            selectionDiv.style.display = 'none';
+        }
+        if (loadingDiv) loadingDiv.classList.remove('hidden');
+
+        try {
+            if (typeof DQ_MISTRAL === 'undefined' || !DQ_SUPABASE || !DQ_SUPABASE.client) {
+                throw new Error('KI-Modul oder Supabase nicht verfuegbar');
+            }
+            const userContext = {
+                age: this.age || null,
+                hasEquipment: this.hasEquipment !== false,
+                difficulty: 3,
+                restDays: 2
+            };
+            const result = await DQ_MISTRAL.generateAndSavePlan(customPrompt || preset, userContext);
+            if (result.success) {
+                this.trainingPlanType = 'custom';
+                this.customPlanId = result.planId;
+                this.trainingGoal = preset === 'kraft' ? 'muscle'
+                    : preset === 'ausdauer' ? 'endurance' : 'fatloss';
+            } else {
+                throw new Error(result.error || 'Generierung fehlgeschlagen');
+            }
+        } catch (e) {
+            console.error('Tutorial plan generation error:', e);
+            if (loadingDiv) loadingDiv.classList.add('hidden');
+            DQ_UI.showCustomPopup(
+                '<h3>Fehler bei Generierung</h3><p>Ein Standard-Plan wird genutzt. Du kannst ihn spaeter in den Einstellungen aendern.</p>',
+                'penalty'
+            );
+            await this.delay(1500);
+            this.trainingPlanType = 'predefined';
+            this.trainingGoal = preset === 'kraft' ? 'muscle'
+                : preset === 'ausdauer' ? 'endurance' : 'fatloss';
+        }
+
+        if (loadingDiv) loadingDiv.classList.add('hidden');
+        await this.hideText();
+        await this.delay(250);
+
+        await this.showAuthDuringTutorial();
+        await this.initializeCharacterWithName(this.playerName);
+        await this.showWelcomeSequence();
     },
 
     async initializeCharacterWithName(name) {
@@ -407,7 +469,9 @@
                             theme: 'dark',
                             weightTrackingEnabled: true,
                             hasEquipment: this.hasEquipment,
-                            age: this.age
+                            age: this.age,
+                            planType: this.trainingPlanType || 'predefined',
+                            customPlanId: this.customPlanId || null
                         };
                     } else {
                         settings.goal = finalGoal;
@@ -415,6 +479,10 @@
                         settings.age = this.age;
                         if (typeof settings.weightTrackingEnabled !== 'boolean') {
                             settings.weightTrackingEnabled = true;
+                        }
+                        if (this.trainingPlanType === 'custom' && this.customPlanId) {
+                            settings.planType = 'custom';
+                            settings.customPlanId = this.customPlanId;
                         }
                     }
                     settingsStore.put(settings);

@@ -4,6 +4,27 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## Version 2.12.0 - KI-Trainingsplan
+
+### Erstellt
+- KI-gestützter Trainingsplan-Generator mit Mistral AI (Supabase Edge Function)
+- Supabase Edge Function `mistral-proxy` als sichere Middleware für Mistral API-Aufrufe
+- Drei Preset-Pläne (Kraft, Ausdauer, Abnehmen) und benutzerdefinierter Freitext-Modus
+- Intelligenter Balancing-Algorithmus: 30 Übungen werden tag-basiert auf 6 Quests/Tag verteilt (push/pull/legs/core/cardio/rest)
+- Rest-Day-Filter: Erholungstage zeigen nur Rest-Übungen an
+
+### Veraendert
+- Trainingsziel-Dropdown durch "Trainingsplan einrichten" Button + Popup ersetzt
+- Tutorial hat neue Trainingsplan-Auswahl (3 Presets + Custom-Text) statt altem Ziel-Dropdown
+- Datenbank Version 36 mit neuem `custom_plans` Object Store für KI-Pläne
+- Service Worker Cache v26 mit neuen Modul-Dateien (mistral-client.js, custom-plan-system.js)
+- Übersetzungen (DE/EN) um alle neuen UI-Texte erweitert
+
+### Geloescht
+- Altes Trainingsziel-Dropdown (`#goal-select`) aus HTML entfernt (dynamisch per JS verwaltet)
+
+---
+
 ## Version 2.11.0 - Konfetti-Effekt & Quest-Regenerierung
 
 ### Erstellt

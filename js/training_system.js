@@ -349,6 +349,19 @@ const DQ_TRAINING_SYSTEM = {
     async getTodayQuestSet(forceRegenerate = false) {
         const settings = DQ_CONFIG.userSettings || {};
         const goal = this.normalizeGoal(settings.goal || 'muscle');
+
+        if (settings.planType === 'custom' && settings.customPlanId && typeof DQ_CUSTOM_PLAN !== 'undefined') {
+            try {
+                const customPlan = await DQ_CUSTOM_PLAN.getActivePlan(settings.customPlanId);
+                if (customPlan) {
+                    return await DQ_CUSTOM_PLAN.getTodayQuestSet(customPlan, settings);
+                }
+                console.warn('Custom Plan nicht gefunden (id=' + settings.customPlanId + '), nutze predefined');
+            } catch (e) {
+                console.error('Custom Plan getTodayQuestSet error, nutze predefined:', e);
+            }
+        }
+
         if (goal === 'sick' || goal === 'restday') return { goal, quests: [], state: null, plan: null };
 
         const plan = this.getPlan(goal);
@@ -389,6 +402,16 @@ const DQ_TRAINING_SYSTEM = {
         const settings = DQ_CONFIG.userSettings || {};
         const difficulty = opts.difficulty != null ? opts.difficulty : (settings.difficulty || 3);
         const hasEquipment = settings.hasEquipment !== false;
+
+        if (settings.planType === 'custom' && settings.customPlanId && typeof DQ_CUSTOM_PLAN !== 'undefined') {
+            try {
+                await DQ_CUSTOM_PLAN.rescaleOpenQuests(openQuests, todayStr, { difficulty });
+                return openQuests;
+            } catch (e) {
+                console.error('Custom rescaleOpenQuests error:', e);
+            }
+        }
+
         const allTemplates = Object.values(DQ_DATA.exercisePool).flat();
         const updated = [];
 
@@ -552,6 +575,17 @@ const DQ_TRAINING_SYSTEM = {
     },
 
     async applyPhaseAction(goal, action) {
+        const settings = DQ_CONFIG.userSettings || {};
+
+        if (settings.planType === 'custom' && settings.customPlanId && typeof DQ_CUSTOM_PLAN !== 'undefined') {
+            try {
+                await DQ_CUSTOM_PLAN.applyPhaseAction(action);
+                return;
+            } catch (e) {
+                console.error('Custom applyPhaseAction error:', e);
+            }
+        }
+
         const normalized = this.normalizeGoal(goal);
         const state = await this.getState(normalized);
         const plan = this.getPlan(normalized);

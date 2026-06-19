@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dailyquest-cache-v24';
+const CACHE_NAME = 'dailyquest-cache-v26';
 
 const urlsToCache = [
   '/',
@@ -46,6 +46,8 @@ const urlsToCache = [
   '/js/vibe-fokus/page_fokus_main.js',
   '/js/supabase-config.js',
   '/js/supabase-client.js',
+  '/js/custom-plan-system.js',
+  '/js/mistral-client.js',
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',
   '/tutorial/js/tutorial_state.js',
   '/tutorial/js/tutorial_main.js',

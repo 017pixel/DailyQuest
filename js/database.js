@@ -10,7 +10,7 @@ const DQ_DB = {
     init: function () {
         return new Promise((resolve, reject) => {
             // --- VERSION ERHÖHT, UM UPDATE FÜR ALLE NUTZER ZU ERZWINGEN ---
-            const dbName = 'VibeCodenDB', dbVersion = 35;
+            const dbName = 'VibeCodenDB', dbVersion = 36;
             const request = indexedDB.open(dbName, dbVersion);
 
             request.onerror = (e) => {
@@ -121,6 +121,18 @@ const DQ_DB = {
                     const evtStore = db.createObjectStore('character_events', { keyPath: 'id', autoIncrement: true });
                     evtStore.createIndex('timestamp', 'timestamp', { unique: false });
                     evtStore.createIndex('type', 'type', { unique: false });
+                }
+
+                if (oldVersion < 36) {
+                    console.log("Upgrade-Schritt: Erstelle 'custom_plans' Object Store.");
+                    if (!db.objectStoreNames.contains('custom_plans')) {
+                        db.createObjectStore('custom_plans', { keyPath: 'id', autoIncrement: true });
+                    }
+                }
+
+                // Sicherheits-Check: custom_plans sicherstellen
+                if (!db.objectStoreNames.contains('custom_plans')) {
+                    db.createObjectStore('custom_plans', { keyPath: 'id', autoIncrement: true });
                 }
 
                 console.log("Datenbank-Upgrade abgeschlossen.");

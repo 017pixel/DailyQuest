@@ -133,6 +133,9 @@ const DQ_TUTORIAL_STATE = {
                 if (DQ_DB.db.objectStoreNames.contains('tutorial_dynamic_state')) {
                     stores.push('tutorial_dynamic_state');
                 }
+                if (DQ_DB.db.objectStoreNames.contains('custom_plans')) {
+                    stores.push('custom_plans');
+                }
                 const tx = DQ_DB.db.transaction(stores, 'readwrite');
                 const store = tx.objectStore('tutorial_state');
 
@@ -147,6 +150,9 @@ const DQ_TUTORIAL_STATE = {
 
                 if (DQ_DB.db.objectStoreNames.contains('tutorial_dynamic_state')) {
                     tx.objectStore('tutorial_dynamic_state').clear();
+                }
+                if (DQ_DB.db.objectStoreNames.contains('custom_plans')) {
+                    tx.objectStore('custom_plans').clear();
                 }
 
                 // Auch LocalStorage-Backups bereinigen
