@@ -1126,7 +1126,7 @@
                     return;
                 }
 
-                navigator.serviceWorker.register('/service-worker.js', { updateViaCache: 'none' })
+                navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' })
                     .then(registration => {
                         console.log('ServiceWorker registration successful with scope: ', registration.scope);
                         registration.update();

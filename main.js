@@ -834,10 +834,12 @@ function addSettingsListeners(elements) {
         await applyTrainingSettingChange('difficulty');
     });
 
-    elements.goalSelect.addEventListener('change', async (e) => {
-        await saveSetting('goal', e.target.value);
-        await applyTrainingSettingChange('goal');
-    });
+    if (elements.goalSelect) {
+        elements.goalSelect.addEventListener('change', async (e) => {
+            await saveSetting('goal', e.target.value);
+            await applyTrainingSettingChange('goal');
+        });
+    }
 
     if (elements.goalSetupButton) {
         elements.goalSetupButton.addEventListener('click', async () => {
@@ -1372,6 +1374,9 @@ async function handlePlanGeneration(preset, customPrompt) {
     } catch (e) {
         console.error('handlePlanGeneration error:', e);
         const fallbackGoal = DQ_MISTRAL.getFallbackGoal(preset);
+        if (preset && preset !== 'custom') {
+            await saveSetting('goal', fallbackGoal);
+        }
         DQ_UI.showCustomPopup(
             `<h3>${trans.goal_error_title || 'Fehler bei Generierung'}</h3><p>${trans.goal_error_msg || 'Ein Fallback-Plan wird genutzt.'}</p><p style="font-size:11px;opacity:0.6;">${e.message || ''}</p>`,
             'penalty'
