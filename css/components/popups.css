@@ -388,6 +388,298 @@ input:checked + .slider:before {
     line-height: 1.4;
 }
 
+/* --- KI-TRAININGSPLAN: Settings Entry + Bottom Sheets --- */
+.training-goal-row {
+    align-items: center;
+    gap: 12px;
+}
+
+.training-goal-row label {
+    flex: 1 1 auto;
+}
+
+.training-goal-setup-button {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid rgba(var(--primary-color-rgb), 0.75);
+    border-radius: 999px;
+    background: rgba(var(--primary-color-rgb), 0.14);
+    color: var(--on-surface-color);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+}
+
+.training-goal-setup-button:active,
+.training-primary-action:active,
+.training-secondary-action:active,
+.training-preset-card:active {
+    transform: scale(0.985);
+}
+
+.training-plan-popup .popup-content {
+    padding-bottom: max(34px, env(safe-area-inset-bottom));
+}
+
+.training-plan-sheet {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.training-plan-sheet-header {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+}
+
+.training-plan-sheet-header h3 {
+    margin: 0;
+    text-align: left;
+    color: var(--on-surface-color);
+    font-size: 24px;
+    line-height: 1.15;
+}
+
+.training-plan-sheet-header p {
+    margin: 0;
+    color: var(--on-surface-color);
+    opacity: 0.72;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.training-plan-kicker,
+.active-plan-label,
+.training-plan-section-title,
+.custom-plan-field label {
+    color: var(--primary-color);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.active-plan-card {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding: 16px;
+    border: 1px solid rgba(var(--primary-color-rgb), 0.35);
+    border-radius: 18px;
+    background: rgba(var(--primary-color-rgb), 0.08);
+}
+
+.active-plan-card strong {
+    color: var(--on-surface-color);
+    font-size: 18px;
+    line-height: 1.25;
+}
+
+.active-plan-description,
+.active-plan-stats {
+    margin: 0;
+    color: var(--on-surface-color);
+    line-height: 1.4;
+}
+
+.active-plan-description {
+    font-size: 13px;
+    opacity: 0.72;
+}
+
+.active-plan-stats {
+    font-size: 12px;
+    opacity: 0.58;
+}
+
+.training-plan-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 2px;
+}
+
+.training-primary-action,
+.training-secondary-action,
+.training-preset-card {
+    transition: transform 0.16s ease, border-color 0.16s ease, background-color 0.16s ease, opacity 0.16s ease;
+}
+
+.training-primary-action,
+.training-secondary-action {
+    min-height: 48px;
+    width: 100%;
+    border: 1px solid transparent;
+    border-radius: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.training-primary-action {
+    background: var(--primary-color);
+    color: var(--on-primary-color);
+}
+
+.training-secondary-action {
+    background: var(--surface-container-high);
+    color: var(--on-surface-color);
+    border-color: var(--outline-color);
+}
+
+.training-primary-action .material-symbols-rounded,
+.training-secondary-action .material-symbols-rounded {
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.training-primary-action:disabled,
+.training-preset-card:disabled {
+    opacity: 0.48;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.training-plan-counter {
+    min-height: 16px;
+    text-align: center;
+    color: var(--on-surface-color);
+    opacity: 0.62;
+    font-size: 11px;
+    line-height: 1.35;
+}
+
+.training-plan-section-title {
+    margin-top: 2px;
+}
+
+.training-preset-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.training-preset-card {
+    width: 100%;
+    min-height: 62px;
+    padding: 12px;
+    border: 1px solid var(--outline-color);
+    border-radius: 16px;
+    background: var(--surface-container-high);
+    color: var(--on-surface-color);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.training-preset-card .material-symbols-rounded {
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    background: rgba(var(--primary-color-rgb), 0.12);
+    color: var(--primary-color);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 21px;
+    line-height: 1;
+}
+
+.training-preset-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.training-preset-copy strong {
+    font-size: 14px;
+    line-height: 1.25;
+}
+
+.training-preset-copy small,
+.custom-plan-field small {
+    color: var(--on-surface-color);
+    opacity: 0.6;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.custom-plan-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.custom-plan-field input {
+    width: 100%;
+    min-height: 48px;
+    padding: 0 14px;
+    border: 1px solid var(--outline-color);
+    border-radius: 16px;
+    background: var(--surface-container-high);
+    color: var(--on-surface-color);
+    text-align: left;
+    font-size: 15px;
+    outline: none;
+}
+
+.custom-plan-field input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.18);
+}
+
+.training-plan-loading {
+    display: none;
+    padding: 18px 12px 2px;
+    text-align: center;
+}
+
+.training-plan-loading .material-symbols-rounded {
+    color: var(--primary-color);
+    font-size: 38px;
+    line-height: 1;
+    animation: spin 1.2s linear infinite;
+}
+
+.training-plan-loading p {
+    margin: 10px 0 0;
+    font-size: 13px;
+    opacity: 0.72;
+}
+
+@media (min-width: 520px) {
+    .training-preset-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .training-preset-card {
+        min-height: 112px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
 /* --- NEU: STYLING FÜR FOKUS-BELOHNUNGS-POPUP --- */
 #focus-reward-popup .popup-content p {
     text-align: center;

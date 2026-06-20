@@ -55,19 +55,26 @@ DQ_DATA.translations = {
         goal_setup_btn: "Einrichten",
         goal_setup_title: "Trainingsziel einrichten",
         goal_setup_current: "Dein aktueller Plan:",
+        goal_setup_hint: "Pruefe deinen aktiven Plan oder erstelle einen neuen.",
         goal_regenerate: "Neuen Plan generieren",
+        goal_generate_kicker: "Plan Generator",
         goal_generate_title: "Neuen Trainingsplan",
+        goal_generate_hint: "Waehle eine Richtung oder beschreibe dein Ziel selbst.",
         goal_presets: "Schnellwahl",
         goal_preset_kraft: "Kraft & Muskelaufbau",
+        goal_preset_kraft_hint: "Progressiv, stark, strukturiert.",
         goal_preset_ausdauer: "Ausdauer & Cardio",
+        goal_preset_ausdauer_hint: "Kondition und Belastbarkeit.",
         goal_preset_abnehmen: "Gewicht verlieren",
+        goal_preset_abnehmen_hint: "Kraft und Cardio kombiniert.",
         goal_custom: "Oder eigene Beschreibung",
         goal_custom_placeholder: "z.B. starke Beine und mehr Flexibilitaet",
+        goal_custom_help: "Kurz beschreiben, was dein Plan leisten soll.",
         goal_generate_btn: "Plan generieren",
         goal_generating: "Plan wird generiert...",
         goal_success_title: "Plan erstellt!",
         goal_error_title: "Fehler bei Generierung",
-        goal_error_msg: "Ein Fallback-Plan wird genutzt.",
+        goal_error_msg: "Wir nutzen erstmal einen stabilen Standardplan. Du kannst spaeter erneut generieren.",
         goal_regen_limit: "Regenerations-Limit erreicht (max 3/Tag).",
         current_plan: "Aktuell:",
         goal_muscle: "Muskelaufbau",
@@ -121,13 +128,13 @@ DQ_DATA.translations = {
 
         update_notice_intro: "Das ist neu in dieser Version:",
 
-        update_notice_page1_point1: "KI-Trainingsplan: Personalisierte Pläne mit Mistral AI erstellen",
+        update_notice_page1_point1: "KI-Trainingsplan ist jetzt stabiler und besser validiert",
 
-        update_notice_page1_point2: "Drei Presets (Kraft/Ausdauer/Abnehmen) oder eigene Ziele eingeben",
+        update_notice_page1_point2: "Neue Plan-Popups sind klarer, kompakter und mobile optimiert",
 
-        update_notice_page2_point1: "Intelligentes Balancing: 6 Quests/Tag mit abwechslungsreichen Übungen",
+        update_notice_page2_point1: "Kein Equipment bedeutet jetzt wirklich keine Equipment-Pflichtquests",
 
-        update_notice_page2_point2: "Rest Days respektieren Erholungsübungen und passen sich automatisch an",
+        update_notice_page2_point2: "Tutorial, Rest Days, Phasen und Cloud-Sync wurden abgesichert",
 
         update_notice_step_label: "Seite",
 
@@ -386,19 +393,26 @@ DQ_DATA.translations = {
         goal_setup_btn: "Configure",
         goal_setup_title: "Configure Training Goal",
         goal_setup_current: "Your current plan:",
+        goal_setup_hint: "Review your active plan or create a new one.",
         goal_regenerate: "Generate new plan",
+        goal_generate_kicker: "Plan Generator",
         goal_generate_title: "New Training Plan",
+        goal_generate_hint: "Pick a direction or describe your goal yourself.",
         goal_presets: "Quick selection",
         goal_preset_kraft: "Strength & Muscle",
+        goal_preset_kraft_hint: "Progressive, strong, structured.",
         goal_preset_ausdauer: "Endurance & Cardio",
+        goal_preset_ausdauer_hint: "Conditioning and stamina.",
         goal_preset_abnehmen: "Weight loss",
+        goal_preset_abnehmen_hint: "Strength and cardio combined.",
         goal_custom: "Or custom description",
         goal_custom_placeholder: "e.g. strong legs and more flexibility",
+        goal_custom_help: "Briefly describe what your plan should do.",
         goal_generate_btn: "Generate plan",
         goal_generating: "Generating plan...",
         goal_success_title: "Plan created!",
         goal_error_title: "Generation failed",
-        goal_error_msg: "A fallback plan is being used.",
+        goal_error_msg: "We will use a stable default plan for now. You can generate again later.",
         goal_regen_limit: "Regeneration limit reached (max 3/day).",
         current_plan: "Current:",
         goal_muscle: "Muscle Building",
@@ -452,13 +466,13 @@ DQ_DATA.translations = {
 
         update_notice_intro: "What's new in this version:",
 
-        update_notice_page1_point1: "AI Training Plans: Personalized plans with Mistral AI",
+        update_notice_page1_point1: "AI training plans are now more stable and better validated",
 
-        update_notice_page1_point2: "Three presets (Strength/Endurance/Weight Loss) or custom goals",
+        update_notice_page1_point2: "New plan popups are clearer, smaller, and mobile optimized",
 
-        update_notice_page2_point1: "Smart balancing: 6 daily quests with varied exercises",
+        update_notice_page2_point1: "No equipment now truly means no equipment-required quests",
 
-        update_notice_page2_point2: "Rest days now respect recovery exercises automatically",
+        update_notice_page2_point2: "Tutorial, rest days, phases, and cloud sync were hardened",
 
         update_notice_step_label: "Page",
 
@@ -671,4 +685,3 @@ DQ_DATA.translations = {
         extra_shop_title: "Extra-Quests & Shop"
     }
 };
-

@@ -2,7 +2,7 @@
  * Test 11: Custom Plan System (KI-Trainingsplne)
  * Testet JSON-Validierung, Balancing-Algorithmus, Rest-Day-Filter, Stage-Berechnung.
  */
-const { TestRunner, BASE } = require('./helpers');
+const { TestRunner, BASE, loadData } = require('./helpers');
 const path = require('path');
 
 function run() {
@@ -22,9 +22,14 @@ function run() {
     t.ok(edgeFnCode.includes('Deno.env.get("MISTRAL_API_KEY")'), 'Edge Function liest Key aus Deno.env');
     t.ok(!edgeFnCode.includes('HLSGdkLj5e29Ikj3gaQUTFCJK5QURB44'), 'API-Key NICHT hardcoded in Edge Function');
     t.ok(edgeFnCode.includes('mistral-small-latest'), 'Verwendet mistral-small-latest Modell');
-    t.ok(edgeFnCode.includes('max_tokens') && edgeFnCode.includes('100'), 'Verwendet max_tokens: 100');
-    t.ok(edgeFnCode.includes('DENO_ENV') || edgeFnCode.includes('"focus"') || edgeFnCode.includes("'focus'"), 'Hat Focus-Feld im Config');
-    t.ok(edgeFnCode.includes('kraft') || edgeFnCode.includes('ausdauer') || edgeFnCode.includes('abnehmen'), 'Erwartet 3 Fokus-Werte');
+    t.ok(edgeFnCode.includes('max_tokens') && (edgeFnCode.includes('4000') || edgeFnCode.includes('3000') || edgeFnCode.includes('2000')), 'Verwendet ausreichend max_tokens fuer 30-Exercise-JSON (>=2000, vorher 100 war zu klein)');
+    t.ok(edgeFnCode.includes('response_format') && edgeFnCode.includes('json_object'), 'Mistral response_format: json_object aktiv (Bug C Fix)');
+    t.ok(edgeFnCode.includes('supabase.auth.getUser') || edgeFnCode.includes('auth.getUser('), 'JWT-Verifikation via Supabase auth.getUser (Bug B Fix)');
+    t.ok(edgeFnCode.includes('SYSTEM_PROMPT') && edgeFnCode.includes('EXISTING_NAMEKEYS'), 'System-Prompt enthaelt vollstaendiges JSON-Schema + nameKey-Liste (Bug A/C Fix)');
+    t.ok(edgeFnCode.includes('dq_ai_generations'), 'Server-side Rate-Limit Konstante vorhanden (Bug D Fix)');
+    t.ok(edgeFnCode.includes('genau 4 stages') || edgeFnCode.includes('GENAU 4'), 'Edge Function validiert genau 4 Phasen');
+    t.ok(edgeFnCode.includes('KEIN Equipment') && edgeFnCode.includes('needsEquipment:false'), 'Edge Function erzwingt Equipment-Off im Prompt');
+    t.ok(edgeFnCode.includes('attempt < 2') || edgeFnCode.includes('attempt = 0'), 'Edge Function hat internen Repair-Retry');
     t.ok(edgeFnCode.includes('MISTRAL_URL') && edgeFnCode.includes('fetch('), 'Ruft Mistral API via fetch auf');
 
     // --- mistral-client.js: Validierung ---
@@ -37,6 +42,7 @@ function run() {
     t.ok(mistralCode.includes('VALID_TYPES'), 'Validiert Ubungs-Typen');
     t.ok(mistralCode.includes('VALID_TAGS'), 'Validiert Tags');
     t.ok(mistralCode.includes('functions.invoke'), 'Ruft Edge Function via functions.invoke auf');
+    t.ok(mistralCode.includes('REQUEST_TIMEOUT_MS') && mistralCode.includes('invokeWithTimeout'), 'Mistral Client hat Timeout gegen haengende Generierung');
     t.ok(mistralCode.includes('expandExercises'), 'Hat expandExercises Funktion');
     t.ok(mistralCode.includes('buildFullPlan'), 'Hat buildFullPlan Funktion');
     t.ok(mistralCode.includes('generateExercisesFromTemplates'), 'Hat generateExercisesFromTemplates Funktion');
@@ -52,6 +58,8 @@ function run() {
     t.ok(customCode.includes('recentExercises'), 'Beruecksichtigt recentExercises fuer Variety');
     t.ok(customCode.includes('savePlan') && customCode.includes('setActivePlan'), 'Hat Plan-Speicher-Funktionen');
     t.ok(customCode.includes('applyPhaseAction'), 'Hat applyPhaseAction fur Phase-Buttons');
+    t.ok(customCode.includes('getAvailableExercises'), 'Hat Equipment-Safety-Filter fuer Custom Plans');
+    t.ok(customCode.includes('needsEquipment: !!template.needsEquipment'), 'Custom Quests speichern needsEquipment fuer Re-Generation');
 
     // --- Balancing-Algorithmus Logic Test (simuliert) ---
     function testBalancing() {
@@ -141,13 +149,15 @@ function run() {
             })),
             stages: [
                 { label: "P1", weeks: 2, sets: 2, reps: 8 },
-                { label: "P2", weeks: 9999, sets: 4, reps: 12 }
+                { label: "P2", weeks: 2, sets: 3, reps: 10 },
+                { label: "P3", weeks: 2, sets: 3, reps: 12 },
+                { label: "P4", weeks: 9999, sets: 4, reps: 12 }
             ]
         };
 
         t.ok(validPlan.exercises.length === 30, 'Validierungs-Test: 30 exercises');
         t.ok(validPlan.exercises.filter(ex => ex.isRest).length === 4, 'Validierungs-Test: 4 isRest');
-        t.ok(validPlan.stages.length === 2, 'Validierungs-Test: 2 stages');
+        t.ok(validPlan.stages.length === 4, 'Validierungs-Test: genau 4 stages');
         t.ok(validPlan.stages[validPlan.stages.length - 1].weeks === 9999, 'Letzte Stage ist infinite');
         t.ok(validPlan.exercises.every(ex => VALID_TYPES.includes(ex.type)), 'Alle Typen valid');
         t.ok(validPlan.exercises.every(ex => ex.tags.every(t => VALID_TAGS.includes(t))), 'Alle Tags valid');
@@ -157,6 +167,209 @@ function run() {
         t.ok(invalidPlan.exercises.length !== 30, 'Invalid: nicht 30 exercises');
     }
     testValidation();
+
+    // === Bug M Fix: DYNAMISCHE Runtime-Tests ===
+    // Wir laden validatePlan / buildFullPlan / expandExercises aus dem Code
+    // und fuehren sie mit echten Inputs aus. So fangen wir Logikfehler,
+    // die ein statischer String-Match nie findet.
+
+    // global.window + DQ_DATA vorbereiten (helpers.js hat es bereits geladen).
+    const fs2 = require('fs');
+
+    // mistral-client.js laedt sich selbst als const DQ_MISTRAL = {...};
+    // Wir kapseln es via new Function, damit 'const' im Skript-Scope bleibt.
+    function loadModuleAsGlobal(relPath, globalName) {
+        const code = fs2.readFileSync(path.join(BASE, relPath), 'utf8');
+        // Alles vor der Hauptobjekt-Deklaration wegstrippen, dann umdefinieren.
+        // Wir nutzen Trick: const -> var, um auf global zuzugreifen.
+        const patched = code
+            .replace(/^const\s+DQ_MISTRAL\s*=\s*\{/m, `var ${globalName} = {`)
+            .replace(/^const\s+DQ_CUSTOM_PLAN\s*=\s*\{/m, `var ${globalName} = {`);
+        try {
+            new Function(patched)();
+        } catch (e) {
+            console.warn('  [WARN] Modul-Load fehlgeschlagen:', relPath, e.message.split('\n')[0]);
+        }
+    }
+    loadModuleAsGlobal('js/mistral-client.js', 'DQ_MISTRAL');
+    loadModuleAsGlobal('js/custom-plan-system.js', 'DQ_CUSTOM_PLAN');
+
+    // --- validatePlan dynamisch testen ---
+    if (typeof DQ_MISTRAL !== 'undefined' && typeof DQ_MISTRAL.validatePlan === 'function') {
+        // GUT: synthetischer, vollstaendiger Plan
+        const goodPlan = {
+            planName: 'Test Kraft-Plan',
+            planDescription: 'Test-Plan fuer Test-Suite',
+            exercises: Array.from({ length: 30 }, (_, i) => ({
+                nameKey: `custom_test_${i}_${Date.now().toString(36)}`,
+                displayName: 'Test Exercise ' + i,
+                description: 'Synthetic exercise',
+                type: 'reps',
+                baseValue: 10,
+                tags: i < 26 ? ['push'] : ['rest', 'mobility'],
+                isRest: i >= 26,
+                needsEquipment: false,
+                muscles: ['general'],
+                statPoints: { kraft: 1 },
+                mana: 20,
+                gold: 6
+            })),
+            stages: [
+                { label: 'Einstieg', weeks: 2, sets: 2, reps: 8 },
+                { label: 'Aufbau', weeks: 4, sets: 3, reps: 10 },
+                { label: 'Peak', weeks: 4, sets: 3, reps: 12 },
+                { label: 'Meister', weeks: 9999, sets: 4, reps: 12 }
+            ]
+        };
+        const v = DQ_MISTRAL.validatePlan(goodPlan);
+        t.ok(v.valid === true, 'validatePlan: guter Plan wird akzeptiert (errors=' + (v.errors || []).length + ')');
+
+        // SCHLECHT: nur 29 exercises
+        const tooFew = JSON.parse(JSON.stringify(goodPlan));
+        tooFew.exercises = tooFew.exercises.slice(0, 29);
+        t.ok(DQ_MISTRAL.validatePlan(tooFew).valid === false, 'validatePlan: 29 exercises wird abgelehnt');
+
+        // SCHLECHT: doppelter nameKey
+        const dupKey = JSON.parse(JSON.stringify(goodPlan));
+        dupKey.exercises[5].nameKey = dupKey.exercises[0].nameKey;
+        t.ok(DQ_MISTRAL.validatePlan(dupKey).valid === false, 'validatePlan: doppelter nameKey wird erkannt');
+
+        // SCHLECHT: nur 2 isRest
+        const fewRest = JSON.parse(JSON.stringify(goodPlan));
+        fewRest.exercises.forEach((ex, i) => { if (i >= 26) ex.isRest = false; });
+        fewRest.exercises[10].isRest = true;
+        t.ok(DQ_MISTRAL.validatePlan(fewRest).valid === false, 'validatePlan: <4 isRest wird erkannt');
+
+        // SCHLECHT: ungueltiger tag
+        const badTag = JSON.parse(JSON.stringify(goodPlan));
+        badTag.exercises[0].tags = ['hack'];
+        t.ok(DQ_MISTRAL.validatePlan(badTag).valid === false, 'validatePlan: ungueltiger tag wird erkannt');
+
+        // SCHLECHT: letzte stage nicht infinite
+        const badStage = JSON.parse(JSON.stringify(goodPlan));
+        badStage.stages[3].weeks = 4;
+        t.ok(DQ_MISTRAL.validatePlan(badStage).valid === false, 'validatePlan: letzte stage ohne weeks:9999 erkannt');
+
+        // SCHLECHT: nur 3 stages
+        const tooFewStages = JSON.parse(JSON.stringify(goodPlan));
+        tooFewStages.stages = tooFewStages.stages.slice(0, 3);
+        t.ok(DQ_MISTRAL.validatePlan(tooFewStages).valid === false, 'validatePlan: nicht genau 4 stages wird abgelehnt');
+
+        // SCHLECHT: nameKey ohne custom_-Prefix und nicht in existing pool
+        const strayKey = JSON.parse(JSON.stringify(goodPlan));
+        strayKey.exercises[0].nameKey = 'unknown_key_without_prefix';
+        t.ok(DQ_MISTRAL.validatePlan(strayKey).valid === false, 'validatePlan: nameKey ohne custom_-Prefix erkannt');
+
+        // SCHLECHT: bestehender nameKey aus exercisePool ist OK
+        const knownKey = JSON.parse(JSON.stringify(goodPlan));
+        // sicherstellen dass 'push_ups_normal' im Pool ist
+        if (DQ_DATA.exercisePool.calisthenics &&
+            DQ_DATA.exercisePool.calisthenics.some(e => e.nameKey === 'push_ups_normal')) {
+            knownKey.exercises[0].nameKey = 'push_ups_normal';
+            const vk = DQ_MISTRAL.validatePlan(knownKey);
+            t.ok(vk.valid === true, 'validatePlan: bestehender nameKey aus Pool wird akzeptiert');
+        }
+    } else {
+        t.ok(false, 'DQ_MISTRAL.validatePlan wurde nicht geladen - Modul-Load fehlgeschlagen');
+    }
+
+    // --- expandExercises dynamisch testen (Bug E Fix) ---
+    if (typeof DQ_MISTRAL !== 'undefined' && typeof DQ_MISTRAL.expandExercises === 'function') {
+        const seed = [
+            { nameKey: 'custom_seed_0', tags: ['push'], isRest: false, type: 'reps', baseValue: 10 }
+        ];
+        const exp1 = DQ_MISTRAL.expandExercises(seed);
+        t.ok(exp1.length === 30, 'expandExercises: liefert genau 30 Uebungen');
+        const keys1 = exp1.map(e => e.nameKey);
+        t.ok(new Set(keys1).size === 30, 'expandExercises: alle nameKeys eindeutig (Bug E Fix)');
+
+        // Zweiter Aufruf muss andere nameKeys produzieren (Suffix)
+        const exp2 = DQ_MISTRAL.expandExercises(seed);
+        const keys2 = new Set(exp2.map(e => e.nameKey));
+        t.ok(keys2.size === 30, 'expandExercises: zweiter Aufruf auch eindeutig');
+        // Suffixe unterscheiden sich
+        const overlap = exp1.filter(e => keys2.has(e.nameKey)).length;
+        t.ok(overlap <= 1, 'expandExercises: nur seed-Key (max 1) zwischen Aufrufen geteilt');
+
+        // Mindestens 4 Rest
+        t.ok(exp1.filter(e => e.isRest === true).length >= 4, 'expandExercises: >= 4 isRest');
+    } else {
+        t.ok(false, 'DQ_MISTRAL.expandExercises nicht verfuegbar');
+    }
+
+    // --- pickBalancedQuests dynamisch testen (Bug K Fix) ---
+    if (typeof DQ_CUSTOM_PLAN !== 'undefined' && typeof DQ_CUSTOM_PLAN.pickBalancedQuests === 'function') {
+        const bigPool = Array.from({ length: 30 }, (_, i) => ({
+            nameKey: 'pool_' + i,
+            tags: ['push'],
+            isRest: i >= 26,
+            type: 'reps',
+            baseValue: 10,
+            mana: 20,
+            gold: 6
+        }));
+        const sel = DQ_CUSTOM_PLAN.pickBalancedQuests(bigPool, 6, false, []);
+        t.ok(sel.length === 6, 'pickBalancedQuests: 6 aus grossem Pool gewaehlt');
+
+        // KRITISCH: kleiner Pool (Bug K) -> muss 6 liefern, nicht weniger
+        const smallPool = [
+            { nameKey: 'rest_1', tags: ['rest'], isRest: true, type: 'check', baseValue: 1, mana: 10, gold: 5 },
+            { nameKey: 'rest_2', tags: ['rest'], isRest: true, type: 'check', baseValue: 1, mana: 10, gold: 5 }
+        ];
+        const restSel = DQ_CUSTOM_PLAN.pickBalancedQuests(smallPool, 5, true, []);
+        t.ok(restSel.length === 5, 'pickBalancedQuests: 5 Rest-Day aus kleinem Pool (Bug K Fix)');
+
+        // Keine Duplikate im grossen Pool
+        const names = sel.map(e => e.nameKey);
+        t.ok(new Set(names).size === names.length, 'pickBalancedQuests: keine nameKey-Duplikate');
+
+        const mixedEquipment = [
+            { nameKey: 'eq_1', tags: ['push'], isRest: false, needsEquipment: true, type: 'reps', baseValue: 10, mana: 10, gold: 5 },
+            { nameKey: 'noeq_1', tags: ['push'], isRest: false, needsEquipment: false, type: 'reps', baseValue: 10, mana: 10, gold: 5 },
+            { nameKey: 'noeq_2', tags: ['pull'], isRest: false, needsEquipment: false, type: 'reps', baseValue: 10, mana: 10, gold: 5 },
+            { nameKey: 'noeq_3', tags: ['legs'], isRest: false, needsEquipment: false, type: 'reps', baseValue: 10, mana: 10, gold: 5 },
+            { nameKey: 'noeq_rest', tags: ['rest'], isRest: true, needsEquipment: false, type: 'check', baseValue: 1, mana: 10, gold: 5 }
+        ];
+        const available = DQ_CUSTOM_PLAN.getAvailableExercises(mixedEquipment, false);
+        t.ok(available.every(ex => ex.needsEquipment !== true), 'getAvailableExercises: Equipment-Off entfernt Equipment-Uebungen');
+        t.ok(available.some(ex => ex.isRest === true), 'getAvailableExercises: Rest-Uebungen bleiben vorhanden');
+    } else {
+        t.ok(false, 'DQ_CUSTOM_PLAN.pickBalancedQuests nicht verfuegbar');
+    }
+
+    // --- buildCustomQuest dynamisch testen: Difficulty 1-5 und needsEquipment ---
+    if (typeof DQ_CUSTOM_PLAN !== 'undefined' && typeof DQ_CUSTOM_PLAN.buildCustomQuest === 'function') {
+        global.DQ_TRAINING_SYSTEM = {
+            getDifficultyMultiplier(d) { return 1 + 0.4 * (d - 1); }
+        };
+        const template = {
+            nameKey: 'custom_diff_test', displayName: 'Diff Test', description: 'Diff',
+            type: 'reps', baseValue: 10, tags: ['push'], isRest: false, needsEquipment: true,
+            muscles: ['chest'], statPoints: { kraft: 1 }, mana: 20, gold: 10
+        };
+        const stageContext = { stageIndex: 0, stage: { label: 'Einstieg', sets: 2, reps: 8 } };
+        const easy = DQ_CUSTOM_PLAN.buildCustomQuest({ id: 1 }, template, stageContext, '2026-06-20', 0, 1, false);
+        const hard = DQ_CUSTOM_PLAN.buildCustomQuest({ id: 1 }, template, stageContext, '2026-06-20', 0, 5, false);
+        t.ok(easy.target < hard.target, 'buildCustomQuest: Difficulty 5 ist schwerer als Difficulty 1');
+        t.ok(easy.needsEquipment === true, 'buildCustomQuest: needsEquipment wird in Quest gespeichert');
+        t.ok(easy.equipmentHint === false, 'buildCustomQuest: Equipment-Hint ist aus wenn User kein Equipment hat');
+    } else {
+        t.ok(false, 'DQ_CUSTOM_PLAN.buildCustomQuest nicht verfuegbar');
+    }
+
+    // --- checkRestDay dynamisch testen (Bug I Fix) ---
+    if (typeof DQ_CUSTOM_PLAN !== 'undefined' && typeof DQ_CUSTOM_PLAN.checkRestDay === 'function') {
+        t.ok(typeof DQ_CUSTOM_PLAN.checkRestDay(0) === 'boolean', 'checkRestDay: 0 Rest Days ok');
+        t.ok(typeof DQ_CUSTOM_PLAN.checkRestDay(7) === 'boolean', 'checkRestDay: 7 Rest Days ok');
+        // Edge-Cases: vor Bug-Fix lieferten 4-6 Rest Days IMMER false (leeres Array in switch).
+        // Jetzt liefern sie zufaellige booleans je nach Wochentag, aber KEINE Exception.
+        for (const r of [4, 5, 6]) {
+            const day = DQ_CUSTOM_PLAN.checkRestDay(r);
+            t.ok(typeof day === 'boolean', 'checkRestDay(' + r + ') liefert boolean ohne Exception (vorher Bug: undefined behaviour)');
+        }
+    } else {
+        t.ok(false, 'DQ_CUSTOM_PLAN.checkRestDay nicht verfuegbar');
+    }
 
     // --- database.js: custom_plans Store ---
     const dbCode = require('fs').readFileSync(path.join(BASE, 'js', 'database.js'), 'utf8');
@@ -194,6 +407,10 @@ function run() {
     t.ok(tutOnboardCode.includes('handleTutorialPlanSelection'), 'Hat handleTutorialPlanSelection');
     t.ok(tutOnboardCode.includes('DQ_MISTRAL.generateAndSavePlan'), 'Nutzt DQ_MISTRAL im Tutorial');
 
+    const tutStateCode = require('fs').readFileSync(path.join(BASE, 'tutorial', 'js', 'tutorial_state.js'), 'utf8');
+    t.ok(tutStateCode.includes('restoreIntroPlanState'), 'Tutorial-State kann Intro-Plan nach Auth-Redirect wiederherstellen');
+    t.ok(tutStateCode.includes('planExists') && tutStateCode.includes('await new Promise'), 'Tutorial-State prueft customPlanId vor Settings-Speicherung');
+
     // --- translations ---
     const transCode = require('fs').readFileSync(path.join(BASE, 'data', 'translations.js'), 'utf8');
     t.ok(transCode.includes('goal_setup_btn'), 'Translation: goal_setup_btn DE');
@@ -208,9 +425,20 @@ function run() {
     t.ok(htmlCode.includes('id="goal-setup-popup"'), 'HTML: goal-setup-popup vorhanden');
     t.ok(htmlCode.includes('id="goal-generate-popup"'), 'HTML: goal-generate-popup vorhanden');
     t.ok(htmlCode.includes('id="custom-plan-prompt"'), 'HTML: custom-plan-prompt vorhanden');
+    t.ok(htmlCode.includes('training-goal-setup-button'), 'HTML: kompakter Trainingsziel-Button nutzt eigene Klasse');
+    t.ok(htmlCode.includes('training-plan-popup'), 'HTML: Trainingsplan-Popups nutzen eigene Klasse');
+    t.ok(htmlCode.includes('custom-plan-field'), 'HTML: Custom Prompt ohne setting-item Aussenbox');
     t.ok(htmlCode.includes('data-preset="kraft"'), 'HTML: Preset kraft im Popup');
     t.ok(htmlCode.includes('js/custom-plan-system.js'), 'HTML: custom-plan-system.js Script-Tag');
     t.ok(htmlCode.includes('js/mistral-client.js'), 'HTML: mistral-client.js Script-Tag');
+
+    const popupCss = require('fs').readFileSync(path.join(BASE, 'css', 'components', 'popups.css'), 'utf8');
+    t.ok(popupCss.includes('.training-primary-action') && popupCss.includes('align-items: center'), 'CSS: Trainingsplan-Buttons zentrieren Icon/Text');
+    t.ok(popupCss.includes('.training-goal-setup-button') && popupCss.includes('min-height: 44px'), 'CSS: Settings Button hat mobiles Tap-Ziel');
+
+    const tutCss = require('fs').readFileSync(path.join(BASE, 'tutorial', 'css', 'tutorial.css'), 'utf8');
+    t.ok(tutCss.includes('.tutorial-custom-plan-field'), 'Tutorial CSS: Custom Plan Feld ohne Inline-Style');
+    t.ok(tutOnboardCode.includes('trainingPlanType') && tutOnboardCode.includes('customPlanId'), 'Tutorial speichert Custom Plan State');
 
     return t;
 }

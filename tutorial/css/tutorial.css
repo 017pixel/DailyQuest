@@ -405,6 +405,93 @@
     box-shadow: 0 4px 15px rgba(95, 133, 117, 0.2), 0 2px 5px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
+.tutorial-plan-selection {
+    gap: 12px;
+}
+
+.tutorial-plan-choice {
+    min-height: 92px;
+    padding: 18px 16px;
+}
+
+.tutorial-plan-choice.selected {
+    border-color: rgba(95, 133, 117, 0.85);
+    background: rgba(95, 133, 117, 0.16);
+}
+
+.tutorial-custom-plan-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 2px;
+    text-align: left;
+}
+
+.tutorial-custom-plan-field label {
+    color: rgba(139, 201, 168, 0.95);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.tutorial-custom-plan-field input {
+    width: 100%;
+    min-height: 48px;
+    padding: 0 14px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    font-size: 15px;
+    outline: none;
+}
+
+.tutorial-custom-plan-field input:focus {
+    border-color: rgba(95, 133, 117, 0.9);
+    box-shadow: 0 0 0 2px rgba(95, 133, 117, 0.22);
+}
+
+.tutorial-custom-plan-field small {
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.tutorial-plan-generate {
+    min-height: 48px;
+    border: 1px solid rgba(95, 133, 117, 0.85);
+    border-radius: 16px;
+    background: rgba(95, 133, 117, 0.88);
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.tutorial-plan-generate:disabled {
+    opacity: 0.46;
+    cursor: not-allowed;
+}
+
+.tutorial-plan-loading {
+    text-align: center;
+    padding: 24px 8px 6px;
+}
+
+.tutorial-plan-loading .material-symbols-rounded {
+    color: rgba(139, 201, 168, 0.95);
+    font-size: 40px;
+    line-height: 1;
+    animation: spin 1.2s linear infinite;
+}
+
+.tutorial-plan-loading p {
+    margin-top: 12px;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 14px;
+}
+
 /* ===========================
    PROGRESSIVE TUTORIAL SYSTEM
    =========================== */

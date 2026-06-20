@@ -648,63 +648,78 @@
     </div>
 
     <!-- Popup: Trainingsziel einrichten (aktueller Plan + Regenerieren) -->
-    <div id="goal-setup-popup" class="popup popup-large">
+    <div id="goal-setup-popup" class="popup popup-large training-plan-popup">
         <div class="popup-drag-handle"></div>
-        <div class="popup-content">
-            <h3 data-lang-key="goal_setup_title">Trainingsziel einrichten</h3>
-            <div class="settings-warning-box">
-                <span class="warning-icon"><span class="material-symbols-rounded">auto_awesome</span></span>
-                <p data-lang-key="goal_setup_current">Dein aktueller Plan:</p>
-            </div>
-            <div id="current-plan-display" class="setting-item" style="flex-direction:column;align-items:stretch;">
+        <div class="popup-content training-plan-sheet">
+            <header class="training-plan-sheet-header">
+                <span class="training-plan-kicker" data-lang-key="settings_training">Training</span>
+                <h3 data-lang-key="goal_setup_title">Trainingsziel einrichten</h3>
+                <p data-lang-key="goal_setup_hint">Pruefe deinen aktiven Plan oder erstelle einen neuen.</p>
+            </header>
+            <section id="current-plan-display" class="active-plan-card" aria-live="polite">
+                <span class="active-plan-label" data-lang-key="goal_setup_current">Dein aktueller Plan:</span>
                 <strong id="current-plan-title">Muskelaufbau (Standard)</strong>
-                <p id="current-plan-desc" style="font-size:12px;opacity:0.7;margin:4px 0 0;"></p>
-                <p id="current-plan-stats" style="font-size:11px;opacity:0.5;margin:2px 0 0;"></p>
-            </div>
-            <div class="popup-actions">
-                <button id="goal-regenerate-button" class="card-button">
-                    <span class="material-symbols-rounded">refresh</span>
+                <p id="current-plan-desc" class="active-plan-description"></p>
+                <p id="current-plan-stats" class="active-plan-stats"></p>
+            </section>
+            <div class="training-plan-actions">
+                <button id="goal-regenerate-button" class="training-primary-action">
+                    <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
                     <span data-lang-key="goal_regenerate">Neuen Plan generieren</span>
                 </button>
-                <span id="regeneration-counter" style="font-size:11px;opacity:0.6;text-align:center;"></span>
-                <button id="goal-setup-cancel" class="card-button secondary-button" data-lang-key="cancel">Abbrechen</button>
+                <span id="regeneration-counter" class="training-plan-counter"></span>
+                <button id="goal-setup-cancel" class="training-secondary-action" data-lang-key="cancel">Abbrechen</button>
             </div>
         </div>
     </div>
 
     <!-- Popup: Neuen Plan generieren (Presets + Custom) -->
-    <div id="goal-generate-popup" class="popup popup-large">
+    <div id="goal-generate-popup" class="popup popup-large training-plan-popup">
         <div class="popup-drag-handle"></div>
-        <div class="popup-content">
-            <h3 data-lang-key="goal_generate_title">Neuen Trainingsplan</h3>
-            <div class="settings-subpage-section-title" data-lang-key="goal_presets">Schnellwahl</div>
-            <div class="settings-subpage-actions">
-                <button class="settings-action-btn" data-preset="kraft">
-                    <span class="material-symbols-rounded">fitness_center</span>
-                    <span data-lang-key="goal_preset_kraft">Kraft &amp; Muskelaufbau</span>
+        <div class="popup-content training-plan-sheet">
+            <header class="training-plan-sheet-header">
+                <span class="training-plan-kicker" data-lang-key="goal_generate_kicker">Plan Generator</span>
+                <h3 data-lang-key="goal_generate_title">Neuen Trainingsplan</h3>
+                <p data-lang-key="goal_generate_hint">Waehle eine Richtung oder beschreibe dein Ziel selbst.</p>
+            </header>
+            <div class="training-plan-section-title" data-lang-key="goal_presets">Schnellwahl</div>
+            <section class="training-preset-grid" aria-label="Schnellwahl">
+                <button class="training-preset-card" data-preset="kraft">
+                    <span class="material-symbols-rounded" aria-hidden="true">fitness_center</span>
+                    <span class="training-preset-copy">
+                        <strong data-lang-key="goal_preset_kraft">Kraft &amp; Muskelaufbau</strong>
+                        <small data-lang-key="goal_preset_kraft_hint">Progressiv, stark, strukturiert.</small>
+                    </span>
                 </button>
-                <button class="settings-action-btn" data-preset="ausdauer">
-                    <span class="material-symbols-rounded">directions_run</span>
-                    <span data-lang-key="goal_preset_ausdauer">Ausdauer &amp; Cardio</span>
+                <button class="training-preset-card" data-preset="ausdauer">
+                    <span class="material-symbols-rounded" aria-hidden="true">directions_run</span>
+                    <span class="training-preset-copy">
+                        <strong data-lang-key="goal_preset_ausdauer">Ausdauer &amp; Cardio</strong>
+                        <small data-lang-key="goal_preset_ausdauer_hint">Kondition und Belastbarkeit.</small>
+                    </span>
                 </button>
-                <button class="settings-action-btn" data-preset="abnehmen">
-                    <span class="material-symbols-rounded">local_fire_department</span>
-                    <span data-lang-key="goal_preset_abnehmen">Gewicht verlieren</span>
+                <button class="training-preset-card" data-preset="abnehmen">
+                    <span class="material-symbols-rounded" aria-hidden="true">local_fire_department</span>
+                    <span class="training-preset-copy">
+                        <strong data-lang-key="goal_preset_abnehmen">Gewicht verlieren</strong>
+                        <small data-lang-key="goal_preset_abnehmen_hint">Kraft und Cardio kombiniert.</small>
+                    </span>
                 </button>
-            </div>
-            <div class="settings-subpage-section-title" data-lang-key="goal_custom">Oder eigene Beschreibung</div>
-            <div class="setting-item" style="flex-direction:column;align-items:stretch;">
-                <input type="text" id="custom-plan-prompt" data-lang-key-placeholder="goal_custom_placeholder" placeholder="z.B. starke Beine und mehr Flexibilitaet" maxlength="200" style="width:100%;text-align:left;">
-            </div>
-            <div class="popup-actions">
-                <button id="custom-plan-generate-button" class="card-button" disabled>
-                    <span class="material-symbols-rounded">auto_awesome</span>
+            </section>
+            <section class="custom-plan-field">
+                <label for="custom-plan-prompt" data-lang-key="goal_custom">Oder eigene Beschreibung</label>
+                <input type="text" id="custom-plan-prompt" data-lang-key-placeholder="goal_custom_placeholder" placeholder="z.B. starke Beine und mehr Flexibilitaet" maxlength="200" autocomplete="off">
+                <small data-lang-key="goal_custom_help">Kurz beschreiben, was dein Plan leisten soll.</small>
+            </section>
+            <div class="training-plan-actions">
+                <button id="custom-plan-generate-button" class="training-primary-action" disabled>
+                    <span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span>
                     <span data-lang-key="goal_generate_btn">Plan generieren</span>
                 </button>
-                <button id="goal-generate-cancel" class="card-button secondary-button" data-lang-key="cancel">Abbrechen</button>
+                <button id="goal-generate-cancel" class="training-secondary-action" data-lang-key="cancel">Abbrechen</button>
             </div>
-            <div id="plan-generation-loading" style="display:none;text-align:center;padding:20px;">
-                <span class="material-symbols-rounded" style="font-size:40px;animation:spin 2s linear infinite;">progress_activity</span>
+            <div id="plan-generation-loading" class="training-plan-loading">
+                <span class="material-symbols-rounded" aria-hidden="true">progress_activity</span>
                 <p data-lang-key="goal_generating">Plan wird generiert...</p>
             </div>
         </div>
@@ -824,9 +839,9 @@
                             <span id="difficulty-value">3</span>
                         </div>
                     </div>
-                    <div class="settings-subpage-item">
+                    <div class="settings-subpage-item training-goal-row">
                         <label data-lang-key="training_goal">Trainingsziel</label>
-                        <button type="button" id="goal-setup-button" class="settings-action-btn" style="flex:0 0 auto;padding:8px 16px;" data-lang-key="goal_setup_btn">Einrichten</button>
+                        <button type="button" id="goal-setup-button" class="training-goal-setup-button" data-lang-key="goal_setup_btn">Einrichten</button>
                     </div>
                     <div class="settings-subpage-item" id="current-plan-info">
                         <label data-lang-key="current_plan">Aktuell:</label>
@@ -884,7 +899,7 @@
                         <div class="qr-code-wrapper"><div id="qr-code-canvas"></div></div>
                         <button class="settings-action-btn share-copy-btn" id="copy-url-btn" data-lang-key="share_copy">Link kopieren</button>
                         <a href="https://github.com/017pixel/DailyQuest" target="_blank" class="share-github-link"><span class="material-symbols-rounded">code</span><span data-lang-key="share_github">Zum Code</span></a>
-                        <div class="share-version">v2.12.0</div>
+                        <div class="share-version">v2.13.0</div>
                     </div>
                 </div>
             </div>
@@ -1186,4 +1201,3 @@
 </body>
 
 </html>
-

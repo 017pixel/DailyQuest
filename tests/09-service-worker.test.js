@@ -17,6 +17,18 @@ function run() {
     // Cache-Name
     const cacheMatch = sw.match(/dailyquest-cache-v(\d+)/);
     t.ok(!!cacheMatch, `Cache-Name gefunden (v${cacheMatch ? cacheMatch[1] : '?'})`);
+    t.ok(cacheMatch && Number(cacheMatch[1]) >= 27, 'Cache-Version fuer Release 2.13.0 erhoeht');
+
+    const mainPath = path.join(BASE, 'main.js');
+    const htmlPath = path.join(BASE, 'index.html');
+    const translationsPath = path.join(BASE, 'data', 'translations.js');
+    const mainCode = fs.readFileSync(mainPath, 'utf8');
+    const htmlCode = fs.readFileSync(htmlPath, 'utf8');
+    const translationsCode = fs.readFileSync(translationsPath, 'utf8');
+    const appVersionMatch = mainCode.match(/APP_VERSION\s*=\s*'([^']+)'/);
+    t.equal(appVersionMatch && appVersionMatch[1], '2.13.0', 'APP_VERSION ist 2.13.0');
+    t.ok(htmlCode.includes('v2.13.0'), 'Settings UI zeigt v2.13.0');
+    t.ok(translationsCode.includes('KI-Trainingsplan ist jetzt stabiler') && translationsCode.includes('AI training plans are now more stable'), 'Update-Hinweis fuer 2.13.0 aktualisiert');
 
     // skipWaiting
     t.ok(sw.includes('skipWaiting'), 'skipWaiting() vorhanden');

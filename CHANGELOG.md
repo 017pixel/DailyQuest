@@ -4,6 +4,31 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## Version 2.13.0 - KI-Trainingsplan Quality Pass
+
+### Erstellt
+- Neues kompaktes Trainingsziel-Setup in den Einstellungen ergänzt
+- Neue mobile Plan-Popups für aktuellen Plan und Neugenerierung erstellt
+- Neue Sicherheitslogik für KI-Pläne ohne Equipment ergänzt
+- Neue Stabilitätsprüfungen für Difficulty, Phasen und Rest Days ergänzt
+- Neue Release-Tests für Version, Cache und Update-Hinweis erstellt
+
+### Veraendert
+- KI-Plan-Erstellung validiert jetzt genau 30 Übungen und 4 Phasen strenger
+- Tutorial-Auswahl für Trainingspläne läuft robuster und verständlicher weiter
+- Eigene Zielbeschreibung ist einfacher zu bedienen und klarer gestaltet
+- Supabase- und Mistral-Flow nutzt Timeout, Retry und saubere Fehlerfälle
+- Update-Hinweis informiert bestehende User über die wichtigsten Verbesserungen
+
+### Geloescht
+- Zu breiter Einrichten-Button in der Training-Zeile entfernt
+- Extra-Box um das eigene Plan-Eingabefeld entfernt
+- Unklare Fehlerwirkung im Tutorial-Fallback entfernt
+- Equipment-Pflichtquests bei deaktiviertem Equipment entfernt
+- Veraltete Update-Hinweise zur ersten KI-Plan-Version ersetzt
+
+---
+
 ## Version 2.12.0 - KI-Trainingsplan
 
 ### Erstellt

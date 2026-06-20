@@ -107,18 +107,27 @@ const DQ_CUSTOM_PLAN = {
     },
 
     /**
-     * Prueft ob heute ein Rest Day ist (Wochentag-Logik aus main.js).
+     * Prueft ob heute ein Rest Day ist (Wochentag-Logik).
+     * Bug I Fix: Deckt jetzt 0-7 Rest Days ab (vorher nur 0-3, alle anderen
+     * Werte fuehrten zu leerem activeRestDays -> niemals Rest Day erkannt).
      */
     checkRestDay(restDays) {
-        const dayOfWeek = new Date().getDay();
         const numRestDays = parseInt(restDays, 10) || 0;
-        let activeRestDays = [];
-        switch (numRestDays) {
-            case 1: activeRestDays = [0]; break;
-            case 2: activeRestDays = [2, 6]; break;
-            case 3: activeRestDays = [0, 2, 4]; break;
-        }
-        return activeRestDays.includes(dayOfWeek);
+        if (numRestDays <= 0) return false;
+        if (numRestDays >= 7) return true;
+
+        const dayOfWeek = new Date().getDay();
+        // Verteilungsmuster: Ruhetage moeglichst gleichmaessig ueber die Woche.
+        // main.js nutzt dieselbe Logik - hier dupliziert, um keine Cross-Modul-Imports zu erzwingen.
+        const patterns = {
+            1: [0],          // So
+            2: [2, 6],       // Mi, Sa  (kompatibel mit main.js Default)
+            3: [0, 2, 4],    // So, Mi, Fr
+            4: [0, 2, 4, 6], // So, Mi, Fr, Sa
+            5: [0, 1, 3, 5, 6], // So, Mo, Do, Sa
+            6: [0, 1, 2, 4, 5, 6] // So, Mo, Di, Fr, Sa
+        };
+        return (patterns[numRestDays] || []).includes(dayOfWeek);
     },
 
     /**
@@ -139,8 +148,19 @@ const DQ_CUSTOM_PLAN = {
             return [];
         }
 
+        // Bug K Fix: Wenn der Pool kleiner ist als die gewuenschte Anzahl,
+        // liefern wir vorhandene Uebungen mehrfach zurueck statt weniger.
+        const targetCount = Math.max(1, count);
+        if (pool.length < targetCount) {
+            const out = this.shuffle(pool);
+            while (out.length < targetCount) {
+                out.push(pool[Math.floor(Math.random() * pool.length)]);
+            }
+            if (isRestDay) return out;
+        }
+
         if (isRestDay) {
-            return this.shuffle(pool).slice(0, Math.min(count, pool.length));
+            return this.shuffle(pool).slice(0, Math.min(targetCount, pool.length));
         }
 
         const byTag = {};
@@ -184,6 +204,37 @@ const DQ_CUSTOM_PLAN = {
         }
 
         return selected;
+    },
+
+    /**
+     * Filtert Custom-Plan-Uebungen passend zur Equipment-Einstellung und haelt
+     * Rest-Day-Uebungen erhalten. Wenn ein alter KI-Plan zu wenig Bodyweight-
+     * Material hat, werden sichere Fallbacks injiziert statt Equipment-Quests
+     * auszugeben.
+     */
+    getAvailableExercises(exercises, hasEquipment) {
+        if (!Array.isArray(exercises)) return [];
+        if (hasEquipment !== false) return exercises;
+
+        const filtered = exercises.filter(ex => ex && ex.needsEquipment !== true);
+        const hasTrainingPool = filtered.some(ex => ex.isRest !== true);
+        const hasRestPool = filtered.some(ex => ex.isRest === true);
+        if (hasTrainingPool && hasRestPool) return filtered;
+
+        const suffix = Date.now().toString(36);
+        const fallback = [
+            { nameKey: `custom_bodyweight_push_${suffix}`, displayName: 'Liegestuetze', description: 'Kontrollierte Liegestuetze ohne Equipment.', type: 'reps', baseValue: 8, tags: ['push', 'core'], isRest: false, needsEquipment: false, muscles: ['chest', 'triceps'], statPoints: { kraft: 1 }, mana: 18, gold: 8 },
+            { nameKey: `custom_bodyweight_legs_${suffix}`, displayName: 'Kniebeugen', description: 'Saubere Kniebeugen mit Koerpergewicht.', type: 'reps', baseValue: 12, tags: ['legs', 'core'], isRest: false, needsEquipment: false, muscles: ['quads', 'glutes'], statPoints: { kraft: 1 }, mana: 18, gold: 8 },
+            { nameKey: `custom_bodyweight_core_${suffix}`, displayName: 'Plank', description: 'Rumpfspannung im Unterarmstuetz halten.', type: 'time', baseValue: 25, tags: ['core'], isRest: false, needsEquipment: false, muscles: ['core'], statPoints: { durchhaltevermoegen: 1 }, mana: 15, gold: 7 },
+            { nameKey: `custom_bodyweight_cardio_${suffix}`, displayName: 'Kniehebelauf', description: 'Leichter Kniehebelauf auf der Stelle.', type: 'time', baseValue: 30, tags: ['cardio', 'legs'], isRest: false, needsEquipment: false, muscles: ['quads', 'core'], statPoints: { ausdauer: 1 }, mana: 16, gold: 8 },
+            { nameKey: `custom_bodyweight_rest_${suffix}_1`, displayName: 'Aktive Erholung', description: 'Ruhige Mobilitaet und lockeres Durchbewegen.', type: 'check', baseValue: 1, tags: ['rest', 'mobility'], isRest: true, needsEquipment: false, muscles: ['general'], statPoints: { beweglichkeit: 1 }, mana: 10, gold: 5 },
+            { nameKey: `custom_bodyweight_rest_${suffix}_2`, displayName: 'Lockerer Spaziergang', description: 'Gehe entspannt und halte das Tempo bewusst leicht.', type: 'time', baseValue: 600, tags: ['rest', 'cardio'], isRest: true, needsEquipment: false, muscles: ['general'], statPoints: { durchhaltevermoegen: 1 }, mana: 12, gold: 5 },
+            { nameKey: `custom_bodyweight_rest_${suffix}_3`, displayName: 'Atemfokus', description: 'Ruhig atmen und Schultern bewusst entspannen.', type: 'check', baseValue: 1, tags: ['rest', 'mobility'], isRest: true, needsEquipment: false, muscles: ['general'], statPoints: { willenskraft: 1 }, mana: 10, gold: 5 },
+            { nameKey: `custom_bodyweight_rest_${suffix}_4`, displayName: 'Sanftes Dehnen', description: 'Dehne Beine, Ruecken und Schultern ohne Druck.', type: 'time', baseValue: 300, tags: ['rest', 'mobility'], isRest: true, needsEquipment: false, muscles: ['general'], statPoints: { beweglichkeit: 1 }, mana: 12, gold: 5 },
+            { nameKey: `custom_bodyweight_rest_${suffix}_5`, displayName: 'Regeneration Check', description: 'Pruefe kurz Energie, Schlaf und Belastung.', type: 'check', baseValue: 1, tags: ['rest'], isRest: true, needsEquipment: false, muscles: ['general'], statPoints: { willenskraft: 1 }, mana: 10, gold: 5 }
+        ];
+
+        return filtered.concat(fallback);
     },
 
     shuffle(arr) {
@@ -288,8 +339,9 @@ const DQ_CUSTOM_PLAN = {
         const recent = Array.isArray(state.recentExercises) ? state.recentExercises.slice(-12) : [];
 
         const questCount = isRestDay ? 5 : 6;
+        const availableExercises = this.getAvailableExercises(customPlan.exercises, hasEquipment);
         const exercises = this.pickBalancedQuests(
-            customPlan.exercises, questCount, isRestDay, recent
+            availableExercises, questCount, isRestDay, recent
         );
 
         const quests = exercises.map((template, index) => {
@@ -378,6 +430,7 @@ const DQ_CUSTOM_PLAN = {
             canComplete: completionMode === 'tap',
             bonusInfoSynced: true,
             equipmentHint: !!template.needsEquipment && hasEquipment,
+            needsEquipment: !!template.needsEquipment,
             statPoints: template.statPoints || null,
             directStatGain: template.directStatGain || null,
             timerDuration: template.timerDuration || null,
@@ -440,18 +493,20 @@ const DQ_CUSTOM_PLAN = {
 
     /**
      * Wendet Phase-Aktionen an (repeat/skip/extend).
+     * Bug J Fix: Gibt jetzt den aktualisierten state + stageContext zurueck,
+     * damit der Caller den neuen Stage-Index fuer Rescaling nutzen kann.
      */
     async applyPhaseAction(action) {
         const settings = DQ_CONFIG.userSettings || {};
         const planId = settings.customPlanId;
-        if (!planId) return;
+        if (!planId) return { state: null, stageContext: null };
 
         const plan = await this.getPlan(planId);
-        if (!plan) return;
+        if (!plan) return { state: null, stageContext: null };
 
         const state = await this.getState(planId);
-        const stageContext = this.getStageForState(plan.stages, state);
-        const stageWeeks = stageContext.stageWeeks;
+        const currentContext = this.getStageForState(plan.stages, state);
+        const stageWeeks = currentContext.stageWeeks;
 
         if (action === 'repeat') {
             state.manualWeekShift = (state.manualWeekShift || 0) - stageWeeks;
@@ -459,10 +514,13 @@ const DQ_CUSTOM_PLAN = {
             state.manualWeekShift = (state.manualWeekShift || 0) + stageWeeks;
         } else if (action === 'extend') {
             if (!state.stageExtensions) state.stageExtensions = {};
-            state.stageExtensions[stageContext.stageIndex] = (state.stageExtensions[stageContext.stageIndex] || 0) + 1;
+            state.stageExtensions[currentContext.stageIndex] =
+                (state.stageExtensions[currentContext.stageIndex] || 0) + 1;
         }
 
         await this.saveState(state);
+        const newContext = this.getStageForState(plan.stages, state);
+        return { state, stageContext: newContext };
     }
 };
 

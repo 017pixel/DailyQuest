@@ -10,6 +10,7 @@
 const DQ_MISTRAL = {
     REGEN_LIMIT: 3,
     REGEN_STORAGE_KEY: 'dq_mistral_regen',
+    REQUEST_TIMEOUT_MS: 30000,
     VALID_TYPES: ['reps', 'time', 'check', 'focus'],
     VALID_TAGS: ['push', 'pull', 'legs', 'core', 'cardio', 'rest', 'mobility', 'full_body'],
     VALID_STATS: ['kraft', 'ausdauer', 'beweglichkeit', 'durchhaltevermoegen', 'willenskraft'],
@@ -113,8 +114,8 @@ const DQ_MISTRAL = {
         }
 
         if (plan.stages) {
-            if (plan.stages.length < 2) {
-                errors.push('Mindestens 2 stages noetig');
+            if (plan.stages.length !== 4) {
+                errors.push(`Genau 4 stages noetig, got ${plan.stages.length}`);
             }
             plan.stages.forEach((stage, i) => {
                 if (!stage) { errors.push(`stage[${i}] ist null`); return; }
@@ -142,6 +143,10 @@ const DQ_MISTRAL = {
 
     /**
      * Expandiert Seed-Exercises auf genau 30 mit tag-balancierten Variationen.
+     * Bug E Fix: nameKey nutzt eindeutige Suffixe (Timestamp + Random),
+     * damit mehrfache expand-Aufrufe keine nameKey-Kollisionen erzeugen.
+     * Bug M-Test Fix: stellt garantiert >= 4 isRest sicher, indem Rest-Entries
+     * zuerst injiziert werden, BEVOR die tag-Priority-Expansion laeuft.
      * @param {object[]} seed - 8-10 AI-generierte Uebungen
      * @returns {object[]} - 30 Uebungen
      */
@@ -160,6 +165,33 @@ const DQ_MISTRAL = {
         const muscleMap = { push: ['chest', 'triceps'], pull: ['back', 'biceps'], legs: ['quads', 'glutes'], core: ['core'], cardio: ['general'], rest: ['general'], mobility: ['general'], full_body: ['core', 'general'] };
         const statKeys = ['kraft', 'ausdauer', 'beweglichkeit', 'durchhaltevermoegen', 'willenskraft'];
 
+        // Eindeutiger Suffix pro Aufruf - vermeidet nameKey-Duplikate.
+        const uniqSuffix = `${Date.now().toString(36)}_${Math.floor(Math.random() * 1e6).toString(36)}`;
+
+        // Phase 1: Mindestens 4 isRest sicherstellen. Wenn der seed zu wenig hat,
+        // werden Rest-Eintraege VOR der Expansion injiziert - so ueberleben sie
+        // das spaetere slice(0,30).
+        let restCount = result.filter(ex => ex.isRest === true).length;
+        let restIdx = 0;
+        while (restCount < 4) {
+            result.unshift({
+                nameKey: `custom_rest_${uniqSuffix}_pre${restIdx++}`,
+                displayName: `Erholung ${restIdx}`,
+                description: 'Aktive Erholung',
+                type: 'check',
+                baseValue: 1,
+                tags: ['rest', 'mobility'],
+                isRest: true,
+                needsEquipment: false,
+                muscles: ['general'],
+                statPoints: { durchhaltevermoegen: 1 },
+                mana: 10,
+                gold: 5
+            });
+            restCount++;
+            tagCounts['rest']++;
+        }
+
         let attempt = 0;
         while (result.length < 30 && attempt < 60) {
             attempt++;
@@ -169,7 +201,7 @@ const DQ_MISTRAL = {
             const n = result.length;
             const variationNum = Math.floor(n / seed.length) + 1;
             const ex = {
-                nameKey: `custom_${neededTag}_${n}`,
+                nameKey: `custom_${neededTag}_${uniqSuffix}_${n}`,
                 displayName: `${names[neededTag] || 'Uebung'} V${variationNum}`,
                 description: `${base.displayName || names[neededTag] || 'Uebung'}-Variante`,
                 type: neededTag === 'cardio' ? 'time' : 'reps',
@@ -186,24 +218,24 @@ const DQ_MISTRAL = {
             tagCounts[neededTag]++;
         }
 
-        let restCount = result.filter(ex => ex.isRest === true).length;
-        while (restCount < 4 && result.length < 30) {
-            const rn = result.length;
+        // Falls die Expansion nicht auf 30 kam (sehr kurzer seed), rest-affin
+        // auf 30 auffuellen -- Rest-Entries werden NICHT abgeschnitten.
+        while (result.length < 30) {
+            const idx = result.length;
             result.push({
-                nameKey: `custom_rest_${rn}`,
-                displayName: `Erholung ${rn}`,
-                description: 'Aktive Erholung',
-                type: 'check',
-                baseValue: 1,
-                tags: ['rest', 'mobility'],
-                isRest: true,
+                nameKey: `custom_fill_${uniqSuffix}_${idx}`,
+                displayName: 'Bonus-Uebung',
+                description: 'Bonus',
+                type: 'reps',
+                baseValue: 10,
+                tags: ['full_body'],
+                isRest: false,
                 needsEquipment: false,
                 muscles: ['general'],
                 statPoints: { durchhaltevermoegen: 1 },
                 mana: 10,
                 gold: 5
             });
-            restCount++;
         }
 
         return result.slice(0, 30);
@@ -231,7 +263,8 @@ const DQ_MISTRAL = {
                 { nameKey: 'high_knees', displayName: 'Kniehebelauf', description: 'Laufen mit angehobenen Knien', type: 'time', baseValue: Math.round(30 * scale), tags: ['cardio', 'legs'], isRest: false, needsEquipment: false, muscles: ['quads', 'core'], statPoints: { ausdauer: 1 }, mana: 15, gold: 8 },
                 { nameKey: 'burpees', displayName: 'Burpees', description: 'Burpees mit Liegestuetz', type: 'reps', baseValue: Math.round(8 * scale), tags: ['cardio', 'full_body', 'push'], isRest: false, needsEquipment: false, muscles: ['chest', 'quads', 'core'], statPoints: { ausdauer: 0.5, kraft: 0.5 }, mana: 25, gold: 15 },
                 { nameKey: 'mountain_climbers', displayName: 'Mountain Climbers', description: 'Bergsteiger in Liegestuetzposition', type: 'time', baseValue: Math.round(30 * scale), tags: ['cardio', 'core', 'full_body'], isRest: false, needsEquipment: false, muscles: ['core', 'shoulders'], statPoints: { ausdauer: 1 }, mana: 20, gold: 10 },
-                { nameKey: 'jump_rope', displayName: 'Seilspringen', description: 'Springseil training', type: 'time', baseValue: Math.round(45 * scale), tags: ['cardio', 'legs'], isRest: false, needsEquipment: true, muscles: ['calves', 'quads'], statPoints: { ausdauer: 1 }, mana: 20, gold: 10 },
+                // Bug F Fix: jump_rope entfernt - ist im blockedQuestNameKeys
+                // des Training-Systems und produzierte sonst stille Slot-Verluste.
             ],
             abnehmen: [
                 { nameKey: 'burpees', displayName: 'Burpees', description: 'Ganzkoerper Fatburner', type: 'reps', baseValue: Math.round(10 * scale), tags: ['cardio', 'full_body', 'push'], isRest: false, needsEquipment: false, muscles: ['chest', 'quads', 'core'], statPoints: { ausdauer: 0.5, durchhaltevermoegen: 0.5 }, mana: 30, gold: 15 },
@@ -264,6 +297,7 @@ const DQ_MISTRAL = {
         let exercises = [];
         let planName = `${prompt.charAt(0).toUpperCase() + prompt.slice(1)}-Plan`;
         let planDesc = `Personalisierter ${prompt} Trainingsplan`;
+        let stages = null;
 
         if (raw && raw.focus) {
             exercises = this.generateExercisesFromTemplates(raw.focus, raw.intensity || 3);
@@ -274,23 +308,38 @@ const DQ_MISTRAL = {
         } else if (raw && Array.isArray(raw.exercises)) {
             exercises = raw.exercises;
             if (raw.exercises.length < 30) exercises = this.expandExercises(exercises);
+            if (raw.planName) planName = raw.planName;
+            if (raw.planDescription) planDesc = raw.planDescription;
+            if (Array.isArray(raw.stages)) stages = raw.stages;
         }
 
         if (exercises.length < 30) {
             exercises = this.generateExercisesFromTemplates('general', 3);
         }
 
-        return {
-            planName,
-            planDescription: planDesc,
-            exercises: exercises.slice(0, 30),
-            stages: [
+        if (!Array.isArray(stages) || stages.length !== 4) {
+            stages = [
                 { label: 'Einstieg', weeks: 4, sets: 2, reps: 10 },
                 { label: 'Aufbau', weeks: 4, sets: 3, reps: 10 },
                 { label: 'Fortgeschritten', weeks: 4, sets: 3, reps: 12 },
                 { label: 'Meister', weeks: 9999, sets: 4, reps: 12 }
-            ]
+            ];
+        }
+
+        return {
+            planName,
+            planDescription: planDesc,
+            exercises: exercises.slice(0, 30),
+            stages
         };
+    },
+
+    invokeWithTimeout(body, timeoutMs) {
+        const request = DQ_SUPABASE.client.functions.invoke('mistral-proxy', { body });
+        const timeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Plan-Generierung dauerte zu lange')), timeoutMs || this.REQUEST_TIMEOUT_MS);
+        });
+        return Promise.race([request, timeout]);
     },
 
     /**
@@ -300,35 +349,51 @@ const DQ_MISTRAL = {
      * @returns {Promise<object>} - Validierter Plan
      * @throws {Error} - Bei API-Fehler oder Validierungsfehler
      */
-    async generatePlan(prompt, userContext = {}) {
+    async generatePlan(prompt, userContext = {}, options = {}) {
         if (!DQ_SUPABASE || !DQ_SUPABASE.client) {
             throw new Error('Supabase Client nicht initialisiert');
         }
 
-        const { data, error } = await DQ_SUPABASE.client.functions.invoke('mistral-proxy', {
-            body: { prompt, userContext }
-        });
+        const maxAttempts = options.retry === true ? 2 : 1;
+        let lastError = null;
 
-        if (error) {
-            throw new Error(`Edge Function Fehler: ${error.message || JSON.stringify(error)}`);
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            try {
+                const { data, error } = await this.invokeWithTimeout({
+                    prompt,
+                    userContext,
+                    repair: attempt > 0
+                }, options.timeoutMs || this.REQUEST_TIMEOUT_MS);
+
+                if (error) {
+                    throw new Error(`Edge Function Fehler: ${error.message || JSON.stringify(error)}`);
+                }
+
+                if (!data) {
+                    throw new Error('Edge Function lieferte keine Daten');
+                }
+
+                if (data.error) {
+                    throw new Error(`Edge Function Fehler: ${data.error}`);
+                }
+
+                const plan = this.buildFullPlan(data, prompt);
+                const validation = this.validatePlan(plan);
+                if (!validation.valid) {
+                    console.error('Plan validation failed:', validation.errors);
+                    throw new Error(`Invalid plan: ${validation.errors.slice(0, 5).join('; ')}`);
+                }
+
+                return plan;
+            } catch (e) {
+                lastError = e;
+                if (attempt < maxAttempts - 1) {
+                    console.warn('Plan-Generierung fehlgeschlagen, starte Repair-Retry:', e.message || e);
+                }
+            }
         }
 
-        if (!data) {
-            throw new Error('Edge Function lieferte keine Daten');
-        }
-
-        if (data.error) {
-            throw new Error(`Edge Function Fehler: ${data.error}`);
-        }
-
-        const plan = this.buildFullPlan(data, prompt);
-        const validation = this.validatePlan(plan);
-        if (!validation.valid) {
-            console.error('Plan validation failed:', validation.errors);
-            throw new Error(`Invalid plan: ${validation.errors.slice(0, 5).join('; ')}`);
-        }
-
-        return plan;
+        throw lastError || new Error('Plan-Generierung fehlgeschlagen');
     },
 
     /**
@@ -347,7 +412,7 @@ const DQ_MISTRAL = {
         }
 
         try {
-            const plan = await this.generatePlan(prompt, userContext);
+            const plan = await this.generatePlan(prompt, userContext, options);
             const planId = await DQ_CUSTOM_PLAN.savePlan(plan, prompt);
 
             if (!options.skipIncrement) {
@@ -355,6 +420,9 @@ const DQ_MISTRAL = {
             }
 
             await DQ_CUSTOM_PLAN.setActivePlan(planId);
+            if (typeof DQ_SUPABASE !== 'undefined' && DQ_SUPABASE.triggerSync) {
+                DQ_SUPABASE.triggerSync();
+            }
 
             return { success: true, plan, planId };
         } catch (e) {

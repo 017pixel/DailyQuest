@@ -118,6 +118,67 @@ const DQ_TUTORIAL_STATE = {
     },
 
     /**
+     * Bug L Fix: Stellt planType + customPlanId aus dq_intro_state wieder her,
+     * wenn der User nach E-Mail-Bestaetigung mit Redirect zurueckkommt.
+     * Wird vom Tutorial-Main bzw. supabase-client bei Session-Wechsel aufgerufen.
+     *
+     * @returns {Promise<{restored: boolean, planType: string|null, customPlanId: number|null}>}
+     */
+    async restoreIntroPlanState() {
+        try {
+            const raw = localStorage.getItem('dq_intro_state');
+            if (!raw) return { restored: false, planType: null, customPlanId: null };
+            const intro = JSON.parse(raw);
+            if (!intro || typeof intro !== 'object') {
+                return { restored: false, planType: null, customPlanId: null };
+            }
+
+            let planType = intro.trainingPlanType || 'predefined';
+            let customPlanId = (typeof intro.customPlanId === 'number') ? intro.customPlanId : null;
+
+            if (!DQ_DB.db) return { restored: false, planType, customPlanId };
+
+            if (planType === 'custom' && customPlanId !== null && DQ_DB.db.objectStoreNames.contains('custom_plans')) {
+                const planExists = await new Promise(resolve => {
+                    const txPlan = DQ_DB.db.transaction(['custom_plans'], 'readonly');
+                    txPlan.objectStore('custom_plans').get(customPlanId).onsuccess = (pe) => resolve(!!pe.target.result);
+                    txPlan.onerror = () => resolve(false);
+                });
+                if (!planExists) {
+                    console.warn('restoreIntroPlanState: gespeicherter customPlanId ' + customPlanId + ' nicht in IndexedDB. Fallback auf predefined.');
+                    planType = 'predefined';
+                    customPlanId = null;
+                }
+            }
+
+            const tx = DQ_DB.db.transaction(['settings'], 'readwrite');
+            const store = tx.objectStore('settings');
+            store.get(1).onsuccess = (e) => {
+                const cur = e.target.result || { id: 1 };
+                cur.planType = planType;
+                cur.customPlanId = customPlanId;
+                store.put(cur);
+                if (typeof DQ_CONFIG !== 'undefined') {
+                    DQ_CONFIG.userSettings = Object.assign(DQ_CONFIG.userSettings || {}, {
+                        planType: cur.planType,
+                        customPlanId: cur.customPlanId
+                    });
+                }
+            };
+
+            await new Promise((resolve, reject) => {
+                tx.oncomplete = () => resolve();
+                tx.onerror = (event) => reject(event.target.error);
+            });
+
+            return { restored: true, planType, customPlanId };
+        } catch (e) {
+            console.warn('restoreIntroPlanState fehlgeschlagen:', e);
+            return { restored: false, planType: null, customPlanId: null };
+        }
+    },
+
+    /**
      * Setzt den Tutorial-Status zurück (für Testing)
      * @returns {Promise<void>}
      */

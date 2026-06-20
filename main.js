@@ -272,7 +272,7 @@ const DQ_CONFIG = {
     }
 };
 
-const APP_VERSION = '2.12.0';
+const APP_VERSION = '2.13.0';
 const APP_UPDATE_FLAG_KEY = 'dq_seen_app_version';
 
 async function initializeApp() {
@@ -307,7 +307,8 @@ async function initializeApp() {
             themeToggle: document.getElementById('theme-toggle'),
             difficultySlider: document.getElementById('difficulty-slider'),
             difficultyValue: document.getElementById('difficulty-value'),
-            goalSelect: document.getElementById('goal-select'),
+            // Bug H Fix: goalSelect entfernt - Dropdown ist deprecated,
+            // KI-generierter Plan wird ueber goal-setup-button konfiguriert.
             goalSetupButton: document.getElementById('goal-setup-button'),
             goalSetupPopup: document.getElementById('goal-setup-popup'),
             goalSetupCancel: document.getElementById('goal-setup-cancel'),
@@ -748,10 +749,18 @@ async function applyTrainingSettingChange(changeType) {
     } else if (changeType === 'equipment') {
         const hasEquipment = DQ_CONFIG.userSettings.hasEquipment !== false;
         if (!hasEquipment && open.length === questsToday.length) {
+            if (DQ_CONFIG.userSettings.planType === 'custom') {
+                await generateDailyQuestsIfNeeded(true);
+                console.log('Equipment-Off: Custom-Plan Quests wurden ohne Equipment neu generiert.');
+                localStorage.setItem('dq_last_local_update', String(Date.now()));
+                if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+                DQ_EXERCISES.renderQuests();
+                return;
+            }
             const allTemplates = Object.values(DQ_DATA.exercisePool).flat();
             const questNeedsEquipment = q => {
                 const t = allTemplates.find(ex => ex.nameKey === q.nameKey);
-                return !!t && !!t.needsEquipment;
+                return q.needsEquipment === true || (!!t && !!t.needsEquipment);
             };
             const unbrauchbar = open.filter(questNeedsEquipment);
             if (unbrauchbar.length > 0) {
@@ -833,13 +842,6 @@ function addSettingsListeners(elements) {
         await saveSetting('difficulty', parseInt(e.target.value, 10));
         await applyTrainingSettingChange('difficulty');
     });
-
-    if (elements.goalSelect) {
-        elements.goalSelect.addEventListener('change', async (e) => {
-            await saveSetting('goal', e.target.value);
-            await applyTrainingSettingChange('goal');
-        });
-    }
 
     if (elements.goalSetupButton) {
         elements.goalSetupButton.addEventListener('click', async () => {
@@ -1247,7 +1249,7 @@ function updateSettingsUI() {
     elements.themeToggle.checked = (DQ_CONFIG.userSettings.theme === 'light');
     elements.difficultySlider.value = DQ_CONFIG.userSettings.difficulty || 3;
     elements.difficultyValue.textContent = DQ_CONFIG.userSettings.difficulty || 3;
-    if (elements.goalSelect) elements.goalSelect.value = DQ_CONFIG.userSettings.goal || 'muscle';
+    // Bug H Fix: goalSelect.value-Zuweisung entfernt (HTML-Element existiert nicht mehr).
     elements.restdaysSelect.value = String(DQ_CONFIG.userSettings.restDays ?? 2);
 
     // Default zu true, wenn nicht gesetzt
@@ -1450,7 +1452,7 @@ async function generateDailyQuestsIfNeeded(forceRegenerate = false) {
     const goalExercises = Object.values(DQ_DATA.exercisePool).flat();
     const questNeedsEquipment = quest => {
         const template = goalExercises.find(ex => ex.nameKey === quest.nameKey);
-        return !!template?.needsEquipment;
+        return quest.needsEquipment === true || !!template?.needsEquipment;
     };
 
     if (!hasCompletedToday && !hasEquipment && questsToday.some(questNeedsEquipment)) {
@@ -1942,6 +1944,3 @@ async function checkAndStartTutorial() {
 }
 
 document.addEventListener('DOMContentLoaded', initializeApp);
-
-
-

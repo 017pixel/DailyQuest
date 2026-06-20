@@ -61,6 +61,8 @@ const DQ_TUTORIAL_MAIN = {
             this.age = savedState.age || 34;
             this.hasEquipment = savedState.hasEquipment || false;
             this.trainingGoal = savedState.trainingGoal || '';
+            this.trainingPlanType = savedState.trainingPlanType || 'predefined';
+            this.customPlanId = (typeof savedState.customPlanId === 'number') ? savedState.customPlanId : null;
             this.seniorMode = savedState.seniorMode || false;
             this.seniorModeOptOut = savedState.seniorModeOptOut || false;
 

@@ -71,3 +71,33 @@ CREATE TRIGGER update_user_data_updated_at
     BEFORE UPDATE ON user_data
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================
+-- KI-Trainingsplan Rate-Limit (Bug D Fix)
+-- ============================================
+-- Speichert pro User und Tag, wie oft Mistral-Plan-Generierung aufgerufen wurde.
+-- Wird von supabase/functions/mistral-proxy/index.ts genutzt, um Mistral-Kosten
+-- zu schuetzen (Max 3/Tag pro User, komplementaer zum Client-side-3/Tag-Limit).
+CREATE TABLE IF NOT EXISTS dq_ai_generations (
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    day DATE NOT NULL,
+    count INTEGER NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    PRIMARY KEY (user_id, day)
+);
+
+ALTER TABLE dq_ai_generations ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY \"Users can view own AI generations\"
+    ON dq_ai_generations FOR SELECT
+    USING (auth.uid() = user_id);
+CREATE POLICY \"Users can insert own AI generations\"
+    ON dq_ai_generations FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+CREATE POLICY \"Users can update own AI generations\"
+    ON dq_ai_generations FOR UPDATE
+    USING (auth.uid() = user_id);
+
+-- Index fuer schnellen Lookup by (user_id, day)
+CREATE INDEX IF NOT EXISTS idx_dq_ai_generations_user_day
+    ON dq_ai_generations(user_id, day);

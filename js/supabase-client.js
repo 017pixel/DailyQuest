@@ -140,6 +140,31 @@ const DQ_SUPABASE = {
         // Stelle sicher, dass Auth-Entscheidung als getroffen markiert wird
         this._resolveAuthDecision();
 
+        // Bug L Fix: Wenn der User mit E-Mail-Redirect zurueckkommt und
+        // dq_intro_state existiert, stelle KI-Plan-Status wieder her,
+        // bevor weitere Sync-Operationen laufen.
+        try {
+            if (typeof DQ_TUTORIAL_STATE !== 'undefined' &&
+                typeof DQ_TUTORIAL_STATE.restoreIntroPlanState === 'function') {
+                const r = await DQ_TUTORIAL_STATE.restoreIntroPlanState();
+                if (r && r.restored) {
+                    console.log('Intro-Plan-State wiederhergestellt:', r);
+                    if (typeof DQ_UI !== 'undefined' && DQ_DB && DQ_DB.db) {
+                        try {
+                            const tx = DQ_DB.db.transaction(['settings'], 'readonly');
+                            tx.objectStore('settings').get(1).onsuccess = (e) => {
+                                if (e.target.result && typeof DQ_CONFIG !== 'undefined') {
+                                    DQ_CONFIG.userSettings = e.target.result;
+                                }
+                            };
+                        } catch (e) { /* ignore */ }
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('restoreIntroPlanState fehlgeschlagen:', e);
+        }
+
         const isAnonymous = this.currentUser && this.currentUser.is_anonymous;
         const migratedKey = `dq_supabase_migrated_${this.currentUser.id}`;
         const hasMigrated = localStorage.getItem(migratedKey);
