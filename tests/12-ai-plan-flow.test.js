@@ -279,6 +279,7 @@ async function run() {
     t.ok(edgeCode.includes('Deno.serve') && edgeCode.includes('/auth/v1/user'), 'Backend: Supabase Edge Function prueft JWT');
     t.ok(edgeCode.includes('MISTRAL_URL') && edgeCode.includes('response_format'), 'Backend: Edge Function ruft Mistral im JSON-Modus auf');
     t.ok(edgeCode.includes('validatePlanShape') && edgeCode.includes('dq_ai_generations'), 'Backend: Validierung und Rate-Limit sind im API-Pfad');
+    t.ok(edgeCode.includes('apikey') && edgeCode.includes('x-client-info'), 'Backend: CORS erlaubt Supabase-Browser-Header');
 
     await runFlow(t, 'mock');
 

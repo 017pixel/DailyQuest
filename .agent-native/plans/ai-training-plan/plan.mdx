@@ -1,0 +1,1140 @@
+# KI-Trainingsplan mit Mistral API
+
+<RichText id="intro">
+
+### Feature: KI-generierte Trainingsplane
+
+Ersetze das statische Trainingsziel-Dropdown durch ein KI-gestutztes System: User beschreiben ihr Trainingsziel in natuerlicher Sprache, eine Supabase Edge Function ruft die Mistral API auf und gibt einen strukturierten JSON-Trainingsplan zurueck. Der Plan enthaelt 30 getaggte Ubungen + progressive Phasen. Jeden Tag werden 6 balanciert ausgewaehlt. Bestehende User behalten ihre alten predefined Plans bis sie neu konfigurieren.
+
+**Konkreter Ablauf:** Ein neuer User oeffnet die App -> Tutorial -> waehlt "Kraft & Muskelaufbau" (Preset) -> Mistral generiert 30 Ubungen mit Tags (push/pull/legs/core/cardio/rest) + 4 progressive Phasen -> jeden Tag 6 balancierte Quests -> nach 2 Wochen auto-Progression zur naechsten Phase. In den Settings kann er jederzeit "Einrichten" klicken -> sieht seinen aktuellen Plan -> regeneriert mit eigenem Prompt ("Ich will mehr Fokus auf Beine").
+
+</RichText>
+
+<Callout id="key-decisions" tone="decision">
+
+**Entschieden mit User:**
+1. **API-Key**: Supabase Edge Function (`mistral-proxy`) haelt den Key server-side. Client ruft via `functions.invoke` auf.
+2. **Ubungs-Pool**: Hybrid - KI darf bestehende nameKeys verwenden ODER neue Ubungen erfinden (mit DE-Texten direkt im JSON).
+3. **30 Ubungen**: Flach mit Tags (push/pull/legs/core/cardio/rest). Balancing-Algorithmus waehlt 6/Tag so, dass verschiedene Tags vertreten sind.
+4. **Rest Days**: Wochentag-Logik bleibt bestehen. KI taggt Ubungen mit `rest` - an Rest Days werden nur `rest`-getaggte Ubungen gewaehlt.
+5. **Phasen**: KI generiert progressive Phasen (wie bestehendes System: weeks/sets/reps).
+6. **Migration**: Dropdown verschwindet. Bestehende `goal`-Werte (muscle/endurance...) funktionieren weiter als predefined Plans. Erst wer "Einrichten" klickt und Custom Plan erstellt, wechselt.
+7. **Tutorial**: 3 Presets (Kraft / Ausdauer / Abnehmen) + Custom-Textbox.
+8. **Fallback**: Bei API-Fehler -> predefined Plan + Info-Popup "Fehler, Fallback-Plan genutzt".
+9. **Regeneration-Limit**: 3x pro Tag (Counter in localStorage).
+
+</Callout>
+
+---
+
+## UI Wireframes
+
+<RichText id="canvas-heading">
+
+### Settings: Training-Sektion (Before / After)
+
+</RichText>
+
+<Columns id="settings-before-after">
+<Column id="settings-before" label="Before">
+
+<WireframeBlock id="settings-before-wf">
+  <Screen surface="mobile" caption="Aktuell: Trainingsziel als Dropdown">
+    <Title text="Training" />
+    <Row>
+      <Pill label="Schwierigkeit" />
+      <Pill label="3" />
+    </Row>
+    <Row>
+      <Pill label="Trainingsziel" />
+      <Pill label="Muskelaufbau" />
+    </Row>
+    <Lines n={2} />
+    <Row>
+      <Pill label="Rest Days" />
+      <Pill label="2" />
+    </Row>
+    <Row>
+      <Pill label="Equipment" />
+      <Pill label="AN" />
+    </Row>
+    <Lines n={1} />
+    <Pill label="Phase" />
+    <Row>
+      <Btn label="Wdh." />
+      <Btn label="Ueberspr." />
+      <Btn label="Verlaeng." />
+    </Row>
+  </Screen>
+</WireframeBlock>
+
+</Column>
+
+<Column id="settings-after" label="After">
+
+<WireframeBlock id="settings-after-wf">
+  <Screen surface="mobile" caption="Neu: Button 'Einrichten' statt Dropdown">
+    <Title text="Training" />
+    <Row>
+      <Pill label="Schwierigkeit" />
+      <Pill label="3" />
+    </Row>
+    <Row>
+      <Pill label="Trainingsziel" />
+      <Btn label="Einrichten" />
+    </Row>
+    <Lines n={2} />
+    <Pill label="Aktuell: KI-Plan 'Kraft & Muskelaufbau'" />
+    <Row>
+      <Pill label="Rest Days" />
+      <Pill label="2" />
+    </Row>
+    <Row>
+      <Pill label="Equipment" />
+      <Pill label="AN" />
+    </Row>
+    <Lines n={1} />
+    <Pill label="Phase" />
+    <Row>
+      <Btn label="Wdh." />
+      <Btn label="Ueberspr." />
+      <Btn label="Verlaeng." />
+    </Row>
+  </Screen>
+</WireframeBlock>
+
+</Column>
+</Columns>
+
+<RichText id="popup-heading">
+
+### Popup: "Trainingsziel einrichten"
+
+</RichText>
+
+<WireframeBlock id="goal-popup-wf">
+  <Screen surface="mobile" caption="Popup zeigt aktuellen Plan + Regenerieren-Button">
+    <Title text="Trainingsziel einrichten" />
+    <Pill label="Dein aktueller Plan" />
+    <Lines n={1} />
+    <Pill label="KI-Plan: Kraft & Muskelaufbau" />
+    <Pill label="30 Ubungen, 4 Phasen, Phase 1" />
+    <Pill label="Erstellt: 19.06.2026" />
+    <Lines n={2} />
+    <Btn label="Neuen Plan generieren" />
+    <Lines n={1} />
+    <Pill label="3/3 Regenerierungen heute uebrig" />
+    <Btn label="Abbrechen" />
+  </Screen>
+</WireframeBlock>
+
+<RichText id="generate-popup-heading">
+
+### Popup: "Custom Plan generieren"
+
+</RichText>
+
+<Columns id="generate-popup-states">
+<Column id="generate-input" label="Eingabe">
+
+<WireframeBlock id="generate-input-wf">
+  <Screen surface="mobile" caption="Presets + Custom-Textbox + Generieren">
+    <Title text="Neuen Trainingsplan" />
+    <Pill label="Schnellwahl" />
+    <Btn label="Kraft & Muskelaufbau" />
+    <Btn label="Ausdauer & Cardio" />
+    <Btn label="Gewicht verlieren" />
+    <Lines n={1} />
+    <Pill label="Oder eigene Beschreibung" />
+    <Lines n={3} />
+    <Pill label="z.B. 'Ich will starkere Beine und mehr Flexibilitaet'" />
+    <Lines n={1} />
+    <Btn label="Plan generieren" />
+    <Btn label="Abbrechen" />
+  </Screen>
+</WireframeBlock>
+
+</Column>
+
+<Column id="generate-loading" label="Loading">
+
+<WireframeBlock id="generate-loading-wf">
+  <Screen surface="mobile" caption="Loading-Zustand waehrend API-Call">
+    <Title text="Plan wird generiert..." />
+    <Lines n={2} />
+    <Pill label="Mistral AI denkt nach..." />
+    <Lines n={3} />
+    <Pill label="Dauert ca. 10-20 Sekunden" />
+    <Lines n={2} />
+    <Btn label="Abbrechen" />
+  </Screen>
+</WireframeBlock>
+
+</Column>
+
+<Column id="generate-error" label="Error">
+
+<WireframeBlock id="generate-error-wf">
+  <Screen surface="mobile" caption="Fehler -> Fallback auf predefined">
+    <Title text="Fehler bei Generierung" />
+    <Lines n={2} />
+    <Pill label="API nicht erreichbar" />
+    <Pill label="Nutze Fallback-Plan (Muskelaufbau)" />
+    <Lines n={2} />
+    <Btn label="Erneut versuchen" />
+    <Btn label="Fallback nutzen" />
+  </Screen>
+</WireframeBlock>
+
+</Column>
+</Columns>
+
+<RichText id="tutorial-heading">
+
+### Tutorial: Plan-Auswahl
+
+</RichText>
+
+<WireframeBlock id="tutorial-wf">
+  <Screen surface="mobile" caption="Tutorial-Schritt nach Equipment, vor Auth">
+    <Title text="Was ist dein Trainingsziel?" />
+    <Lines n={1} />
+    <Btn label="Kraft & Muskelaufbau" />
+    <Pill label="Stärke, Masse, Hanteln" />
+    <Lines n={1} />
+    <Btn label="Ausdauer & Cardio" />
+    <Pill label="Kondition, Laufen, HIIT" />
+    <Lines n={1} />
+    <Btn label="Gewicht verlieren" />
+    <Pill label="Fatburn, Diet, Cardio" />
+    <Lines n={1} />
+    <Btn label="Custom: Eigener Plan" />
+    <Pill label="Beschreibe dein Ziel" />
+    <Lines n={2} />
+    <Pill label="[Textfeld fuer eigene Beschreibung]" />
+    <Lines n={1} />
+    <Btn label="Plan generieren" />
+  </Screen>
+</WireframeBlock>
+
+---
+
+## Architektur
+
+<RichText id="arch-heading">
+
+### Datenfluss: KI-Plan Generierung
+
+</RichText>
+
+<Diagram id="arch-diagram" data={{
+  html: '<div class="diagram-panel" data-rough style="flex-direction:column;gap:16px;"><div class="diagram-node">User klickt "Einrichten" + Prompt</div><div class="diagram-node">Client: functions.invoke("mistral-proxy", { prompt, userContext })</div><div class="diagram-node">Edge Function: JWT verifizieren + MISTRAL_API_KEY aus Deno.env</div><div class="diagram-node">Mistral API: chat/completions mit System-Prompt + JSON-Schema</div><div class="diagram-node">Edge Function: JSON validieren + zurueckgeben</div><div class="diagram-node">Client: Plan in IndexedDB custom_plans speichern</div><div class="diagram-node">Training System: custom Plan -> getTodayQuestSet()</div></div>',
+  css: ".diagram-panel { display: flex; } .diagram-node { padding: 12px 16px; border: 2px solid var(--wf-border); border-radius: 12px; background: var(--wf-surface); text-align: center; }",
+  caption: "Generierungs-Flow: Client -> Edge Function -> Mistral -> validiertes JSON -> IndexedDB -> Quest-Generation",
+}} />
+
+<RichText id="arch-components">
+
+### Komponenten
+
+1. **`supabase/functions/mistral-proxy/index.ts`** (NEU) - Deno Edge Function. Haelt MISTRAL_API_KEY als Secret. Empfaengt Prompt + User-Kontext, ruft Mistral auf, validiert JSON, gibt es zurueck.
+2. **`js/mistral-client.js`** (NEU) - `DQ_MISTRAL` Modul. Ruft Edge Function auf, handhabt Loading/Errors/Fallback, speichert Plan in IndexedDB.
+3. **`js/custom-plan-system.js`** (NEU) - `DQ_CUSTOM_PLAN` Modul. Verwaltet Custom Plans, Balancing-Algorithmus fuer 6/Tag, Integration in `getTodayQuestSet`.
+4. **`js/training_system.js`** (MODIFIED) - `getPlan()` und `getTodayQuestSet()` erweitert: wenn `planType === 'custom'`, nutze Custom-Plan statt predefined.
+5. **`index.html`** (MODIFIED) - Dropdown ersetzt durch "Einrichten" Button. Neues Popup `#goal-setup-popup`. Neues Popup `#goal-generate-popup`.
+6. **`tutorial/js/tutorial_onboarding.js`** (MODIFIED) - `showGoalSelection()` ersetzt durch `showTrainingPlanSelection()` mit 3 Presets + Custom.
+7. **`data/translations.js`** (MODIFIED) - Neue Keys fuer alle UI-Strings.
+
+</RichText>
+
+---
+
+## Datenmodell
+
+<RichText id="data-model-heading">
+
+### Custom Plan Struktur (Mistral JSON Response)
+
+</RichText>
+
+<Json id="mistral-response-json" title="Mistral API JSON Response Schema" json='{
+  "planName": "Kraft & Muskelaufbau",
+  "planDescription": "Fokus auf Muskelaufbau mit Hanteln",
+  "exercises": [
+    {
+      "nameKey": "bicep_curls",
+      "displayName": "Kurzhantel-Curls",
+      "description": "Kontrollierte Curls fuer Bizeps",
+      "type": "reps",
+      "baseValue": 10,
+      "tags": ["pull", "arms"],
+      "isRest": false,
+      "needsEquipment": true,
+      "muscles": ["biceps"],
+      "statPoints": { "kraft": 1 },
+      "mana": 20,
+      "gold": 6
+    },
+    {
+      "nameKey": "custom_push_variant_1",
+      "displayName": "Explosive Liegestuetze",
+      "description": "Liegestuetze mit explosive Aufwaertsbewegung",
+      "type": "reps",
+      "baseValue": 8,
+      "tags": ["push", "chest"],
+      "isRest": false,
+      "needsEquipment": false,
+      "muscles": ["chest", "triceps"],
+      "statPoints": { "kraft": 1, "beweglichkeit": 0.5 },
+      "mana": 25,
+      "gold": 8
+    },
+    {
+      "nameKey": "custom_rest_walk",
+      "displayName": "Entspannter Spaziergang",
+      "description": "30 Min leichter Spaziergang zur Erholung",
+      "type": "check",
+      "baseValue": 1,
+      "tags": ["rest", "recovery"],
+      "isRest": true,
+      "needsEquipment": false,
+      "muscles": ["legs"],
+      "statPoints": { "durchhaltevermoegen": 0.5 },
+      "mana": 15,
+      "gold": 5
+    }
+  ],
+  "stages": [
+    { "labelKey": "custom_phase_1", "label": "Fundament", "weeks": 2, "sets": 2, "reps": 8 },
+    { "labelKey": "custom_phase_2", "label": "Aufbau", "weeks": 2, "sets": 3, "reps": 10 },
+    { "labelKey": "custom_phase_3", "label": "Peak", "weeks": 2, "sets": 3, "reps": 12 },
+    { "labelKey": "custom_phase_4", "label": "Endgame", "weeks": 9999, "sets": 4, "reps": 12 }
+  ]
+}' collapsedDepth={2} />
+
+<RichText id="data-model-notes">
+
+**Wichtige Felder:**
+- `nameKey`: Bei bestehenden Ubungen der echte key (z.B. `bicep_curls`). Bei neuen: `custom_`-Praefix + unique ID.
+- `tags`: 1-3 Tags pro Ubung fuer Balancing. Moegliche Tags: `push`, `pull`, `legs`, `core`, `cardio`, `rest`, `mobility`, `full_body`.
+- `isRest`: `true` fuer Rest-Day-Ubungen. An Rest Days werden nur `isRest: true` Ubungen gewaehlt.
+- `stages`: Wie bestehendes System - `weeks`, `sets`, `reps`. Letzte Stage hat `weeks: 9999` (infinite).
+- `mana`/`gold`: Base-Rewards. Werden von `buildQuest` mit loadFactor skaliert.
+
+</RichText>
+
+<RichText id="idb-heading">
+
+### IndexedDB: Neuer Store `custom_plans`
+
+</RichText>
+
+<DataModel id="custom-plan-data-model" entities={[
+  {
+    id: "custom-plans",
+    name: "custom_plans",
+    fields: [
+      { name: "id", type: "number", pk: true, note: "autoIncrement" },
+      { name: "planName", type: "string" },
+      { name: "planDescription", type: "string" },
+      { name: "exercises", type: "array", note: "30 exercise objects" },
+      { name: "stages", type: "array", note: "progressive phases" },
+      { name: "prompt", type: "string", note: "original user prompt" },
+      { name: "createdAt", type: "number", note: "Date.now()" },
+      { name: "isActive", type: "boolean", note: "only one active" }
+    ]
+  },
+  {
+    id: "settings",
+    name: "settings (modified)",
+    fields: [
+      { name: "id", type: "number", pk: true },
+      { name: "goal", type: "string", note: "predefined fallback (muscle/endurance...)" },
+      { name: "planType", type: "string", note: "'predefined' | 'custom' (NEU)" },
+      { name: "customPlanId", type: "number | null", note: "ref to custom_plans.id (NEU)" },
+      { name: "difficulty", type: "number" },
+      { name: "restDays", type: "number" },
+      { name: "hasEquipment", type: "boolean" }
+    ]
+  }
+]} relations={[
+  { from: "settings", to: "custom-plans", kind: "1-1" }
+]} />
+
+<RichText id="idb-migration-notes">
+
+**Aenderungen an `database.js`:**
+- `dbVersion` von 35 auf 36 erhoehen.
+- Neuer Object Store `custom_plans` (`keyPath: 'id', autoIncrement: true`).
+- Store zur Reset-Liste in `supabase-client.js:501-506` hinzufuegen.
+- Sync erfolgt automatisch (exportIndexedDB iteriert alle Stores).
+
+</RichText>
+
+---
+
+## Edge Function: mistral-proxy
+
+<RichText id="edge-fn-heading">
+
+### Supabase Edge Function Spezifikation
+
+</RichText>
+
+<Endpoint id="mistral-proxy-endpoint" method="POST" path="/mistral-proxy" summary="Generiert KI-Trainingsplan via Mistral API" auth="Supabase JWT (auto-attached)" params={[
+  { name: "prompt", in: "body", type: "string", required: true, description: "User-Prompt oder Preset-Key ('kraft'/'ausdauer'/'abnehmen')" },
+  { name: "userContext", in: "body", type: "object", required: false, description: "{ age, hasEquipment, difficulty, restDays, language }" }
+]} request={{
+  contentType: "application/json",
+  example: '{ "prompt": "kraft", "userContext": { "age": 34, "hasEquipment": true, "difficulty": 3, "restDays": 2 } }'
+}} responses={[
+  { status: "200", description: "Validierter Trainingsplan", example: '{ "planName": "...", "exercises": [...], "stages": [...] }' },
+  { status: "400", description: "Invalid prompt or JSON validation failed" },
+  { status: "500", description: "Mistral API error or internal error" },
+  { status: "429", description: "Rate limited" }
+]}>
+
+Die Edge Function:
+1. Verifiziert JWT aus `Authorization` Header (Supabase Client haengt automatisch an).
+2. Mapped Preset-Keys auf feste System-Prompts (`kraft` -> deutscher Prompt fuer Muskelaufbau).
+3. Baut Mistral `chat/completions` Request mit `response_format: { type: "json_object" }`.
+4. System-Prompt enthaelt die Liste aller verfuegbaren `nameKeys` aus `data/exercises.js` + JSON-Schema.
+5. Validiert Response gegen Schema (30 exercises, tags, stages).
+6. Gibt validiertes JSON zurueck.
+
+</Endpoint>
+
+<RichText id="edge-fn-deploy">
+
+### Deployment
+
+```bash
+supabase functions deploy mistral-proxy
+supabase secrets set MISTRAL_API_KEY=sk-...
+```
+
+Key bleibt server-side. Client sieht nur Responses. Keine Aenderung an `schema.sql` noetig (Custom Plans werden in IndexedDB gespeichert und via `app_data` synced).
+
+</RichText>
+
+<AnnotatedCode id="edge-fn-code" filename="supabase/functions/mistral-proxy/index.ts" language="typescript" code={`import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const MISTRAL_API_KEY = Deno.env.get("MISTRAL_API_KEY")!;
+const MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions";
+
+const PRESET_PROMPTS: Record<string, string> = {
+  kraft: "Erstelle einen Trainingsplan fuer Kraft und Muskelaufbau mit Hanteln.",
+  ausdauer: "Erstelle einen Trainingsplan fuer Ausdauer und Cardio-Training.",
+  abnehmen: "Erstelle einen Trainingsplan fuer Gewichtsverlust und Fatburn."
+};
+
+const SYSTEM_PROMPT = \`Du bist ein Fitness-Experte. Erstelle einen Trainingsplan als JSON.
+Erforderliche Felder:
+- planName (string)
+- planDescription (string)
+- exercises (array von genau 30 Objekten)
+- stages (array von 4 Phasen)
+
+Jede Exercise braucht: nameKey, displayName, description, type (reps/time/check),
+baseValue, tags (array), isRest (boolean), needsEquipment, muscles, statPoints, mana, gold.
+
+Verwende diese bestehenden nameKeys wenn passend: [LISTE aus exercises.js]
+Oder erfinde neue mit "custom_" Praefix.
+
+Mindestens 4 exercises muessen isRest:true haben (fuer Rest Days).
+Tags aus: push, pull, legs, core, cardio, rest, mobility, full_body.
+
+response_format: json_object\`};
+
+export default async (req: Request) => {
+  const auth = req.headers.get("Authorization");
+  if (!auth) return new Response("Unauthorized", { status: 401 });
+
+  const { prompt, userContext } = await req.json();
+  const userPrompt = PRESET_PROMPTS[prompt] || prompt;
+
+  const response = await fetch(MISTRAL_URL, {
+    method: "POST",
+    headers: {
+      "Authorization": \`Bearer \${MISTRAL_API_KEY}\`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "mistral-small-latest",
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: userPrompt + JSON.stringify(userContext) }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7
+    })
+  });
+
+  const data = await response.json();
+  const planJson = JSON.parse(data.choices[0].message.content);
+
+  // Validierung: 30 exercises, tags vorhanden, stages vorhanden
+  if (!planJson.exercises || planJson.exercises.length !== 30) {
+    return new Response("Invalid plan: need 30 exercises", { status: 500 });
+  }
+
+  return new Response(JSON.stringify(planJson), {
+    headers: { "Content-Type": "application/json" }
+  });
+};`} annotations={[
+  { lines: "2-3", label: "Server-side Secret", note: "Key nur in Deno.env, nie im Client-Code." },
+  { lines: "5-9", label: "Preset Mapping", note: "3 Presets aus Tutorial -> feste Prompts." },
+  { lines: "11-22", label: "System Prompt", note: "Enthaelt JSON-Schema + verfuegbare nameKeys." },
+  { lines: "30-31", label: "JWT Check", note: "Supabase Client haengt Authorization Header automatisch an." },
+  { lines: "48-50", label: "JSON Mode", note: "Mistral response_format json_object fuer valides JSON." },
+  { lines: "56-58", label: "Schema Validation", note: "Minimal-Validierung: 30 exercises. Erweiterte Validierung im Client." }
+]} />
+
+---
+
+## Balancing-Algorithmus
+
+<RichText id="balancing-heading">
+
+### 6-Quest-Auswahl aus 30 getaggten Ubungen
+
+</RichText>
+
+<AnnotatedCode id="balancing-code" filename="js/custom-plan-system.js" language="javascript" code={`const DQ_CUSTOM_PLAN = {
+  // Waehlt 6 balancierte Ubungen aus 30 getaggten
+  pickBalancedQuests(exercises, count = 6, isRestDay = false) {
+    // 1. Filter: Rest Day -> nur isRest:true, sonst nur isRest:false
+    let pool = isRestDay
+      ? exercises.filter(ex => ex.isRest === true)
+      : exercises.filter(ex => ex.isRest !== true);
+
+    if (isRestDay) {
+      // Rest Day: 5 zufaellige Rest-Uebungen (wie bestehendes System)
+      return this.shuffle(pool).slice(0, 5);
+    }
+
+    // 2. Gruppiere nach primaerem Tag (erster Tag im tags-Array)
+    const byTag = {};
+    pool.forEach(ex => {
+      const tag = ex.tags[0] || 'full_body';
+      if (!byTag[tag]) byTag[tag] = [];
+      byTag[tag].push(ex);
+    });
+
+    // 3. Wichtigste Tags first: push/pull/legs/core/cardio
+    const priorityTags = ['push', 'pull', 'legs', 'core', 'cardio', 'full_body'];
+    const selected = [];
+    const usedKeys = new Set();
+
+    // 4. Eine pro priorityTag bis 6 erreicht
+    for (const tag of priorityTags) {
+      if (selected.length >= count) break;
+      const candidates = (byTag[tag] || [])
+        .filter(ex => !usedKeys.has(ex.nameKey));
+      if (candidates.length > 0) {
+        const pick = candidates[Math.floor(Math.random() * candidates.length)];
+        selected.push(pick);
+        usedKeys.add(pick.nameKey);
+      }
+    }
+
+    // 5. Falls weniger als 6: fuelle mit restlichen Ubungen auf
+    while (selected.length < count && selected.length < pool.length) {
+      const remaining = pool.filter(ex => !usedKeys.has(ex.nameKey));
+      if (remaining.length === 0) break;
+      const pick = remaining[Math.floor(Math.random() * remaining.length)];
+      selected.push(pick);
+      usedKeys.add(pick.nameKey);
+    }
+
+    // 6. recentExercises-Variety (wie bestehendes pickCandidate)
+    // Bias gegen kuerzlich verwendete Ubungen
+    return selected;
+  },
+
+  shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+};`} annotations={[
+  { lines: "5-6", label: "Rest Day Filter", note: "Wochentag-Logik in main.js entscheidet Rest Day. Hier: nur isRest Ubungen." },
+  { lines: "11-16", label: "Gruppierung", note: "Ubungen werden nach primaerem Tag gruppiert." },
+  { lines: "18-26", label: "Priority Selection", note: "Eine Ubung pro Tag-Kategorie -> balancierter Workout." },
+  { lines: "28-34", label: "Auffuellen", note: "Falls weniger als 6 Kategorien: zufaellige Rest-Uebungen." }
+]} />
+
+---
+
+## Implementierung
+
+<RichText id="impl-heading">
+
+### Phasen & Dateien
+
+</RichText>
+
+<FileTree id="file-tree" title="Betroffene Dateien" entries={[
+  { path: "supabase/functions/mistral-proxy/index.ts", change: "added", note: "NEU: Edge Function fuer Mistral API" },
+  { path: "supabase/config.toml", change: "added", note: "NEU: Supabase project config (falls nicht vorhanden)" },
+  { path: "js/mistral-client.js", change: "added", note: "NEU: DQ_MISTRAL Modul - API-Aufrufe, Fallback, Caching" },
+  { path: "js/custom-plan-system.js", change: "added", note: "NEU: DQ_CUSTOM_PLAN Modul - Balancing, Quest-Building" },
+  { path: "index.html", change: "modified", note: "Dropdown -> Button, neue Popups, Script-Tags" },
+  { path: "js/database.js", change: "modified", note: "dbVersion 35->36, custom_plans Store" },
+  { path: "js/training_system.js", change: "modified", note: "getPlan/getTodayQuestSet: custom Plan Branch" },
+  { path: "main.js", change: "modified", note: "Settings-Listener, saveSetting planType/customPlanId, generateDailyQuests custom Branch" },
+  { path: "tutorial/js/tutorial_onboarding.js", change: "modified", note: "showTrainingPlanSelection() ersetzt showGoalSelection()" },
+  { path: "tutorial/js/tutorial_main.js", change: "modified", note: "Neue state fields: trainingPrompt, customPlanMode" },
+  { path: "data/translations.js", change: "modified", note: "Neue DE/EN Keys fuer alle UI-Strings" },
+  { path: "css/components/popups.css", change: "modified", note: "Styling fuer goal-setup-popup, goal-generate-popup" },
+  { path: "tests/02-data-structure.test.js", change: "modified", note: "Custom Plan Struktur-Tests" },
+  { path: "tests/06-html-ids.test.js", change: "modified", note: "Neue HTML-IDs registrieren" },
+  { path: "tests/11-custom-plan.test.js", change: "added", note: "NEU: Balancing-Algorithmus, Validierung, Migration" }
+]} />
+
+<Callout id="phase-order" tone="info">
+
+**Implementierungs-Reihenfolge:**
+1. **Phase 1**: Edge Function + Deployment + Secret setzen
+2. **Phase 2**: `js/mistral-client.js` (API-Aufruf, Fallback, Validierung)
+3. **Phase 3**: `js/custom-plan-system.js` (Balancing, Quest-Building)
+4. **Phase 4**: IndexedDB Store + Settings-Erweiterung (`planType`, `customPlanId`)
+5. **Phase 5**: `training_system.js` + `main.js` Integration (custom Branch in `getTodayQuestSet`)
+6. **Phase 6**: Settings UI (index.html: Button + Popups + CSS)
+7. **Phase 7**: Tutorial Integration (`showTrainingPlanSelection`)
+8. **Phase 8**: Migration (bestehende User behalten predefined) + Fallback-Logik
+9. **Phase 9**: Tests + Lint
+
+</Callout>
+
+---
+
+## Migration & Fallback
+
+<RichText id="migration-heading">
+
+### Bestandsuser: Was passiert beim Update?
+
+</RichText>
+
+<Table id="migration-table" columns={["Szenario", "Was passiert", "Warum"]} rows={[
+  ["User mit goal=muscle, kein customPlanId", "planType='predefined' (auto), gleiche Quests wie vorher", "Dropdown weg, aber predefined Plans funktionieren weiter"],
+  ["User klickt 'Einrichten' -> generiert Custom Plan", "planType='custom', customPlanId gesetzt, neue Quests ab morgen", "Custom Plan ist aktiv bis neu konfiguriert"],
+  ["User mit custom Plan, API offline bei Regeneration", "Fehler-Popup + Fallback auf letzten predefined goal", "App bleibt nutzbar"],
+  ["User mit custom Plan, API offline bei Tages-Quests", "Custom Plan aus IndexedDB (cached), kein API-Call noetig", "Plan ist lokal gespeichert, API nur fuer Generierung"],
+  ["Neuer User (Tutorial), API offline", "Fehler-Popup + Fallback auf predefined (muscle)", "Tutorial zeigt Info, User kann spaeter regenerieren"]
+]} />
+
+<Callout id="fallback-logic" tone="warning">
+
+**Fallback-Logik in `js/mistral-client.js`:**
+1. API-Call fehlschlaegt -> zeige Error-Popup: "Fehler bei Generierung. Fallback-Plan wird genutzt."
+2. Setze `planType='predefined'` mit altem `goal` als Fallback.
+3. Generierung-Counter wird bei Fehlern NICHT verbraucht.
+4. User kann "Erneut versuchen" klicken.
+5. Bestehender Custom Plan (falls vorhanden) bleibt in IndexedDB - wird nur nicht aktiv gesetzt.
+
+</Callout>
+
+---
+
+## Quest-Generation Integration
+
+<RichText id="quest-gen-heading">
+
+### Wie custom Plans in getTodayQuestSet integriert werden
+
+</RichText>
+
+<AnnotatedCode id="quest-gen-code" filename="js/training_system.js" language="javascript" code={`// MODIFIZIERT: getTodayQuestSet mit custom Plan Branch
+async getTodayQuestSet(forceRegenerate = false) {
+    const settings = DQ_CONFIG.userSettings || {};
+    const goal = this.normalizeGoal(settings.goal || 'muscle');
+
+    // NEU: Custom Plan Branch
+    if (settings.planType === 'custom' && settings.customPlanId) {
+        const customPlan = await DQ_CUSTOM_PLAN.getActivePlan(settings.customPlanId);
+        if (customPlan) {
+            return await DQ_CUSTOM_PLAN.getTodayQuestSet(customPlan, settings);
+        }
+        // Fallback: custom plan nicht gefunden -> predefined
+        console.warn('Custom Plan nicht gefunden, nutze predefined');
+    }
+
+    // BESTEHEND: predefined Plan Pfad (unveraendert)
+    if (goal === 'sick' || goal === 'restday') {
+        return { goal, quests: [], state: null, plan: null };
+    }
+    // ... bestehende Logik ...
+} `} annotations={[
+  { lines: "6-11", label: "Custom Branch", note: "Frueher Branch: wenn planType=custom, delegiere an DQ_CUSTOM_PLAN." },
+  { lines: "12-13", label: "Graceful Fallback", note: "Custom Plan geloescht/nicht gefunden -> predefined Pfad." }
+]} />
+
+<AnnotatedCode id="custom-quest-code" filename="js/custom-plan-system.js" language="javascript" code={`// DQ_CUSTOM_PLAN.getTodayQuestSet
+async getTodayQuestSet(customPlan, settings) {
+    const todayStr = DQ_CONFIG.getTodayString();
+    const isRestDay = this.checkRestDay(settings.restDays);
+    const difficulty = settings.difficulty || 3;
+    const hasEquipment = settings.hasEquipment !== false;
+
+    // 1. Stage berechnen (wie bestehendes getStageForState)
+    const state = await this.getState(customPlan.id);
+    const stageContext = this.getStageForState(customPlan.stages, state);
+
+    // 2. 6 balancierte Ubungen waehlen
+    const exercises = isRestDay
+        ? DQ_CUSTOM_PLAN.pickBalancedQuests(customPlan.exercises, 5, true)
+        : DQ_CUSTOM_PLAN.pickBalancedQuests(customPlan.exercises, 6, false);
+
+    // 3. Quests bauen (reused buildQuest mit custom Plan Parametern)
+    const quests = exercises.map((template, index) => {
+        return this.buildCustomQuest(
+            customPlan, template, stageContext,
+            todayStr, index, difficulty, hasEquipment
+        );
+    });
+
+    // 4. State updaten (recentExercises etc.)
+    state.lastGeneratedDate = todayStr;
+    state.lastStageIndex = stageContext.stageIndex;
+    await this.saveState(state);
+
+    return { goal: 'custom', quests, state, plan: customPlan, stageContext };
+} `} annotations={[
+  { lines: "4-5", label: "Rest Day Check", note: "Wochentag-Logik aus main.js, hier angewendet auf custom Plan." },
+  { lines: "11-14", label: "Balancing", note: "6 balancierte (oder 5 rest-day) Ubungen aus 30." },
+  { lines: "16-20", label: "Quest Building", note: "Aehnlich buildQuest, aber mit custom Plan Parametern." },
+  { lines: "23-25", label: "State Persistenz", note: "recentExercises + Stage-Progression wie predefined." }
+]} />
+
+---
+
+## Tutorial Integration
+
+<RichText id="tutorial-impl-heading">
+
+### Neuer Tutorial-Schritt: showTrainingPlanSelection
+
+</RichText>
+
+<AnnotatedCode id="tutorial-code" filename="tutorial/js/tutorial_onboarding.js" language="javascript" code={`// ERSETZT showGoalSelection() (tutorial_onboarding.js:257-309)
+async showTrainingPlanSelection() {
+    const textContainer = document.getElementById('tutorial-text-container');
+    if (!textContainer) return;
+
+    this.showText('Was ist dein Trainingsziel?');
+    await this.delay(600);
+
+    textContainer.insertAdjacentHTML('beforeend', \`
+        <div id="tutorial-plan-selection" class="tutorial-selection-container">
+            <button class="tutorial-choice-btn" data-preset="kraft">
+                <span class="material-symbols-rounded">fitness_center</span>
+                <span>Kraft & Muskelaufbau</span>
+                <span class="choice-description">Staerke, Masse, Hanteln</span>
+            </button>
+            <button class="tutorial-choice-btn" data-preset="ausdauer">
+                <span class="material-symbols-rounded">directions_run</span>
+                <span>Ausdauer & Cardio</span>
+                <span class="choice-description">Kondition, Laufen, HIIT</span>
+            </button>
+            <button class="tutorial-choice-btn" data-preset="abnehmen">
+                <span class="material-symbols-rounded">local_fire_department</span>
+                <span>Gewicht verlieren</span>
+                <span class="choice-description">Fatburn, Diet, Cardio</span>
+            </button>
+            <button class="tutorial-choice-btn" data-preset="custom">
+                <span class="material-symbols-rounded">edit</span>
+                <span>Custom: Eigener Plan</span>
+                <span class="choice-description">Beschreibe dein Ziel</span>
+            </button>
+            <div id="tutorial-custom-input" style="display:none;">
+                <input type="text" id="tutorial-plan-prompt"
+                    placeholder="z.B. starke Beine und mehr Flexibilitaet"
+                    maxlength="200">
+            </div>
+            <button id="tutorial-plan-generate" class="card-button hidden">
+                Plan generieren
+            </button>
+        </div>
+        <div id="tutorial-plan-loading" class="hidden">
+            <p>Plan wird generiert...</p>
+        </div>
+    \`);
+
+    // Custom-Button toggelt Textbox
+    const customBtn = document.querySelector('[data-preset="custom"]');
+    const customInput = document.getElementById('tutorial-custom-input');
+    const generateBtn = document.getElementById('tutorial-plan-generate');
+
+    customBtn.addEventListener('click', () => {
+        customInput.style.display = 'block';
+        generateBtn.classList.remove('hidden');
+    });
+
+    // Preset-Buttons (kraft/ausdauer/abnehmen)
+    document.querySelectorAll('[data-preset]').forEach(btn => {
+        if (btn.dataset.preset === 'custom') return;
+        btn.addEventListener('click', async () => {
+            await this.handlePlanSelection(btn.dataset.preset, null);
+        });
+    });
+
+    // Generate-Button (custom)
+    generateBtn.addEventListener('click', async () => {
+        const prompt = document.getElementById('tutorial-plan-prompt').value.trim();
+        if (!prompt) return;
+        await this.handlePlanSelection('custom', prompt);
+    });
+},
+
+async handlePlanSelection(preset, customPrompt) {
+    // Loading anzeigen
+    document.getElementById('tutorial-plan-selection').classList.add('fade-out');
+    document.getElementById('tutorial-plan-loading').classList.remove('hidden');
+
+    try {
+        // API Call
+        const plan = await DQ_MISTRAL.generatePlan(
+            customPrompt || preset,
+            { age: this.age, hasEquipment: this.hasEquipment }
+        );
+        // Plan speichern + aktiv setzen
+        const planId = await DQ_CUSTOM_PLAN.savePlan(plan);
+        this.trainingPlanType = 'custom';
+        this.customPlanId = planId;
+    } catch (e) {
+        // Fallback auf predefined
+        DQ_UI.showCustomPopup('Fehler bei Generierung. Fallback-Plan wird genutzt.', 'penalty');
+        this.trainingPlanType = 'predefined';
+        this.trainingGoal = preset === 'kraft' ? 'muscle'
+            : preset === 'ausdauer' ? 'endurance' : 'fatloss';
+    }
+
+    document.getElementById('tutorial-plan-loading').classList.add('hidden');
+    await this.hideText();
+    await this.delay(250);
+
+    await this.showAuthDuringTutorial();
+    await this.initializeCharacterWithName(this.playerName);
+    await this.showWelcomeSequence();
+} `} annotations={[
+  { lines: "5-6", label: "Text anzeigen", note: "Wie bestehende showGoalSelection, showText() zuerst." },
+  { lines: "8-39", label: "HTML Panel", note: "4 Buttons (3 Presets + Custom) + versteckte Textbox." },
+  { lines: "42-47", label: "Custom Toggle", note: "Custom-Button zeigt Textbox + Generate-Button." },
+  { lines: "49-62", label: "Preset Handler", note: "Direkter API-Call mit Preset-Key." },
+  { lines: "64-72", label: "Custom Handler", note: "API-Call mit User-Prompt." },
+  { lines: "74-98", label: "handlePlanSelection", note: "Zentrale Funktion: API-Call + Fallback + Uebergang zu Auth." },
+  { lines: "89-94", label: "Fallback", note: "Bei Fehler: predefined Goal aus Preset abgeleitet." }
+]} />
+
+<Callout id="tutorial-constraints" tone="warning">
+
+**Tutorial-Constraints:**
+- `initializeCharacterWithName` muss `planType` und `customPlanId` in settings schreiben, wenn `this.trainingPlanType === 'custom'`.
+- `generateDailyQuestsIfNeeded(true)` in `initializeCharacterWithName` (tutorial_onboarding.js:435) muss den custom Branch nutzen.
+- Senior-Mode (age>=60) ueberspringt `showTrainingPlanSelection` weiterhin (wie aktuell `showGoalSelection` skipped).
+- Intro-State in localStorage muss `trainingPlanType` + `customPlanId` enthalten (redirect recovery).
+- `DQ_TUTORIAL_STATE.resetTutorial()` muss custom-plans Store clearen.
+
+</Callout>
+
+---
+
+## Settings UI Integration
+
+<RichText id="settings-ui-heading">
+
+### index.html: Dropdown ersetzen
+
+</RichText>
+
+<Diff id="settings-html-diff" filename="index.html" language="html" mode="split" before={`<div class="settings-subpage-item">
+    <label for="goal-select" data-lang-key="training_goal">Trainingsziel</label>
+    <select id="goal-select">
+        <option value="muscle" data-lang-key="goal_muscle">Muskelaufbau</option>
+        <option value="endurance" data-lang-key="goal_endurance">Ausdauer</option>
+        <option value="fatloss" data-lang-key="goal_fatloss">Abnehmen</option>
+        <option value="kraft_abnehmen" data-lang-key="goal_kraft_abnehmen">Kraft + Abnehmen</option>
+        <option value="calisthenics" data-lang-key="goal_calisthenics">Calisthenics</option>
+        <option value="senior" data-lang-key="goal_senior">Senioren-Training</option>
+        <option value="sick" data-lang-key="goal_sick">Krank</option>
+    </select>
+</div>`} after={`<div class="settings-subpage-item">
+    <label data-lang-key="training_goal">Trainingsziel</label>
+    <button type="button" id="goal-setup-button"
+        class="settings-action-btn" style="flex:0 0 auto;padding:8px 16px;">
+        Einrichten
+    </button>
+</div>
+<div class="settings-subpage-item" id="current-plan-info">
+    <label data-lang-key="current_plan">Aktuell:</label>
+    <span id="current-plan-name">Muskelaufbau (Standard)</span>
+</div>`} />
+
+<RichText id="new-popups-heading">
+
+### Neue Popups in index.html
+
+</RichText>
+
+<AnnotatedCode id="popups-html" filename="index.html" language="html" code={`<!-- Nach den bestehenden Popups, vor settings-overlay -->
+
+<!-- Popup 1: Trainingsziel einrichten (aktueller Plan + Regenerieren) -->
+<div id="goal-setup-popup" class="popup popup-large">
+    <div class="popup-drag-handle"></div>
+    <div class="popup-content">
+        <h3 data-lang-key="goal_setup_title">Trainingsziel einrichten</h3>
+        <div class="settings-warning-box">
+            <span class="warning-icon"><span class="material-symbols-rounded">auto_awesome</span></span>
+            <p data-lang-key="goal_setup_current">Dein aktueller Plan:</p>
+        </div>
+        <div id="current-plan-display" class="setting-item" style="flex-direction:column;align-items:stretch;">
+            <strong id="current-plan-title">Muskelaufbau (Standard)</strong>
+            <p id="current-plan-desc" style="font-size:12px;opacity:0.7;margin:4px 0 0;"></p>
+            <p id="current-plan-stats" style="font-size:11px;opacity:0.5;margin:2px 0 0;"></p>
+        </div>
+        <div class="popup-actions">
+            <button id="goal-regenerate-button" class="card-button">
+                <span class="material-symbols-rounded">refresh</span>
+                <span data-lang-key="goal_regenerate">Neuen Plan generieren</span>
+            </button>
+            <span id="regeneration-counter" style="font-size:11px;opacity:0.6;text-align:center;"></span>
+            <button id="goal-setup-cancel" class="card-button secondary-button"
+                data-lang-key="cancel">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Popup 2: Neuen Plan generieren (Presets + Custom) -->
+<div id="goal-generate-popup" class="popup popup-large">
+    <div class="popup-drag-handle"></div>
+    <div class="popup-content">
+        <h3 data-lang-key="goal_generate_title">Neuen Trainingsplan</h3>
+        <div class="settings-subpage-section-title" data-lang-key="goal_presets">Schnellwahl</div>
+        <div class="settings-subpage-actions">
+            <button class="settings-action-btn" data-preset="kraft">
+                <span class="material-symbols-rounded">fitness_center</span>
+                Kraft & Muskelaufbau
+            </button>
+            <button class="settings-action-btn" data-preset="ausdauer">
+                <span class="material-symbols-rounded">directions_run</span>
+                Ausdauer & Cardio
+            </button>
+            <button class="settings-action-btn" data-preset="abnehmen">
+                <span class="material-symbols-rounded">local_fire_department</span>
+                Gewicht verlieren
+            </button>
+        </div>
+        <div class="settings-subpage-section-title" data-lang-key="goal_custom">Oder eigene Beschreibung</div>
+        <div class="setting-item" style="flex-direction:column;align-items:stretch;">
+            <input type="text" id="custom-plan-prompt" placeholder="z.B. starke Beine und mehr Flexibilitaet"
+                maxlength="200" style="width:100%;text-align:left;">
+        </div>
+        <div class="popup-actions">
+            <button id="custom-plan-generate-button" class="card-button" disabled>
+                <span class="material-symbols-rounded">auto_awesome</span>
+                <span data-lang-key="goal_generate_btn">Plan generieren</span>
+            </button>
+            <button id="goal-generate-cancel" class="card-button secondary-button"
+                data-lang-key="cancel">Abbrechen</button>
+        </div>
+        <div id="plan-generation-loading" style="display:none;text-align:center;padding:20px;">
+            <span class="material-symbols-rounded" style="font-size:40px;animation:spin 2s linear infinite;">progress_activity</span>
+            <p data-lang-key="goal_generating">Plan wird generiert...</p>
+        </div>
+    </div>
+</div>`} annotations={[
+  { lines: "4-22", label: "Setup Popup", note: "Zeigt aktuellen Plan + Regenerieren-Button + Counter." },
+  { lines: "24-58", label: "Generate Popup", note: "3 Presets + Custom-Textbox + Generate-Button. Loading-State versteckt." },
+  { lines: "50-53", label: "Loading", note: "progress_activity Icon mit spin animation." }
+]} />
+
+---
+
+## Validierung
+
+<RichText id="validation-heading">
+
+### Client-seitige JSON-Validierung
+
+</RichText>
+
+<AnnotatedCode id="validation-code" filename="js/mistral-client.js" language="javascript" code={`const DQ_MISTRAL = {
+    validatePlan(plan) {
+        const errors = [];
+
+        // 1. Top-Level Felder
+        if (!plan.planName || typeof plan.planName !== 'string') errors.push('planName fehlt');
+        if (!plan.exercises || !Array.isArray(plan.exercises)) errors.push('exercises fehlt');
+        if (!plan.stages || !Array.isArray(plan.stages)) errors.push('stages fehlt');
+
+        // 2. Genau 30 Ubungen
+        if (plan.exercises && plan.exercises.length !== 30) {
+            errors.push(\`Brauche 30 exercises, got \${plan.exercises?.length}\`);
+        }
+
+        // 3. Mindestens 4 isRest Ubungen
+        if (plan.exercises) {
+            const restCount = plan.exercises.filter(ex => ex.isRest === true).length;
+            if (restCount < 4) errors.push('Mindestens 4 isRest Ubungen noetig');
+        }
+
+        // 4. Jede Ubung validieren
+        const validTypes = ['reps', 'time', 'check', 'focus'];
+        const validTags = ['push', 'pull', 'legs', 'core', 'cardio', 'rest', 'mobility', 'full_body'];
+        const existingKeys = new Set(Object.values(DQ_DATA.exercisePool).flat().map(ex => ex.nameKey));
+
+        if (plan.exercises) {
+            plan.exercises.forEach((ex, i) => {
+                if (!ex.nameKey || typeof ex.nameKey !== 'string') errors.push(\`exercise[\${i}].nameKey fehlt\`);
+                if (!validTypes.includes(ex.type)) errors.push(\`exercise[\${i}].type invalid: \${ex.type}\`);
+                if (!ex.tags || !Array.isArray(ex.tags) || ex.tags.length === 0) errors.push(\`exercise[\${i}].tags fehlt\`);
+                if (typeof ex.baseValue !== 'number' || ex.baseValue < 1) errors.push(\`exercise[\${i}].baseValue invalid\`);
+                if (!ex.displayName) errors.push(\`exercise[\${i}].displayName fehlt\`);
+
+                // Hybrid: bestehende nameKeys OK, neue muessen custom_ haben
+                if (!existingKeys.has(ex.nameKey) && !ex.nameKey.startsWith('custom_')) {
+                    errors.push(\`exercise[\${i}].nameKey muss custom_ Praefix haben wenn neu\`);
+                }
+            });
+        }
+
+        // 5. Stages validieren
+        if (plan.stages) {
+            if (plan.stages.length < 2) errors.push('Mindestens 2 Phasen noetig');
+            plan.stages.forEach((stage, i) => {
+                if (typeof stage.weeks !== 'number') errors.push(\`stage[\${i}].weeks fehlt\`);
+                if (typeof stage.sets !== 'number') errors.push(\`stage[\${i}].sets fehlt\`);
+                if (typeof stage.reps !== 'number') errors.push(\`stage[\${i}].reps fehlt\`);
+            });
+            // Letzte Stage muss infinite sein
+            const last = plan.stages[plan.stages.length - 1];
+            if (last && last.weeks < 9999) errors.push('Letzte Phase muss weeks:9999 haben');
+        }
+
+        return { valid: errors.length === 0, errors };
+    },
+
+    async generatePlan(prompt, userContext) {
+        try {
+            const { data, error } = await DQ_SUPABASE.client.functions.invoke('mistral-proxy', {
+                body: { prompt, userContext }
+            });
+            if (error) throw error;
+
+            const validation = this.validatePlan(data);
+            if (!validation.valid) {
+                console.error('Plan validation failed:', validation.errors);
+                throw new Error('Invalid plan: ' + validation.errors.join(', '));
+            }
+
+            return data;
+        } catch (e) {
+            console.error('Mistral API error:', e);
+            DQ_UI.showCustomPopup(
+                'Fehler bei Plan-Generierung. Ein Fallback-Plan wird genutzt.',
+                'penalty'
+            );
+            throw e; // Caller entscheidet Fallback
+        }
+    },
+
+    getRegenerationCount() {
+        const today = DQ_CONFIG.getTodayString();
+        const data = localStorage.getItem('dq_mistral_regen');
+        if (!data) return 0;
+        try {
+            const parsed = JSON.parse(data);
+            return parsed.date === today ? parsed.count : 0;
+        } catch { return 0; }
+    },
+
+    incrementRegeneration() {
+        const today = DQ_CONFIG.getTodayString();
+        const count = this.getRegenerationCount();
+        localStorage.setItem('dq_mistral_regen', JSON.stringify({ date: today, count: count + 1 }));
+    },
+
+    canRegenerate() {
+        return this.getRegenerationCount() < 3;
+    }
+};`} annotations={[
+  { lines: "4-18", label: "Top-Level Check", note: "planName, exercises, stages muessen vorhanden sein." },
+  { lines: "20-24", label: "30 Exercises", note: "Genau 30 - gibt dem Balancing-Algorithmus genug Auswahl." },
+  { lines: "26-29", label: "Rest Minimum", note: "Mindestens 4 rest-Uebungen fuer Rest Days." },
+  { lines: "31-44", label: "Exercise Validation", note: "Type, tags, baseValue, nameKey-Regel (custom_ oder bestehend)." },
+  { lines: "46-56", label: "Stage Validation", note: "weeks/sets/reps numerisch, letzte Stage infinite." },
+  { lines: "60-72", label: "API Call", note: "functions.invoke mit JWT. Validierung nach Response." },
+  { lines: "74-81", label: "Error Handling", note: "Popup + throw -> Caller macht Fallback." },
+  { lines: "83-98", label: "Rate Limiting", note: "3x/Tag in localStorage, reset bei Tageswechsel." }
+]} />
+
+---
+
+## Tests
+
+<RichText id="tests-heading">
+
+### Neue + modifizierte Tests
+
+</RichText>
+
+<Table id="tests-table" columns={["Test-Datei", "Bereich", "Was getestet wird"]} rows={[
+  ["tests/11-custom-plan.test.js (NEU)", "Custom Plan", "JSON-Validierung, Balancing-Algorithmus (6 aus 30, Tag-Diversitaet), Rest-Day-Filter, Stage-Berechnung, Migration logic"],
+  ["tests/02-data-structure.test.js", "Daten", "Custom Plan Struktur in IndexedDB, settings.planType Feld"],
+  ["tests/06-html-ids.test.js", "DOM", "Neue IDs: goal-setup-button, goal-setup-popup, goal-generate-popup, custom-plan-prompt, etc."],
+  ["tests/08-training-plans.test.js", "Training", "Custom Plan in getTodayQuestSet, Fallback auf predefined"],
+  ["tests/01-syntax.test.js", "Syntax", "Alle neuen .js Dateien syntaktisch korrekt"]
+]} />
+
+---
+
+## Open Questions
+
+<QuestionForm id="open-questions" questions={[
+  {
+    id: "mistral-model",
+    title: "Welches Mistral-Modell soll verwendet werden?",
+    subtitle: "mistral-small-latest ist guenstig (~0.1$/1M tokens). mistral-large ist besser aber teurer. Der Plan-Generierungs-Prompt ist ca. 500-1000 tokens input, 2000-3000 tokens output.",
+    mode: "single",
+    options: [
+      { id: "small", label: "mistral-small-latest", detail: "Guenstig, schnell, gut fuer strukturierte JSON-Generierung. ~0.002$ pro Call.", recommended: true },
+      { id: "large", label: "mistral-large-latest", detail: "Hoehere Qualitaet, aber 10x teurer. ~0.02$ pro Call." },
+      { id: "open-mistral", label: "open-mistral-7b", detail: "Open-Source, selbst hostbar, aber Qualitaet fraglich fuer komplexe JSON." }
+    ]
+  },
+  {
+    id: "preset-prompts",
+    title": "Wie detailliert sollen die 3 Tutorial-Preset-Prompts sein?",
+    subtitle: "Die Presets (kraft/ausdauer/abnehmen) werden im Edge Function zu System-Prompts gemapped. Sollen sie sehr spezifisch sein (genaue Ubungen vorgeben) oder generisch (KI freie Wahl lassen)?",
+    mode: "single",
+    options: [
+      { id: "generic", label: "Generisch (Empfohlen)", detail: "z.B. 'Erstelle einen Kraft-Plan mit Fokus auf Muskelaufbau'. KI hat mehr Freiheit -> variablere Plane." },
+      { id: "specific", label: "Spezifisch", detail: "Detaillierte Vorgaben: 'Verwende push_ups, deadlifts, bicep_curls...'. Konsistenter, aber weniger Variabilitaet." }
+    ]
+  },
+  {
+    id: "custom-plan-sync",
+    title": "Sollen Custom Plans ueber Geraete synchronisiert werden?",
+    subtitle: "Custom Plans werden in IndexedDB gespeichert und automatisch via app_data synced. Das bedeutet: Plan ist auf allen Geraeten verfuegbar. Alternativ: nur lokal (aus Sync ausschliessen).",
+    mode: "single",
+    options: [
+      { id: "sync", label: "Sync via app_data (Empfohlen)", detail: "Plan auf allen Geraeten. Keine zusaetzliche API-Calls beim Geraetewechsel. Bereits durch bestehendes exportIndexedDB abgedeckt." },
+      { id: "local-only", label: "Nur lokal", detail: "Plan nur auf dem Geraet wo er erstellt wurde. Privat, aber User muss pro Geraet neu generieren." }
+    ]
+  },
+  {
+    id: "phase-buttons-custom",
+    title": "Sollen die Phase-Buttons (Wdh/Ueberspr/Verlaeng) auch fuer Custom Plans funktionieren?",
+    subtitle: "Die bestehenden Phase-Buttons in Settings steuern die progressive Phasen. Custom Plans haben auch Phasen. Sollen die Buttons dafuer auch aktiv sein?",
+    mode: "single",
+    options: [
+      { id: "yes", label: "Ja, fuer Custom Plans aktiv (Empfohlen)", detail: "User kann Phasen manuell wiederholen/ueberspringen/verlaengern. Konsistente UX." },
+      { id: "no", label: "Nein, nur auto-Progression", detail: "Custom Plans laufen automatisch. Keine manuelle Phase-Kontrolle. Einfacher." }
+    ]
+  }
+]} submitLabel="Antworten senden" />

@@ -3,6 +3,8 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions";
 const DAILY_LIMIT = 3;
+const MISTRAL_MAX_ATTEMPTS = 3;
+const MISTRAL_RETRY_STATUSES = new Set([408, 409, 425, 429, 500, 502, 503, 504]);
 
 // Erlaubte Typen / Tags / Stats - hier fest verdrahtet, damit Validierung
 // sowohl client- als auch serverseitig deterministisch ist.
@@ -75,7 +77,7 @@ EXISTING_NAMEKEYS: ${EXISTING_NAMEKEYS.join(", ")}`;
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, content-type",
+  "Access-Control-Allow-Headers": "apikey, authorization, content-type, x-client-info",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Content-Type": "application/json"
 };
@@ -90,6 +92,46 @@ function supabaseHeaders(token: string) {
     "Authorization": `Bearer ${token}`,
     "Content-Type": "application/json"
   };
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchMistralChat(payload: Record<string, unknown>) {
+  let lastStatus = 0;
+  let lastDetail = "";
+
+  for (let attempt = 0; attempt < MISTRAL_MAX_ATTEMPTS; attempt++) {
+    try {
+      const resp = await fetch(MISTRAL_URL, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${MISTRAL_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (resp.ok) {
+        return { ok: true as const, data: await resp.json() };
+      }
+
+      lastStatus = resp.status;
+      lastDetail = (await resp.text().catch(() => "")).slice(0, 500);
+      if (!MISTRAL_RETRY_STATUSES.has(resp.status) || attempt === MISTRAL_MAX_ATTEMPTS - 1) {
+        break;
+      }
+    } catch (e) {
+      lastStatus = 0;
+      lastDetail = (e as Error).message;
+      if (attempt === MISTRAL_MAX_ATTEMPTS - 1) break;
+    }
+
+    await sleep(500 * (attempt + 1));
+  }
+
+  return { ok: false as const, status: lastStatus, detail: lastDetail };
 }
 
 async function getUserIdFromToken(token: string): Promise<{ userId?: string; error?: string }> {
@@ -370,12 +412,12 @@ Deno.serve(async (req: Request) => {
   // speichert (user_id, day, count). Fallback ohne DB-Fehler bricht nicht ab,
   // loggt nur. Wenn Tabelle fehlt (Deployment vor Migration), limit nicht erzwungen.
   const today = new Date().toISOString().split("T")[0];
+  let currentGenerationCount = 0;
   try {
-    const current = await getGenerationCount(token, userId, today);
-    if (current >= DAILY_LIMIT) {
+    currentGenerationCount = await getGenerationCount(token, userId, today);
+    if (currentGenerationCount >= DAILY_LIMIT) {
       return json(429, { error: "Tageslimit erreicht (max 3/Tag)", limit: DAILY_LIMIT });
     }
-    await upsertGenerationCount(token, userId, today, current + 1);
   } catch (e) {
     // Tabelle fehlt moeglicherweise - Migration noch nicht ausgefuehrt.
     // Wir loggen nur und machen weiter; Client-Seite limit ist aktiv.
@@ -414,31 +456,23 @@ Deine letzte Antwort war nicht nutzbar. Repariere den Plan strikt:
 - bei Equipment nein: ALLE needsEquipment:false
 Antworte NUR mit JSON.`;
 
-      const mistralResp = await fetch(MISTRAL_URL, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${MISTRAL_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "mistral-small-latest",
-          messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            { role: "user", content: repairMessage }
-          ],
-          response_format: { type: "json_object" },
-          temperature: attempt === 0 ? 0.7 : 0.25,
-          max_tokens: 12000
-        })
+      const mistralResult = await fetchMistralChat({
+        model: "mistral-small-latest",
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: repairMessage }
+        ],
+        response_format: { type: "json_object" },
+        temperature: attempt === 0 ? 0.7 : 0.25,
+        max_tokens: 12000
       });
 
-      if (!mistralResp.ok) {
-        const errText = await mistralResp.text();
-        console.error("Mistral API error:", mistralResp.status, errText.slice(0, 500));
-        return json(502, { error: "Mistral API error", status: mistralResp.status });
+      if (!mistralResult.ok) {
+        console.error("Mistral API error:", mistralResult.status, mistralResult.detail);
+        return json(502, { error: "Mistral API error", status: mistralResult.status || "network" });
       }
 
-      const data = await mistralResp.json();
+      const data = mistralResult.data;
       const content = data.choices?.[0]?.message?.content;
       if (!content || typeof content !== "string") {
         lastValidationErrors = ["Empty Mistral response"];
@@ -462,6 +496,12 @@ Antworte NUR mit JSON.`;
         lastValidationErrors = errors;
         console.warn("Mistral-Plan Validation fehlgeschlagen:", errors);
         continue;
+      }
+
+      try {
+        await upsertGenerationCount(token, userId, today, currentGenerationCount + 1);
+      } catch (e) {
+        console.warn("Rate-Limit Update nach erfolgreicher Generierung fehlgeschlagen:", (e as Error).message);
       }
 
       return json(200, plan);
