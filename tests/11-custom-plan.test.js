@@ -24,8 +24,9 @@ function run() {
     t.ok(edgeFnCode.includes('mistral-small-latest'), 'Verwendet mistral-small-latest Modell');
     t.ok(edgeFnCode.includes('max_tokens') && (edgeFnCode.includes('4000') || edgeFnCode.includes('3000') || edgeFnCode.includes('2000')), 'Verwendet ausreichend max_tokens fuer 30-Exercise-JSON (>=2000, vorher 100 war zu klein)');
     t.ok(edgeFnCode.includes('response_format') && edgeFnCode.includes('json_object'), 'Mistral response_format: json_object aktiv (Bug C Fix)');
-    t.ok(edgeFnCode.includes('supabase.auth.getUser') || edgeFnCode.includes('auth.getUser('), 'JWT-Verifikation via Supabase auth.getUser (Bug B Fix)');
+    t.ok(edgeFnCode.includes('/auth/v1/user') && edgeFnCode.includes('getUserIdFromToken'), 'JWT-Verifikation via Supabase Auth REST (Bug B Fix)');
     t.ok(edgeFnCode.includes('SYSTEM_PROMPT') && edgeFnCode.includes('EXISTING_NAMEKEYS'), 'System-Prompt enthaelt vollstaendiges JSON-Schema + nameKey-Liste (Bug A/C Fix)');
+    t.ok(edgeFnCode.includes('normalizePlanShape') && edgeFnCode.includes('tagAliases'), 'Edge Function normalisiert Mistral-Tags vor der finalen Validierung');
     t.ok(edgeFnCode.includes('dq_ai_generations'), 'Server-side Rate-Limit Konstante vorhanden (Bug D Fix)');
     t.ok(edgeFnCode.includes('genau 4 stages') || edgeFnCode.includes('GENAU 4'), 'Edge Function validiert genau 4 Phasen');
     t.ok(edgeFnCode.includes('KEIN Equipment') && edgeFnCode.includes('needsEquipment:false'), 'Edge Function erzwingt Equipment-Off im Prompt');
@@ -42,6 +43,7 @@ function run() {
     t.ok(mistralCode.includes('VALID_TYPES'), 'Validiert Ubungs-Typen');
     t.ok(mistralCode.includes('VALID_TAGS'), 'Validiert Tags');
     t.ok(mistralCode.includes('functions.invoke'), 'Ruft Edge Function via functions.invoke auf');
+    t.ok(mistralCode.includes('ensureFunctionSession') && mistralCode.includes('signInAnonymously'), 'Mistral Client stellt vor Edge Function eine Supabase-Session sicher');
     t.ok(mistralCode.includes('REQUEST_TIMEOUT_MS') && mistralCode.includes('invokeWithTimeout'), 'Mistral Client hat Timeout gegen haengende Generierung');
     t.ok(mistralCode.includes('expandExercises'), 'Hat expandExercises Funktion');
     t.ok(mistralCode.includes('buildFullPlan'), 'Hat buildFullPlan Funktion');
@@ -382,6 +384,8 @@ function run() {
     t.ok(mainCode.includes('goal-setup-button') || mainCode.includes('goalSetupButton'), 'Goal-Setup Button registriert');
     t.ok(mainCode.includes('handlePlanGeneration'), 'Hat handlePlanGeneration Funktion');
     t.ok(mainCode.includes('updateCurrentPlanInfo'), 'Hat updateCurrentPlanInfo Funktion');
+    t.ok(mainCode.includes('DQ_UI.hideAllPopups();') && mainCode.includes('goal_error_title'), 'handlePlanGeneration zeigt Fehler nach geschlossenem Generator-Popup');
+    t.ok(!mainCode.includes("await saveSetting('goal', fallbackGoal)"), 'handlePlanGeneration setzt Presets bei KI-Fehler nicht still auf Standardplan');
     t.ok(mainCode.includes("DQ_CONFIG.userSettings.planType !== 'custom'"), 'Rest-Day-Override respektiert Custom Plans');
 
     // --- training_system.js: Custom Branch ---
@@ -428,6 +432,8 @@ function run() {
     t.ok(htmlCode.includes('training-goal-setup-button'), 'HTML: kompakter Trainingsziel-Button nutzt eigene Klasse');
     t.ok(htmlCode.includes('training-plan-popup'), 'HTML: Trainingsplan-Popups nutzen eigene Klasse');
     t.ok(htmlCode.includes('custom-plan-field'), 'HTML: Custom Prompt ohne setting-item Aussenbox');
+    t.ok(!htmlCode.includes('id="goal-setup-cancel"') && !htmlCode.includes('id="goal-generate-cancel"'), 'HTML: Trainingsplan-Popups haben keine Abbrechen-Buttons');
+    t.ok(htmlCode.includes('Neuen Plan erstellen'), 'HTML: Primaerer Button heisst Neuen Plan erstellen');
     t.ok(htmlCode.includes('data-preset="kraft"'), 'HTML: Preset kraft im Popup');
     t.ok(htmlCode.includes('js/custom-plan-system.js'), 'HTML: custom-plan-system.js Script-Tag');
     t.ok(htmlCode.includes('js/mistral-client.js'), 'HTML: mistral-client.js Script-Tag');
@@ -435,6 +441,7 @@ function run() {
     const popupCss = require('fs').readFileSync(path.join(BASE, 'css', 'components', 'popups.css'), 'utf8');
     t.ok(popupCss.includes('.training-primary-action') && popupCss.includes('align-items: center'), 'CSS: Trainingsplan-Buttons zentrieren Icon/Text');
     t.ok(popupCss.includes('.training-goal-setup-button') && popupCss.includes('min-height: 44px'), 'CSS: Settings Button hat mobiles Tap-Ziel');
+    t.ok(popupCss.includes('@keyframes spin') && popupCss.includes('animation: spin'), 'CSS: Trainingsplan-Loading hat sichtbare Spinner-Animation');
 
     const tutCss = require('fs').readFileSync(path.join(BASE, 'tutorial', 'css', 'tutorial.css'), 'utf8');
     t.ok(tutCss.includes('.tutorial-custom-plan-field'), 'Tutorial CSS: Custom Plan Feld ohne Inline-Style');

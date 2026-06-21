@@ -651,6 +651,10 @@ input:checked + .slider:before {
 
 .training-plan-loading {
     display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     padding: 18px 12px 2px;
     text-align: center;
 }
@@ -663,9 +667,15 @@ input:checked + .slider:before {
 }
 
 .training-plan-loading p {
-    margin: 10px 0 0;
+    margin: 0;
     font-size: 13px;
     opacity: 0.72;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @media (min-width: 520px) {

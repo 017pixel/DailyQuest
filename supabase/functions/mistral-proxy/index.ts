@@ -1,7 +1,3 @@
-import "@supabase/functions-js/edge-runtime.d.ts";
-
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
 const MISTRAL_API_KEY = Deno.env.get("MISTRAL_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
@@ -88,6 +84,54 @@ function json(status: number, payload: unknown) {
   return new Response(JSON.stringify(payload), { status, headers: CORS_HEADERS });
 }
 
+function supabaseHeaders(token: string) {
+  return {
+    "apikey": SUPABASE_ANON_KEY,
+    "Authorization": `Bearer ${token}`,
+    "Content-Type": "application/json"
+  };
+}
+
+async function getUserIdFromToken(token: string): Promise<{ userId?: string; error?: string }> {
+  const resp = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    method: "GET",
+    headers: supabaseHeaders(token)
+  });
+  const body = await resp.json().catch(() => null);
+  if (!resp.ok || !body?.id) {
+    return { error: body?.msg || body?.message || `Auth failed (${resp.status})` };
+  }
+  return { userId: body.id };
+}
+
+async function getGenerationCount(token: string, userId: string, day: string): Promise<number> {
+  const url = `${SUPABASE_URL}/rest/v1/dq_ai_generations?select=count&user_id=eq.${encodeURIComponent(userId)}&day=eq.${encodeURIComponent(day)}`;
+  const resp = await fetch(url, {
+    method: "GET",
+    headers: supabaseHeaders(token)
+  });
+  if (!resp.ok) {
+    throw new Error(`Rate-Limit SELECT failed (${resp.status})`);
+  }
+  const rows = await resp.json().catch(() => []);
+  return Array.isArray(rows) && typeof rows[0]?.count === "number" ? rows[0].count : 0;
+}
+
+async function upsertGenerationCount(token: string, userId: string, day: string, count: number) {
+  const resp = await fetch(`${SUPABASE_URL}/rest/v1/dq_ai_generations?on_conflict=user_id,day`, {
+    method: "POST",
+    headers: {
+      ...supabaseHeaders(token),
+      "Prefer": "resolution=merge-duplicates,return=minimal"
+    },
+    body: JSON.stringify({ user_id: userId, day, count, updated_at: new Date().toISOString() })
+  });
+  if (!resp.ok) {
+    const detail = await resp.text().catch(() => "");
+    throw new Error(`Rate-Limit UPSERT failed (${resp.status}): ${detail.slice(0, 200)}`);
+  }
+}
+
 function validatePlanShape(plan: any): string[] {
   const errors: string[] = [];
 
@@ -169,7 +213,120 @@ function validatePlanShape(plan: any): string[] {
   return errors;
 }
 
-export default async (req: Request) => {
+function normalizePlanShape(plan: any, userContext: any) {
+  if (!plan || typeof plan !== "object" || !Array.isArray(plan.exercises)) return plan;
+
+  const tagAliases: Record<string, string> = {
+    strength: "push",
+    kraft: "push",
+    upper_body: "push",
+    oberkoerper: "push",
+    back: "pull",
+    ruecken: "pull",
+    legs: "legs",
+    beine: "legs",
+    abs: "core",
+    core_training: "core",
+    bauch: "core",
+    endurance: "cardio",
+    ausdauer: "cardio",
+    hiit: "cardio",
+    recovery: "rest",
+    erholung: "rest",
+    stretching: "mobility",
+    mobilitaet: "mobility",
+    mobility: "mobility",
+    ganzkoerper: "full_body",
+    fullbody: "full_body"
+  };
+
+  plan.exercises = plan.exercises.map((ex: any, index: number) => {
+    const normalized = ex && typeof ex === "object" ? { ...ex } : {};
+    const rawTags = Array.isArray(normalized.tags) ? normalized.tags : [];
+    const validTags = rawTags
+      .map((tag: unknown) => String(tag || "").trim().toLowerCase())
+      .map((tag: string) => VALID_TAGS.includes(tag as any) ? tag : tagAliases[tag])
+      .filter((tag: unknown): tag is string => typeof tag === "string" && VALID_TAGS.includes(tag as any));
+
+    const isRest = normalized.isRest === true || validTags.includes("rest");
+    normalized.isRest = isRest;
+    normalized.tags = validTags.length > 0 ? Array.from(new Set(validTags)) : (isRest ? ["rest", "mobility"] : ["full_body"]);
+    if (isRest && !normalized.tags.includes("rest")) normalized.tags.unshift("rest");
+    if (!VALID_TYPES.includes(normalized.type)) normalized.type = isRest ? "check" : "reps";
+    if (typeof normalized.baseValue !== "number" || normalized.baseValue < 1) normalized.baseValue = isRest ? 1 : 10;
+    if (typeof normalized.nameKey !== "string" || !normalized.nameKey) normalized.nameKey = `custom_ai_${index}`;
+    if (!EXISTING_NAMEKEYS.includes(normalized.nameKey) && !normalized.nameKey.startsWith("custom_")) {
+      normalized.nameKey = `custom_${normalized.nameKey.replace(/[^a-zA-Z0-9_]/g, "_")}`;
+    }
+    if (typeof normalized.displayName !== "string" || !normalized.displayName) normalized.displayName = `Uebung ${index + 1}`;
+    if (typeof normalized.description !== "string") normalized.description = "KI-generierte Uebung";
+    if (userContext?.hasEquipment === false) normalized.needsEquipment = false;
+    if (typeof normalized.needsEquipment !== "boolean") normalized.needsEquipment = false;
+    if (!Array.isArray(normalized.muscles)) normalized.muscles = ["general"];
+    if (!normalized.statPoints || typeof normalized.statPoints !== "object") normalized.statPoints = { durchhaltevermoegen: 1 };
+    for (const key of Object.keys(normalized.statPoints)) {
+      if (!VALID_STATS.includes(key as any)) delete normalized.statPoints[key];
+    }
+    if (Object.keys(normalized.statPoints).length === 0) normalized.statPoints = { durchhaltevermoegen: 1 };
+    if (typeof normalized.mana !== "number" || normalized.mana < 1) normalized.mana = 20;
+    if (typeof normalized.gold !== "number" || normalized.gold < 1) normalized.gold = 10;
+    return normalized;
+  });
+
+  let restCount = plan.exercises.filter((ex: any) => ex?.isRest === true).length;
+  let fillIndex = 0;
+  while (restCount < 4) {
+    plan.exercises.unshift({
+      nameKey: `custom_ai_rest_fill_${fillIndex}`,
+      displayName: `Aktive Erholung ${fillIndex + 1}`,
+      description: "Sanfte Erholung fuer Rest Days.",
+      type: "check",
+      baseValue: 1,
+      tags: ["rest", "mobility"],
+      isRest: true,
+      needsEquipment: false,
+      muscles: ["general"],
+      statPoints: { durchhaltevermoegen: 1 },
+      mana: 15,
+      gold: 5
+    });
+    restCount++;
+    fillIndex++;
+  }
+
+  while (plan.exercises.length < 30) {
+    const index = plan.exercises.length;
+    const tag = ["push", "pull", "legs", "core", "cardio", "full_body"][index % 6];
+    plan.exercises.push({
+      nameKey: `custom_ai_fill_${index}`,
+      displayName: `Bonus-Uebung ${index + 1}`,
+      description: "Ergaenzende KI-Uebung fuer einen vollstaendigen Plan.",
+      type: tag === "cardio" ? "time" : "reps",
+      baseValue: tag === "cardio" ? 30 : 12,
+      tags: [tag],
+      isRest: false,
+      needsEquipment: false,
+      muscles: ["general"],
+      statPoints: { durchhaltevermoegen: 1 },
+      mana: 20,
+      gold: 10
+    });
+  }
+
+  plan.exercises = plan.exercises.slice(0, 30);
+
+  const seenKeys = new Set<string>();
+  plan.exercises = plan.exercises.map((ex: any, index: number) => {
+    let key = String(ex.nameKey || `custom_ai_${index}`);
+    if (seenKeys.has(key)) key = `custom_ai_unique_${index}`;
+    seenKeys.add(key);
+    return { ...ex, nameKey: key };
+  });
+
+  return plan;
+}
+
+Deno.serve(async (req: Request) => {
   // CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -191,16 +348,11 @@ export default async (req: Request) => {
     return json(401, { error: "Unauthorized: empty Bearer token" });
   }
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: `Bearer ${token}` } },
-    auth: { persistSession: false }
-  });
-
-  const { data: userData, error: userErr } = await supabase.auth.getUser(token);
-  if (userErr || !userData?.user) {
-    return json(401, { error: "Unauthorized: invalid token", detail: userErr?.message });
+  const authResult = await getUserIdFromToken(token);
+  if (!authResult.userId) {
+    return json(401, { error: "Unauthorized: invalid token", detail: authResult.error });
   }
-  const userId = userData.user.id;
+  const userId = authResult.userId;
 
   // Body parsen
   let body: any;
@@ -219,22 +371,11 @@ export default async (req: Request) => {
   // loggt nur. Wenn Tabelle fehlt (Deployment vor Migration), limit nicht erzwungen.
   const today = new Date().toISOString().split("T")[0];
   try {
-    const { data: rl } = await supabase
-      .from("dq_ai_generations")
-      .select("count")
-      .eq("user_id", userId)
-      .eq("day", today)
-      .maybeSingle();
-
-    const current = (rl && typeof rl.count === "number") ? rl.count : 0;
+    const current = await getGenerationCount(token, userId, today);
     if (current >= DAILY_LIMIT) {
       return json(429, { error: "Tageslimit erreicht (max 3/Tag)", limit: DAILY_LIMIT });
     }
-
-    await supabase.from("dq_ai_generations").upsert(
-      { user_id: userId, day: today, count: current + 1, updated_at: new Date().toISOString() },
-      { onConflict: "user_id,day" }
-    );
+    await upsertGenerationCount(token, userId, today, current + 1);
   } catch (e) {
     // Tabelle fehlt moeglicherweise - Migration noch nicht ausgefuehrt.
     // Wir loggen nur und machen weiter; Client-Seite limit ist aktiv.
@@ -287,7 +428,7 @@ Antworte NUR mit JSON.`;
           ],
           response_format: { type: "json_object" },
           temperature: attempt === 0 ? 0.7 : 0.25,
-          max_tokens: 4000
+          max_tokens: 12000
         })
       });
 
@@ -313,6 +454,8 @@ Antworte NUR mit JSON.`;
         continue;
       }
 
+      plan = normalizePlanShape(plan, userContext);
+
       // Server-side Validation als Defense-in-Depth.
       const errors = validatePlanShape(plan);
       if (errors.length > 0) {
@@ -329,4 +472,4 @@ Antworte NUR mit JSON.`;
     console.error("Edge function intern:", e);
     return json(500, { error: "Internal error", detail: (e as Error).message });
   }
-};
+});

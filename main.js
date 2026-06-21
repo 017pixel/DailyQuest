@@ -272,7 +272,7 @@ const DQ_CONFIG = {
     }
 };
 
-const APP_VERSION = '2.13.0';
+const APP_VERSION = '2.13.1';
 const APP_UPDATE_FLAG_KEY = 'dq_seen_app_version';
 
 async function initializeApp() {
@@ -311,7 +311,6 @@ async function initializeApp() {
             // KI-generierter Plan wird ueber goal-setup-button konfiguriert.
             goalSetupButton: document.getElementById('goal-setup-button'),
             goalSetupPopup: document.getElementById('goal-setup-popup'),
-            goalSetupCancel: document.getElementById('goal-setup-cancel'),
             goalRegenerateButton: document.getElementById('goal-regenerate-button'),
             currentPlanName: document.getElementById('current-plan-name'),
             currentPlanTitle: document.getElementById('current-plan-title'),
@@ -319,7 +318,6 @@ async function initializeApp() {
             currentPlanStats: document.getElementById('current-plan-stats'),
             regenerationCounter: document.getElementById('regeneration-counter'),
             goalGeneratePopup: document.getElementById('goal-generate-popup'),
-            goalGenerateCancel: document.getElementById('goal-generate-cancel'),
             customPlanPrompt: document.getElementById('custom-plan-prompt'),
             customPlanGenerateButton: document.getElementById('custom-plan-generate-button'),
             planGenerationLoading: document.getElementById('plan-generation-loading'),
@@ -849,17 +847,11 @@ function addSettingsListeners(elements) {
             DQ_UI.showPopup(elements.goalSetupPopup);
         });
     }
-    if (elements.goalSetupCancel) {
-        elements.goalSetupCancel.addEventListener('click', () => DQ_UI.hideTopPopup());
-    }
     if (elements.goalRegenerateButton) {
         elements.goalRegenerateButton.addEventListener('click', () => {
             DQ_UI.hideTopPopup();
             DQ_UI.showPopup(elements.goalGeneratePopup);
         });
-    }
-    if (elements.goalGenerateCancel) {
-        elements.goalGenerateCancel.addEventListener('click', () => DQ_UI.hideTopPopup());
     }
     if (elements.customPlanPrompt) {
         elements.customPlanPrompt.addEventListener('input', () => {
@@ -1350,7 +1342,7 @@ async function handlePlanGeneration(preset, customPrompt) {
 
     if (elements.customPlanGenerateButton) elements.customPlanGenerateButton.disabled = true;
     document.querySelectorAll('#goal-generate-popup [data-preset]').forEach(b => b.disabled = true);
-    if (elements.planGenerationLoading) elements.planGenerationLoading.style.display = 'block';
+    if (elements.planGenerationLoading) elements.planGenerationLoading.style.display = 'flex';
 
     const userContext = {
         age: DQ_CONFIG.userSettings.age || null,
@@ -1375,10 +1367,7 @@ async function handlePlanGeneration(preset, customPrompt) {
         }
     } catch (e) {
         console.error('handlePlanGeneration error:', e);
-        const fallbackGoal = DQ_MISTRAL.getFallbackGoal(preset);
-        if (preset && preset !== 'custom') {
-            await saveSetting('goal', fallbackGoal);
-        }
+        DQ_UI.hideAllPopups();
         DQ_UI.showCustomPopup(
             `<h3>${trans.goal_error_title || 'Fehler bei Generierung'}</h3><p>${trans.goal_error_msg || 'Ein Fallback-Plan wird genutzt.'}</p><p style="font-size:11px;opacity:0.6;">${e.message || ''}</p>`,
             'penalty'
@@ -1388,6 +1377,8 @@ async function handlePlanGeneration(preset, customPrompt) {
         document.querySelectorAll('#goal-generate-popup [data-preset]').forEach(b => b.disabled = false);
         if (elements.planGenerationLoading) elements.planGenerationLoading.style.display = 'none';
         if (elements.customPlanPrompt) elements.customPlanPrompt.value = '';
+        if (elements.customPlanGenerateButton) elements.customPlanGenerateButton.disabled = true;
+        await updateGoalSetupPopup();
     }
 }
 

@@ -4,6 +4,31 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## Version 2.13.1 - KI-Plan Backend Fix
+
+### Erstellt
+- Neuer echter KI-Plan-Flow-Test mit Supabase-Backend ergänzt
+- Neue Backend-Prüfung für Supabase-Auth und Mistral-Antworten ergänzt
+- Neue Absicherung für unvollständige KI-Trainingspläne ergänzt
+- Neue Plan-Normalisierung für fehlerhafte KI-Tags ergänzt
+- Neue Tests für sichtbare Fehler und stabile Plan-Aktivierung ergänzt
+
+### Veraendert
+- KI-Plan-Backend startet jetzt zuverlässig über die aktuelle Supabase-Runtime
+- Mistral-Antworten werden robuster verarbeitet und vollständig validiert
+- Fehlgeschlagene KI-Generierungen lassen den aktiven Plan unverändert
+- Ladeanzeige, Buttontexte und Hilfetexte wurden verständlicher gemacht
+- App-Version, Update-Hinweis und Offline-Cache wurden aktualisiert
+
+### Geloescht
+- Alte hängende Supabase-Function-Startlogik entfernt
+- Stiller Standardplan-Fallback bei KI-Fehlern entfernt
+- Abbrechen-Buttons aus Trainingsplan-Popups entfernt
+- Ungültige KI-Tags vor der Planspeicherung entfernt
+- Temporäre Backend-Debug-Function wieder entfernt
+
+---
+
 ## Version 2.13.0 - KI-Trainingsplan Quality Pass
 
 ### Erstellt

@@ -342,6 +342,34 @@ const DQ_MISTRAL = {
         return Promise.race([request, timeout]);
     },
 
+    async ensureFunctionSession() {
+        if (!DQ_SUPABASE || !DQ_SUPABASE.client) {
+            throw new Error('Supabase Client nicht initialisiert');
+        }
+
+        const { data: sessionData, error: sessionError } = await DQ_SUPABASE.client.auth.getSession();
+        if (sessionError) {
+            throw new Error(`Supabase Session konnte nicht gelesen werden: ${sessionError.message}`);
+        }
+        if (sessionData && sessionData.session) {
+            DQ_SUPABASE.currentUser = sessionData.session.user;
+            return sessionData.session;
+        }
+
+        if (typeof DQ_SUPABASE.signInAnonymously !== 'function') {
+            throw new Error('Keine Supabase-Session aktiv. Bitte melde dich an und versuche es erneut.');
+        }
+
+        const { data, error } = await DQ_SUPABASE.signInAnonymously();
+        if (error || !data || !data.session) {
+            throw new Error(`Anonyme Anmeldung fuer KI-Plan fehlgeschlagen: ${error ? error.message : 'keine Session'}`);
+        }
+
+        DQ_SUPABASE.currentUser = data.session.user;
+        localStorage.setItem('dq_auth_decision_made', 'true');
+        return data.session;
+    },
+
     /**
      * Ruft die Edge Function auf und generiert einen Trainingsplan.
      * @param {string} prompt - Preset-Key ('kraft'|'ausdauer'|'abnehmen') oder freier Text
@@ -353,6 +381,8 @@ const DQ_MISTRAL = {
         if (!DQ_SUPABASE || !DQ_SUPABASE.client) {
             throw new Error('Supabase Client nicht initialisiert');
         }
+
+        await this.ensureFunctionSession();
 
         const maxAttempts = options.retry === true ? 2 : 1;
         let lastError = null;
