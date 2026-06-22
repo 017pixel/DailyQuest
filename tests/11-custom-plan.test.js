@@ -62,6 +62,8 @@ function run() {
     t.ok(customCode.includes('applyPhaseAction'), 'Hat applyPhaseAction fur Phase-Buttons');
     t.ok(customCode.includes('getAvailableExercises'), 'Hat Equipment-Safety-Filter fuer Custom Plans');
     t.ok(customCode.includes('needsEquipment: !!template.needsEquipment'), 'Custom Quests speichern needsEquipment fuer Re-Generation');
+    t.ok(customCode.includes('CUSTOM_REWARD_MULTIPLIER') && customCode.includes('Math.max(20'), 'Custom KI-Quests haben deutlich erhoehte Mindest-Belohnungen');
+    t.ok(customCode.includes('createSafetyFallbackExercises'), 'Custom Plans haben Safety-Fallbacks fuer 6 Training-Quests und Restdays');
 
     // --- Balancing-Algorithmus Logic Test (simuliert) ---
     function testBalancing() {
@@ -390,6 +392,7 @@ function run() {
     t.ok(mainCode.includes('updateCurrentPlanInfo'), 'Hat updateCurrentPlanInfo Funktion');
     t.ok(mainCode.includes('DQ_UI.hideAllPopups();') && mainCode.includes('goal_error_title'), 'handlePlanGeneration zeigt Fehler nach geschlossenem Generator-Popup');
     t.ok(!mainCode.includes("await saveSetting('goal', fallbackGoal)"), 'handlePlanGeneration setzt Presets bei KI-Fehler nicht still auf Standardplan');
+    t.ok(mainCode.includes('goal_success_tomorrow_info') && !mainCode.includes("await applyTrainingSettingChange('goal');"), 'Neuer KI-Plan zeigt Morgen-Hinweis und regeneriert heutige Quests nicht sofort');
     t.ok(mainCode.includes("DQ_CONFIG.userSettings.planType !== 'custom'"), 'Rest-Day-Override respektiert Custom Plans');
 
     // --- training_system.js: Custom Branch ---
@@ -426,6 +429,7 @@ function run() {
     t.ok(transCode.includes('goal_regenerate'), 'Translation: goal_regenerate DE');
     t.ok(transCode.includes('goal_generate_title'), 'Translation: goal_generate_title DE');
     t.ok(transCode.includes('goal_custom_placeholder'), 'Translation: goal_custom_placeholder DE');
+    t.ok(transCode.includes('goal_success_tomorrow_info'), 'Translation: Hinweis Plan startet morgen vorhanden');
 
     // --- index.html: Dropdown entfernt, Button + Popups vorhanden ---
     const htmlCode = require('fs').readFileSync(path.join(BASE, 'index.html'), 'utf8');

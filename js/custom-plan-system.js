@@ -11,6 +11,7 @@ const DQ_CUSTOM_PLAN = {
     STORE_NAME: 'custom_plans',
     STATE_STORE: 'training_plan_state',
     PRIORITY_TAGS: ['push', 'pull', 'legs', 'core', 'cardio', 'full_body', 'mobility'],
+    CUSTOM_REWARD_MULTIPLIER: 12,
 
     prettifyNameKey(nameKey) {
         const raw = String(nameKey || '')
@@ -64,10 +65,27 @@ const DQ_CUSTOM_PLAN = {
         if (badDisplay && pretty) normalized.displayName = pretty;
         if (!normalized.description || String(normalized.description).trim().length < 8 || String(normalized.description).toLowerCase() === 'ki-generierte uebung') {
             normalized.description = normalized.isRest
-                ? `${normalized.displayName || 'Erholung'} ruhig ausfuehren und bewusst locker bleiben.`
-                : `${normalized.displayName || 'Training'} kontrolliert ausfuehren und auf saubere Technik achten.`;
+                ? `Beginne locker, bewege dich ruhig durch ${normalized.displayName || 'Erholung'} und halte die Intensitaet niedrig. Atme gleichmaessig und stoppe bei Schmerz.`
+                : `Starte stabil, fuehre ${normalized.displayName || 'Training'} langsam und kontrolliert aus und halte die Koerperspannung. Achte auf saubere Technik statt Tempo.`;
         }
         return normalized;
+    },
+
+    createSafetyFallbackExercises() {
+        const suffix = Date.now().toString(36);
+        return [
+            { nameKey: `custom_bodyweight_push_${suffix}`, displayName: 'Liegestuetze', description: 'Starte im hohen Stuetz, senke den Brustkorb kontrolliert Richtung Boden und druecke dich mit Spannung wieder hoch.', type: 'reps', baseValue: 8, tags: ['push', 'core'], isRest: false, needsEquipment: false, muscles: ['chest', 'triceps'], statPoints: { kraft: 1 }, mana: 25, gold: 10 },
+            { nameKey: `custom_bodyweight_legs_${suffix}`, displayName: 'Kniebeugen', description: 'Stelle die Fuesse etwa hueftbreit, schiebe die Huefte nach hinten und richte dich mit stabilen Knien wieder auf.', type: 'reps', baseValue: 12, tags: ['legs', 'core'], isRest: false, needsEquipment: false, muscles: ['quads', 'glutes'], statPoints: { kraft: 1 }, mana: 25, gold: 10 },
+            { nameKey: `custom_bodyweight_core_${suffix}`, displayName: 'Plank', description: 'Stuetz dich auf Unterarme und Zehen, halte den Koerper gerade und spanne Bauch und Gesäß aktiv an.', type: 'time', baseValue: 25, tags: ['core'], isRest: false, needsEquipment: false, muscles: ['core'], statPoints: { durchhaltevermoegen: 1 }, mana: 22, gold: 9 },
+            { nameKey: `custom_bodyweight_cardio_${suffix}`, displayName: 'Kniehebelauf', description: 'Laufe auf der Stelle, ziehe die Knie abwechselnd hoch und halte Oberkoerper sowie Atmung kontrolliert.', type: 'time', baseValue: 30, tags: ['cardio', 'legs'], isRest: false, needsEquipment: false, muscles: ['quads', 'core'], statPoints: { ausdauer: 1 }, mana: 24, gold: 10 },
+            { nameKey: `custom_bodyweight_pull_${suffix}`, displayName: 'Reverse Flys ohne Gewicht', description: 'Beuge dich leicht vor, fuehre die Arme seitlich nach hinten und ziehe die Schulterblaetter kontrolliert zusammen.', type: 'reps', baseValue: 12, tags: ['pull'], isRest: false, needsEquipment: false, muscles: ['back', 'shoulders'], statPoints: { kraft: 1 }, mana: 22, gold: 9 },
+            { nameKey: `custom_bodyweight_full_${suffix}`, displayName: 'Mountain Climbers', description: 'Starte im hohen Stuetz und ziehe die Knie abwechselnd Richtung Brust, ohne die Huefte stark anzuheben.', type: 'time', baseValue: 30, tags: ['full_body', 'cardio'], isRest: false, needsEquipment: false, muscles: ['core', 'shoulders'], statPoints: { ausdauer: 1 }, mana: 28, gold: 12 },
+            { nameKey: `custom_bodyweight_rest_${suffix}_1`, displayName: 'Aktive Erholung', description: 'Gehe locker umher, kreise Schultern und Huefte sanft und halte die Belastung bewusst niedrig.', type: 'check', baseValue: 1, tags: ['rest', 'mobility'], isRest: true, needsEquipment: false, muscles: ['general'], statPoints: { beweglichkeit: 1 }, mana: 15, gold: 6 },
+            { nameKey: `custom_bodyweight_rest_${suffix}_2`, displayName: 'Lockerer Spaziergang', description: 'Gehe entspannt in leichtem Tempo, halte die Schultern locker und atme ruhig durch die Nase.', type: 'time', baseValue: 600, tags: ['rest', 'cardio'], isRest: true, needsEquipment: false, muscles: ['general'], statPoints: { durchhaltevermoegen: 1 }, mana: 18, gold: 7 },
+            { nameKey: `custom_bodyweight_rest_${suffix}_3`, displayName: 'Atemfokus', description: 'Setze dich ruhig hin, atme langsam ein und aus und entspanne Schultern, Kiefer und Nacken bewusst.', type: 'check', baseValue: 1, tags: ['rest', 'mobility'], isRest: true, needsEquipment: false, muscles: ['general'], statPoints: { willenskraft: 1 }, mana: 15, gold: 6 },
+            { nameKey: `custom_bodyweight_rest_${suffix}_4`, displayName: 'Sanftes Dehnen', description: 'Dehne Beine, Ruecken und Schultern langsam ohne Federn und bleibe in einem angenehmen Bereich.', type: 'time', baseValue: 300, tags: ['rest', 'mobility'], isRest: true, needsEquipment: false, muscles: ['general'], statPoints: { beweglichkeit: 1 }, mana: 18, gold: 7 },
+            { nameKey: `custom_bodyweight_rest_${suffix}_5`, displayName: 'Regeneration Check', description: 'Pruefe kurz Schlaf, Energie und Muskelkater und entscheide bewusst, heute locker zu bleiben.', type: 'check', baseValue: 1, tags: ['rest'], isRest: true, needsEquipment: false, muscles: ['general'], statPoints: { willenskraft: 1 }, mana: 15, gold: 6 }
+        ];
     },
 
     normalizeExercises(exercises) {
@@ -214,15 +232,15 @@ const DQ_CUSTOM_PLAN = {
             return [];
         }
 
-        // Bug K Fix: Wenn der Pool kleiner ist als die gewuenschte Anzahl,
-        // liefern wir vorhandene Uebungen mehrfach zurueck statt weniger.
+        // Wenn der Pool kleiner ist als die gewuenschte Anzahl, liefern wir
+        // vorhandene Uebungen mehrfach zurueck statt weniger.
         const targetCount = Math.max(1, count);
         if (pool.length < targetCount) {
             const out = this.shuffle(pool);
             while (out.length < targetCount) {
                 out.push(pool[Math.floor(Math.random() * pool.length)]);
             }
-            if (isRestDay) return out;
+            return out;
         }
 
         if (isRestDay) {
@@ -281,27 +299,18 @@ const DQ_CUSTOM_PLAN = {
     getAvailableExercises(exercises, hasEquipment) {
         exercises = this.normalizeExercises(exercises);
         if (!Array.isArray(exercises)) return [];
-        if (hasEquipment !== false) return exercises;
+        const filtered = hasEquipment !== false
+            ? exercises
+            : exercises.filter(ex => ex && ex.needsEquipment !== true);
+        const fallback = this.createSafetyFallbackExercises();
+        const trainingCount = filtered.filter(ex => ex.isRest !== true).length;
+        const restCount = filtered.filter(ex => ex.isRest === true).length;
+        const neededTraining = Math.max(0, 6 - trainingCount);
+        const neededRest = Math.max(0, 4 - restCount);
 
-        const filtered = exercises.filter(ex => ex && ex.needsEquipment !== true);
-        const hasTrainingPool = filtered.some(ex => ex.isRest !== true);
-        const hasRestPool = filtered.some(ex => ex.isRest === true);
-        if (hasTrainingPool && hasRestPool) return filtered;
-
-        const suffix = Date.now().toString(36);
-        const fallback = [
-            { nameKey: `custom_bodyweight_push_${suffix}`, displayName: 'Liegestuetze', description: 'Kontrollierte Liegestuetze ohne Equipment.', type: 'reps', baseValue: 8, tags: ['push', 'core'], isRest: false, needsEquipment: false, muscles: ['chest', 'triceps'], statPoints: { kraft: 1 }, mana: 18, gold: 8 },
-            { nameKey: `custom_bodyweight_legs_${suffix}`, displayName: 'Kniebeugen', description: 'Saubere Kniebeugen mit Koerpergewicht.', type: 'reps', baseValue: 12, tags: ['legs', 'core'], isRest: false, needsEquipment: false, muscles: ['quads', 'glutes'], statPoints: { kraft: 1 }, mana: 18, gold: 8 },
-            { nameKey: `custom_bodyweight_core_${suffix}`, displayName: 'Plank', description: 'Rumpfspannung im Unterarmstuetz halten.', type: 'time', baseValue: 25, tags: ['core'], isRest: false, needsEquipment: false, muscles: ['core'], statPoints: { durchhaltevermoegen: 1 }, mana: 15, gold: 7 },
-            { nameKey: `custom_bodyweight_cardio_${suffix}`, displayName: 'Kniehebelauf', description: 'Leichter Kniehebelauf auf der Stelle.', type: 'time', baseValue: 30, tags: ['cardio', 'legs'], isRest: false, needsEquipment: false, muscles: ['quads', 'core'], statPoints: { ausdauer: 1 }, mana: 16, gold: 8 },
-            { nameKey: `custom_bodyweight_rest_${suffix}_1`, displayName: 'Aktive Erholung', description: 'Ruhige Mobilitaet und lockeres Durchbewegen.', type: 'check', baseValue: 1, tags: ['rest', 'mobility'], isRest: true, needsEquipment: false, muscles: ['general'], statPoints: { beweglichkeit: 1 }, mana: 10, gold: 5 },
-            { nameKey: `custom_bodyweight_rest_${suffix}_2`, displayName: 'Lockerer Spaziergang', description: 'Gehe entspannt und halte das Tempo bewusst leicht.', type: 'time', baseValue: 600, tags: ['rest', 'cardio'], isRest: true, needsEquipment: false, muscles: ['general'], statPoints: { durchhaltevermoegen: 1 }, mana: 12, gold: 5 },
-            { nameKey: `custom_bodyweight_rest_${suffix}_3`, displayName: 'Atemfokus', description: 'Ruhig atmen und Schultern bewusst entspannen.', type: 'check', baseValue: 1, tags: ['rest', 'mobility'], isRest: true, needsEquipment: false, muscles: ['general'], statPoints: { willenskraft: 1 }, mana: 10, gold: 5 },
-            { nameKey: `custom_bodyweight_rest_${suffix}_4`, displayName: 'Sanftes Dehnen', description: 'Dehne Beine, Ruecken und Schultern ohne Druck.', type: 'time', baseValue: 300, tags: ['rest', 'mobility'], isRest: true, needsEquipment: false, muscles: ['general'], statPoints: { beweglichkeit: 1 }, mana: 12, gold: 5 },
-            { nameKey: `custom_bodyweight_rest_${suffix}_5`, displayName: 'Regeneration Check', description: 'Pruefe kurz Energie, Schlaf und Belastung.', type: 'check', baseValue: 1, tags: ['rest'], isRest: true, needsEquipment: false, muscles: ['general'], statPoints: { willenskraft: 1 }, mana: 10, gold: 5 }
-        ];
-
-        return filtered.concat(fallback);
+        return filtered
+            .concat(fallback.filter(ex => ex.isRest !== true).slice(0, neededTraining))
+            .concat(fallback.filter(ex => ex.isRest === true).slice(0, neededRest));
     },
 
     shuffle(arr) {
@@ -452,9 +461,10 @@ const DQ_CUSTOM_PLAN = {
         const base = 2 * 8;
         const loadFactor = Math.max(0.7, Math.min(2.5, (sets * reps) / base));
         const rewardScale = Math.max(0.8, Math.min(3, loadFactor * (1 + (difficulty - 3) * 0.08)));
+        const customRewardScale = rewardScale * this.CUSTOM_REWARD_MULTIPLIER;
 
-        const manaReward = Math.max(1, Math.round(template.mana * rewardScale));
-        const goldReward = Math.max(1, Math.round(template.gold * (rewardScale * 0.9 + 0.1)));
+        const manaReward = Math.max(20, Math.round(template.mana * customRewardScale));
+        const goldReward = Math.max(10, Math.round(template.gold * (customRewardScale * 0.9 + 0.1)));
 
         let completionMode = 'tap';
         let setPlan = null;

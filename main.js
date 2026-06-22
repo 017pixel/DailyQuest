@@ -1358,9 +1358,13 @@ async function handlePlanGeneration(preset, customPrompt) {
             await saveSetting('customPlanId', result.planId);
 
             DQ_UI.hideAllPopups();
-            DQ_UI.showCustomPopup(`<h3>${trans.goal_success_title || 'Plan erstellt!'}</h3><p>${result.plan.planName}</p><p style="font-size:12px;opacity:0.7;">${result.plan.planDescription || ''}</p>`, 'info');
+            const startsTomorrowText = trans.goal_success_tomorrow_info ||
+                'Dein neuer KI-Plan ist gespeichert und startet ab morgen. Heute bleiben deine aktuellen Daily Quests unveraendert; erledige heute noch die bisherigen Aufgaben.';
+            DQ_UI.showCustomPopup(
+                `<h3>${trans.goal_success_title || 'Plan erstellt!'}</h3><p>${result.plan.planName}</p><p style="font-size:12px;opacity:0.7;">${result.plan.planDescription || ''}</p><p style="font-size:12px;opacity:0.75;margin-top:10px;">${startsTomorrowText}</p>`,
+                'info'
+            );
 
-            await applyTrainingSettingChange('goal');
             await updateCurrentPlanInfo();
         } else {
             throw new Error(result.error || 'Generierung fehlgeschlagen');

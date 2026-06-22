@@ -91,7 +91,7 @@ PFLICHT-SCHEMA:
 JEDE EXERCISE (alle Felder pflicht):
 - nameKey: string - bevorzugt einer der EXISTING_NAMEKEYS; nur wenn noetig NEU mit "custom_" Prefix
 - displayName: string (schoener deutscher Anzeigename, NIEMALS snake_case, NIEMALS nameKey)
-- description: string (konkrete deutsche Ausfuehrungsbeschreibung, NIEMALS leer, NIEMALS Platzhalter)
+- description: string (konkrete deutsche Schritt-fuer-Schritt-Anleitung zur Ausfuehrung, NIEMALS nur allgemeine Beschreibung, NIEMALS leer, NIEMALS Platzhalter)
 - type: string - EINES VON: ${VALID_TYPES.join(", ")}
 - baseValue: number >= 1
 - tags: array of strings aus: ${VALID_TAGS.join(", ")}, mindestens 1 Eintrag
@@ -115,8 +115,10 @@ REGELN:
 4. Die LETZTE stage MUSS weeks: 9999 haben (unendlich/Endgame)
 5. Nutze so viele EXISTING_NAMEKEYS wie moeglich (mindestens 18). Bekannte Basics sind besser als erfundene Namen.
 6. Verboten: displayName/nameKey wie "custom_ai_fill_29", "custom_standing_calf_raises", "Bonus-Uebung", "Uebung 12" oder andere Platzhalter.
-7. Neue custom_ Uebungen muessen trotzdem displayName und description als echte deutsche Texte haben.
-8. Antworte NUR mit dem JSON. KEINE Erklaerung. KEIN Markdown.
+7. description muss erklaeren, WIE man die Uebung macht: Startposition, Bewegung, worauf achten. Keine reine Wirkung wie "trainiert Beine".
+8. Neue custom_ Uebungen muessen trotzdem displayName und description als echte deutsche Texte haben.
+9. KI-Plan-Belohnungen sollen deutlich hoeher sein als Standard: mana/gold pro Uebung eher 20-80 statt 1-8. Schwere Uebungen hoeher belohnen.
+10. Antworte NUR mit dem JSON. KEINE Erklaerung. KEIN Markdown.
 
 EXISTING_NAMEKEYS: ${EXISTING_NAMEKEYS.join(", ")}`;
 
@@ -253,8 +255,8 @@ function prettifyNameKey(nameKey: string) {
 }
 
 function defaultDescription(displayName: string, isRest: boolean) {
-  if (isRest) return `${displayName} ruhig ausfuehren und bewusst locker bleiben.`;
-  return `${displayName} kontrolliert ausfuehren und auf saubere Technik achten.`;
+  if (isRest) return `Beginne locker, bewege dich ruhig durch ${displayName} und halte die Intensitaet bewusst niedrig. Atme gleichmaessig und stoppe bei Schmerz.`;
+  return `Starte stabil, fuehre ${displayName} langsam und kontrolliert aus und halte die Koerperspannung. Achte auf saubere Technik statt Tempo.`;
 }
 
 function isPlaceholderText(value: unknown) {
@@ -580,6 +582,8 @@ Deine letzte Antwort war nicht nutzbar. Repariere den Plan strikt:
 - nur erlaubte type/tags/statPoints
 - unbekannte nameKeys nur mit custom_ Prefix
 - displayName und description muessen echte deutsche Texte sein, kein snake_case, keine Platzhalter
+- description muss eine Anleitung sein: Startposition, Ausfuehrung, Technik-Hinweis
+- mana/gold deutlich hoeher setzen: meist 20-80 pro Uebung, keine 1-8 Mini-Belohnungen
 - bei Equipment nein: ALLE needsEquipment:false
 Antworte NUR mit JSON.`;
 
