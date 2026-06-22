@@ -272,7 +272,7 @@ const DQ_CONFIG = {
     }
 };
 
-const APP_VERSION = '2.13.2';
+const APP_VERSION = '2.13.3';
 const APP_UPDATE_FLAG_KEY = 'dq_seen_app_version';
 
 async function initializeApp() {
@@ -325,6 +325,7 @@ async function initializeApp() {
             characterNameInput: document.getElementById('character-name-input'),
             characterAgeInput: document.getElementById('character-age-input'),
             equipmentToggle: document.getElementById('equipment-toggle'),
+            dailyQuestRegenerateButton: document.getElementById('daily-quest-regenerate-button'),
             phaseRepeatButton: document.getElementById('phase-repeat-button'),
             phaseSkipButton: document.getElementById('phase-skip-button'),
             phaseExtendButton: document.getElementById('phase-extend-button'),
@@ -512,6 +513,7 @@ async function loadInitialData() {
     await populateInitialDataIfNeeded(); // NEUER ZENTRALER AUFRUF
     await migrateItemNames(); // Migration für Namensänderungen
     await checkForPenaltyAndReset();
+    await repairTodayTrainingQuestCount();
     if (char) {
         await DQ_ACHIEVEMENTS.checkAllAchievements(char);
     }
@@ -881,6 +883,33 @@ function addSettingsListeners(elements) {
         await saveSetting('hasEquipment', e.target.checked);
         await applyTrainingSettingChange('equipment');
     });
+
+    if (elements.dailyQuestRegenerateButton) {
+        elements.dailyQuestRegenerateButton.addEventListener('click', async () => {
+            const button = elements.dailyQuestRegenerateButton;
+            if (button.disabled) return;
+            button.disabled = true;
+            const previousText = button.textContent;
+            button.textContent = 'Generiere...';
+            try {
+                await regenerateTodayDailyQuestsManually();
+                DQ_UI.closeSettingsOverlay();
+                DQ_UI.showCustomPopup(
+                    '<h3>Daily Quests erneuert</h3><p>Heute wurden neue Daily Quests erstellt. Erledige diese Aufgaben, damit deine Streak heute sauber weiterzaehlt.</p>',
+                    'info'
+                );
+            } catch (error) {
+                console.error('Daily Quest Regeneration fehlgeschlagen:', error);
+                DQ_UI.showCustomPopup(
+                    '<h3>Fehler</h3><p>Die Daily Quests konnten gerade nicht neu erstellt werden. Bitte versuche es gleich nochmal.</p>',
+                    'penalty'
+                );
+            } finally {
+                button.disabled = false;
+                button.textContent = previousText;
+            }
+        });
+    }
 
     if (elements.phaseRepeatButton) {
         elements.phaseRepeatButton.addEventListener('click', async () => {
@@ -1417,6 +1446,10 @@ async function handlePostUpdateMigration() {
 
 function isRestOrRecoveryDayForQuestTopUp(goal, questsToday) {
     if (goal === 'restday' || goal === 'sick') return true;
+    const hasTrainingQuest = Array.isArray(questsToday) && questsToday.some(q =>
+        q.goal !== 'restday' && q.goal !== 'sick' && q.slotKey !== 'rest'
+    );
+    if (hasTrainingQuest) return false;
     if (DQ_CONFIG.userSettings.planType === 'custom' &&
         typeof DQ_CUSTOM_PLAN !== 'undefined' &&
         typeof DQ_CUSTOM_PLAN.checkRestDay === 'function') {
@@ -1495,6 +1528,49 @@ async function ensureMinimumTrainingQuestCount(todayStr, goal, questsToday) {
     if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
     console.warn(`Daily Quests Top-up: ${fillers.length} freie Uebung(en) ergaenzt und ${hiddenUnavailable.length} unmachbare Quest(s) ersetzt, damit heute ${MIN_TRAINING_QUESTS} Quests abschliessbar sind.`);
     return true;
+}
+
+async function repairTodayTrainingQuestCount() {
+    const todayStr = DQ_CONFIG.getTodayString();
+    const goal = DQ_CONFIG.userSettings.goal || 'muscle';
+    const questsToday = await new Promise((resolve, reject) => {
+        const tx = DQ_DB.db.transaction(['daily_quests'], 'readonly');
+        const index = tx.objectStore('daily_quests').index('date');
+        const request = index.getAll(todayStr);
+        request.onsuccess = e => resolve(e.target.result || []);
+        request.onerror = e => reject(e.target.error);
+    });
+
+    const changed = await ensureMinimumTrainingQuestCount(todayStr, goal, questsToday);
+    if (changed && typeof DQ_EXERCISES !== 'undefined') {
+        DQ_EXERCISES.renderQuests();
+    }
+    return changed;
+}
+
+async function regenerateTodayDailyQuestsManually() {
+    const todayStr = DQ_CONFIG.getTodayString();
+    const questsToday = await new Promise((resolve, reject) => {
+        const tx = DQ_DB.db.transaction(['daily_quests'], 'readonly');
+        const index = tx.objectStore('daily_quests').index('date');
+        const request = index.getAll(todayStr);
+        request.onsuccess = e => resolve(e.target.result || []);
+        request.onerror = e => reject(e.target.error);
+    });
+
+    await new Promise(resolve => {
+        const tx = DQ_DB.db.transaction(['daily_quests'], 'readwrite');
+        const store = tx.objectStore('daily_quests');
+        questsToday.forEach(q => store.delete(q.questId));
+        tx.oncomplete = resolve;
+        tx.onerror = resolve;
+    });
+
+    await generateDailyQuestsIfNeeded(true);
+    await repairTodayTrainingQuestCount();
+    localStorage.setItem('dq_last_local_update', String(Date.now()));
+    if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+    if (typeof DQ_EXERCISES !== 'undefined') DQ_EXERCISES.renderQuests();
 }
 
 async function generateDailyQuestsIfNeeded(forceRegenerate = false) {

@@ -381,7 +381,7 @@ function run() {
 
     // --- database.js: custom_plans Store ---
     const dbCode = require('fs').readFileSync(path.join(BASE, 'js', 'database.js'), 'utf8');
-    t.ok(dbCode.includes('dbVersion = 37'), 'DB Version auf 37 erhoeht');
+    t.ok(dbCode.includes('dbVersion = 38'), 'DB Version auf 38 erhoeht');
     t.ok(dbCode.includes('custom_plans'), 'custom_plans Store definiert');
 
     // --- main.js: Settings Integration ---

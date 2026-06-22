@@ -17,7 +17,7 @@ function run() {
     // Cache-Name
     const cacheMatch = sw.match(/dailyquest-cache-v(\d+)/);
     t.ok(!!cacheMatch, `Cache-Name gefunden (v${cacheMatch ? cacheMatch[1] : '?'})`);
-    t.ok(cacheMatch && Number(cacheMatch[1]) >= 29, 'Cache-Version fuer Release 2.13.2 erhoeht');
+    t.ok(cacheMatch && Number(cacheMatch[1]) >= 30, 'Cache-Version fuer Release 2.13.3 erhoeht');
 
     const mainPath = path.join(BASE, 'main.js');
     const htmlPath = path.join(BASE, 'index.html');
@@ -26,8 +26,8 @@ function run() {
     const htmlCode = fs.readFileSync(htmlPath, 'utf8');
     const translationsCode = fs.readFileSync(translationsPath, 'utf8');
     const appVersionMatch = mainCode.match(/APP_VERSION\s*=\s*'([^']+)'/);
-    t.equal(appVersionMatch && appVersionMatch[1], '2.13.2', 'APP_VERSION ist 2.13.2');
-    t.ok(htmlCode.includes('v2.13.2'), 'Settings UI zeigt v2.13.2');
+    t.equal(appVersionMatch && appVersionMatch[1], '2.13.3', 'APP_VERSION ist 2.13.3');
+    t.ok(htmlCode.includes('v2.13.3'), 'Settings UI zeigt v2.13.3');
     t.ok(translationsCode.includes('KI-Trainingsplan erstellt Plaene jetzt wieder zuverlaessig') && translationsCode.includes('AI training plans now create plans reliably again'), 'Update-Hinweis bleibt vorhanden');
 
     // skipWaiting

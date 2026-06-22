@@ -10,7 +10,7 @@ const DQ_DB = {
     init: function () {
         return new Promise((resolve, reject) => {
             // --- VERSION ERHÖHT, UM UPDATE FÜR ALLE NUTZER ZU ERZWINGEN ---
-            const dbName = 'VibeCodenDB', dbVersion = 37;
+            const dbName = 'VibeCodenDB', dbVersion = 38;
             const request = indexedDB.open(dbName, dbVersion);
 
             request.onerror = (e) => {
@@ -132,6 +132,10 @@ const DQ_DB = {
 
                 if (oldVersion < 37) {
                     console.log("Upgrade-Schritt: 2.13.2 Streak-Filler-Fix aktiv. Heutige Quests werden nach App-Start bei Bedarf aufgefuellt.");
+                }
+
+                if (oldVersion < 38) {
+                    console.log("Upgrade-Schritt: 2.13.3 Daily-Quest-Reparatur aktiv. Heute kann bei Bedarf neu generiert oder aufgefuellt werden.");
                 }
 
                 // Sicherheits-Check: custom_plans sicherstellen

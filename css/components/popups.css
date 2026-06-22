@@ -1262,6 +1262,10 @@ html[data-theme='light'] .settings-overlay.show .settings-sheet {
     transform: scale(0.97);
     background: var(--surface-color);
 }
+.settings-action-btn:disabled {
+    opacity: 0.55;
+    pointer-events: none;
+}
 .settings-action-btn .material-symbols-rounded {
     font-size: 20px;
 }

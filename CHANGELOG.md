@@ -4,6 +4,24 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## Version 2.13.3 - Daily-Quest-Reparatur fuer Heute
+
+### Erstellt
+- Button "Daily Quests fuer heute neu generieren" in den Training-Einstellungen ergänzt
+- Manueller Reparaturpfad erstellt, der heutige Daily Quests bewusst neu erzeugt
+- Start-Reparatur ergänzt, die Trainingstage auch nach bereits erledigten Quests auf 6 abschliessbare Daily Quests auffuellt
+
+### Veraendert
+- App-Version auf 2.13.3 erhöht
+- Service-Worker-Cache auf v30 erhöht
+- IndexedDB-Version auf 38 erhöht
+- Restday-Erkennung beim Top-up nutzt vorhandene Trainingsquests als Vorrang, damit echte Trainingstage nicht faelschlich blockiert werden
+
+### Geloescht
+- Blockade, bei der Custom-Restday-Logik das Auffuellen von bereits gespeicherten Trainingstagen verhindern konnte
+
+---
+
 ## Version 2.13.2 - Streak-Filler Hotfix
 
 ### Erstellt

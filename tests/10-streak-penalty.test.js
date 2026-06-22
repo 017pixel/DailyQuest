@@ -144,7 +144,13 @@ function run() {
     t.ok(mainCode.includes('custom_free_choice_') && mainCode.includes('Freie Uebung'), 'Freie-Uebung Quest ist benannt');
     t.ok(mainCode.includes("completionMode: 'tap'") && mainCode.includes('canComplete: true'), 'Freie-Uebung Quest ist direkt abhakbar');
     t.ok(mainCode.includes('isRestOrRecoveryDayForQuestTopUp'), 'Restdays/Krankheitstage werden vom Top-up ausgenommen');
+    t.ok(mainCode.includes('hasTrainingQuest') && mainCode.includes('return false;'), 'Bestehende Trainingsquests verhindern falsches Restday-Blocking beim Top-up');
+    t.ok(mainCode.includes('repairTodayTrainingQuestCount') && mainCode.includes('await repairTodayTrainingQuestCount();'), 'App-Start repariert zu wenige heutige Trainingsquests auch nach erledigten Quests');
+    t.ok(mainCode.includes('regenerateTodayDailyQuestsManually') && mainCode.includes('dailyQuestRegenerateButton'), 'Manueller Heute-Regenerieren-Button ist verdrahtet');
     t.ok(mainCode.includes('hiddenUnavailable') && mainCode.includes('store.delete(quest.questId)'), 'Unsichtbare unmachbare Quests werden ersetzt statt Streak zu blockieren');
+
+    const htmlCode = fs.readFileSync(path.join(BASE, 'index.html'), 'utf8');
+    t.ok(htmlCode.includes('daily-quest-regenerate-button'), 'Settings enthalten Button zum heutigen Daily-Quest-Neugenerieren');
 
     return t;
 }
