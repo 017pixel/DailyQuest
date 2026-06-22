@@ -41,8 +41,8 @@ const DQ_MISTRAL = {
         }
 
         if (plan.exercises) {
-            if (plan.exercises.length !== 30) {
-                errors.push(`Brauche genau 30 exercises, got ${plan.exercises.length}`);
+            if (plan.exercises.length < 24 || plan.exercises.length > 30) {
+                errors.push(`Brauche 24-30 exercises, got ${plan.exercises.length}`);
             }
 
             const restCount = plan.exercises.filter(ex => ex && ex.isRest === true).length;
@@ -224,8 +224,8 @@ const DQ_MISTRAL = {
             const idx = result.length;
             result.push({
                 nameKey: `custom_fill_${uniqSuffix}_${idx}`,
-                displayName: 'Bonus-Uebung',
-                description: 'Bonus',
+                displayName: 'Ganzkoerper-Routine',
+                description: 'Kontrollierte Ganzkoerperuebung mit sauberer Technik.',
                 type: 'reps',
                 baseValue: 10,
                 tags: ['full_body'],
@@ -307,13 +307,14 @@ const DQ_MISTRAL = {
             exercises = this.expandExercises(raw);
         } else if (raw && Array.isArray(raw.exercises)) {
             exercises = raw.exercises;
-            if (raw.exercises.length < 30) exercises = this.expandExercises(exercises);
             if (raw.planName) planName = raw.planName;
             if (raw.planDescription) planDesc = raw.planDescription;
             if (Array.isArray(raw.stages)) stages = raw.stages;
         }
 
-        if (exercises.length < 30) {
+        exercises = exercises.filter(ex => ex && ex.nameKey && !/^custom_ai_(rest_)?fill_\d+$/i.test(ex.nameKey));
+
+        if (exercises.length < 24) {
             exercises = this.generateExercisesFromTemplates('general', 3);
         }
 

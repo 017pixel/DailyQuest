@@ -38,7 +38,7 @@ function run() {
     t.ok(mistralCode.includes('validatePlan'), 'Hat validatePlan Funktion');
     t.ok(mistralCode.includes('REGEN_LIMIT') && mistralCode.includes('3'), 'Regeneration-Limit ist 3');
     t.ok(mistralCode.includes('canRegenerate') && mistralCode.includes('getRegenerationCount'), 'Hat Rate-Limiting Funktionen');
-    t.ok(mistralCode.includes('length !== 30'), 'Validiert auf genau 30 Ubungen');
+    t.ok(mistralCode.includes('24-30') || mistralCode.includes('length < 24'), 'Validiert auf 24-30 echte Ubungen');
     t.ok(mistralCode.includes('custom_'), 'Validiert custom_ Prefix fuer neue Ubungen');
     t.ok(mistralCode.includes('VALID_TYPES'), 'Validiert Ubungs-Typen');
     t.ok(mistralCode.includes('VALID_TAGS'), 'Validiert Tags');
@@ -227,9 +227,13 @@ function run() {
         t.ok(v.valid === true, 'validatePlan: guter Plan wird akzeptiert (errors=' + (v.errors || []).length + ')');
 
         // SCHLECHT: nur 29 exercises
-        const tooFew = JSON.parse(JSON.stringify(goodPlan));
-        tooFew.exercises = tooFew.exercises.slice(0, 29);
-        t.ok(DQ_MISTRAL.validatePlan(tooFew).valid === false, 'validatePlan: 29 exercises wird abgelehnt');
+        const fewerButClean = JSON.parse(JSON.stringify(goodPlan));
+        fewerButClean.exercises.splice(5, 1);
+        t.ok(DQ_MISTRAL.validatePlan(fewerButClean).valid === true, 'validatePlan: 29 saubere exercises wird akzeptiert');
+
+        const muchTooFew = JSON.parse(JSON.stringify(goodPlan));
+        muchTooFew.exercises = muchTooFew.exercises.slice(0, 23);
+        t.ok(DQ_MISTRAL.validatePlan(muchTooFew).valid === false, 'validatePlan: 23 exercises wird abgelehnt');
 
         // SCHLECHT: doppelter nameKey
         const dupKey = JSON.parse(JSON.stringify(goodPlan));

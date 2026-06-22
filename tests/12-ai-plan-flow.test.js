@@ -258,7 +258,7 @@ async function runFlow(t, mode) {
 
     const validation = DQ_MISTRAL.validatePlan(result.plan);
     t.ok(validation.valid === true, `${mode}: Antwort ist ein valider DailyQuest-Plan`);
-    t.equal(result.plan.exercises.length, 30, `${mode}: Plan hat genau 30 Uebungen`);
+    t.ok(result.plan.exercises.length >= 24 && result.plan.exercises.length <= 30, `${mode}: Plan hat 24-30 Uebungen (${result.plan.exercises.length})`);
     t.equal(result.plan.stages.length, 4, `${mode}: Plan hat genau 4 Phasen`);
     t.ok(result.plan.exercises.filter(ex => ex.isRest).length >= 4, `${mode}: Plan hat mindestens 4 Rest-Uebungen`);
 }

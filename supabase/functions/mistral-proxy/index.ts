@@ -26,6 +26,49 @@ const EXISTING_NAMEKEYS = [
   "bicycle_crunch", "reverse_flys", "push_ups_normal", "push_ups_wide", "squats"
 ];
 
+const EXISTING_NAMEKEY_DETAILS: Record<string, { displayName: string; description: string }> = {
+  bicep_curls: { displayName: "Bizeps-Curls", description: "Beuge die Arme kontrolliert und senke das Gewicht langsam wieder ab." },
+  dumbbell_rows: { displayName: "Hantel-Rudern", description: "Ziehe die Hantel eng am Koerper nach oben und halte den Ruecken stabil." },
+  push_ups_narrow: { displayName: "Enge Liegestuetze", description: "Fuehre Liegestuetze mit engen Haenden fuer Brust und Trizeps aus." },
+  weighted_squats: { displayName: "Kniebeugen mit Gewicht", description: "Beuge Knie und Huefte kontrolliert und druecke dich kraftvoll nach oben." },
+  barbell_rows: { displayName: "Langhantel-Rudern", description: "Ziehe die Langhantel mit stabilem Oberkoerper Richtung Bauch." },
+  dumbbell_press: { displayName: "Hantel-Druecken", description: "Druecke die Hanteln kontrolliert nach oben und senke sie sauber ab." },
+  shoulder_press: { displayName: "Schulterdruecken", description: "Druecke das Gewicht ueber Kopf, ohne ins Hohlkreuz zu fallen." },
+  deadlifts: { displayName: "Kreuzheben", description: "Hebe das Gewicht mit geradem Ruecken aus Huefte und Beinen." },
+  pistol_squats: { displayName: "Pistol Squats", description: "Gehe einbeinig kontrolliert in die Kniebeuge und richte dich stabil auf." },
+  pike_push_ups: { displayName: "Pike Push-ups", description: "Druecke dich aus der Pike-Position nach oben und belaste vor allem die Schultern." },
+  diamond_push_ups: { displayName: "Diamant-Liegestuetze", description: "Setze die Haende eng zusammen und arbeite kontrolliert aus Brust und Trizeps." },
+  single_leg_glute_bridge: { displayName: "Einbeinige Glute Bridge", description: "Hebe die Huefte einbeinig an und halte das Becken stabil." },
+  burpees: { displayName: "Burpees", description: "Kombiniere Kniebeuge, Stuetzposition und Sprung zu einer dynamischen Ganzkoerperuebung." },
+  jumping_jacks: { displayName: "Hampelmaenner", description: "Springe rhythmisch in den Graetschstand und fuehre die Arme ueber Kopf." },
+  high_knees: { displayName: "Kniehebelauf", description: "Laufe auf der Stelle und ziehe die Knie aktiv nach oben." },
+  step_ups: { displayName: "Step-ups", description: "Steige kontrolliert auf eine stabile Erhoehung und wieder herunter." },
+  jump_squats: { displayName: "Sprungkniebeugen", description: "Springe aus der Kniebeuge explosiv nach oben und lande weich." },
+  leg_raises: { displayName: "Beinheben", description: "Hebe und senke die Beine langsam, ohne den unteren Ruecken zu ueberlasten." },
+  russian_twists: { displayName: "Russian Twists", description: "Rotiere den Oberkoerper kontrolliert von Seite zu Seite." },
+  hollow_body_hold: { displayName: "Hollow Body Hold", description: "Halte die Rumpfspannung mit angehobenen Armen und Beinen." },
+  wall_sit: { displayName: "Wandsitz", description: "Halte die Sitzposition an der Wand mit aktiver Beinspannung." },
+  jogging: { displayName: "Joggen", description: "Laufe in lockerem Tempo und halte eine gleichmaessige Atmung." },
+  running: { displayName: "Laufen", description: "Laufe zuegig und kontrolliert mit stabilem Rhythmus." },
+  mountain_climbers: { displayName: "Mountain Climbers", description: "Ziehe im Stuetz abwechselnd die Knie Richtung Brust." },
+  interval_sprint: { displayName: "Intervall-Sprint", description: "Wechsle kurze intensive Sprintphasen mit Erholung." },
+  walking_lunges: { displayName: "Gehende Ausfallschritte", description: "Mache kontrollierte Ausfallschritte im Gehen und halte den Oberkoerper aufrecht." },
+  plank: { displayName: "Plank", description: "Halte den Unterarmstuetz mit fester Rumpfspannung." },
+  situps: { displayName: "Sit-ups", description: "Richte den Oberkoerper kontrolliert auf und senke ihn langsam ab." },
+  knee_push_ups: { displayName: "Knie-Liegestuetze", description: "Fuehre Liegestuetze auf den Knien mit sauberer Koerperspannung aus." },
+  tricep_dips_chair: { displayName: "Trizeps-Dips am Stuhl", description: "Beuge und strecke die Arme am Stuhl kontrolliert." },
+  lunges: { displayName: "Ausfallschritte", description: "Setze einen Schritt nach vorn und senke das hintere Knie kontrolliert ab." },
+  sumo_squats: { displayName: "Sumo-Kniebeugen", description: "Gehe mit breitem Stand in die Kniebeuge und halte die Knie stabil." },
+  glute_bridges: { displayName: "Glute Bridges", description: "Hebe die Huefte aus der Rueckenlage und spanne das Gesaess oben an." },
+  tricep_extensions: { displayName: "Trizepsheben", description: "Strecke die Arme kontrolliert und halte die Oberarme ruhig." },
+  side_plank: { displayName: "Seitstuetz", description: "Halte den seitlichen Stuetz mit stabiler Huefte." },
+  bicycle_crunch: { displayName: "Bicycle Crunches", description: "Fuehre Ellenbogen und gegenueberliegendes Knie kontrolliert zusammen." },
+  reverse_flys: { displayName: "Reverse Flys", description: "Fuehre die Arme seitlich nach hinten und aktiviere den oberen Ruecken." },
+  push_ups_normal: { displayName: "Liegestuetze", description: "Senke den Koerper kontrolliert ab und druecke dich kraftvoll hoch." },
+  push_ups_wide: { displayName: "Breite Liegestuetze", description: "Fuehre Liegestuetze mit breitem Griff fuer staerkeren Brustfokus aus." },
+  squats: { displayName: "Kniebeugen", description: "Beuge Knie und Huefte sauber und richte dich stabil wieder auf." }
+};
+
 const PRESET_PROMPTS: Record<string, string> = {
   kraft: "Erstelle einen Trainingsplan fuer Kraft und Muskelaufbau. Fokus auf Hypertrophie und progressive Belastung.",
   ausdauer: "Erstelle einen Trainingsplan fuer Ausdauer und Cardio-Training. Fokus auf HIIT und Konditionsaufbau.",
@@ -41,14 +84,14 @@ PFLICHT-SCHEMA:
 {
   "planName": string (kurzer, praegnanter Name, deutsch),
   "planDescription": string (1-2 Saetze auf deutsch),
-  "exercises": [GENAU 30 Objekte],
+  "exercises": [24 BIS 30 gute Objekte, Ziel: 30],
   "stages": [GENAU 4 Objekte]
 }
 
 JEDE EXERCISE (alle Felder pflicht):
-- nameKey: string - einer der EXISTING_NAMEKEYS oder NEU mit "custom_" Prefix (z.B. "custom_push_Xk3f9")
-- displayName: string (deutscher Anzeigename)
-- description: string (1 Satz, deutsch)
+- nameKey: string - bevorzugt einer der EXISTING_NAMEKEYS; nur wenn noetig NEU mit "custom_" Prefix
+- displayName: string (schoener deutscher Anzeigename, NIEMALS snake_case, NIEMALS nameKey)
+- description: string (konkrete deutsche Ausfuehrungsbeschreibung, NIEMALS leer, NIEMALS Platzhalter)
 - type: string - EINES VON: ${VALID_TYPES.join(", ")}
 - baseValue: number >= 1
 - tags: array of strings aus: ${VALID_TAGS.join(", ")}, mindestens 1 Eintrag
@@ -66,12 +109,14 @@ JEDE STAGE (alle Felder pflicht):
 - reps: number >= 1
 
 REGELN:
-1. GENAU 30 exercises - nicht 29, nicht 31
+1. Ziel sind 30 exercises. Wenn du unsicher bist: lieber 24-29 echte, sinnvolle Uebungen als Fuellobjekte.
 2. MINDESTENS 4 exercises mit isRest: true (fuer Rest Days)
 3. Mindestens 5 verschiedene Tag-Gruppen vertreten (push/pull/legs/core/cardio)
 4. Die LETZTE stage MUSS weeks: 9999 haben (unendlich/Endgame)
-5. Nutze EXISTING_NAMEKEYS wo passend, custom_ fuer eigene Ideen
-6. Antworte NUR mit dem JSON. KEINE Erklaerung. KEIN Markdown.
+5. Nutze so viele EXISTING_NAMEKEYS wie moeglich (mindestens 18). Bekannte Basics sind besser als erfundene Namen.
+6. Verboten: displayName/nameKey wie "custom_ai_fill_29", "custom_standing_calf_raises", "Bonus-Uebung", "Uebung 12" oder andere Platzhalter.
+7. Neue custom_ Uebungen muessen trotzdem displayName und description als echte deutsche Texte haben.
+8. Antworte NUR mit dem JSON. KEINE Erklaerung. KEIN Markdown.
 
 EXISTING_NAMEKEYS: ${EXISTING_NAMEKEYS.join(", ")}`;
 
@@ -174,6 +219,76 @@ async function upsertGenerationCount(token: string, userId: string, day: string,
   }
 }
 
+function prettifyNameKey(nameKey: string) {
+  const withoutPrefix = String(nameKey || "")
+    .replace(/^custom_ai_(rest_)?fill_\d+$/i, "")
+    .replace(/^custom_+/i, "")
+    .replace(/_\d+$/g, "")
+    .trim();
+  if (!withoutPrefix) return "";
+
+  const known: Record<string, string> = {
+    standing_calf_raises: "Wadenheben stehend",
+    calf_raises: "Wadenheben",
+    standing_side_bends: "Seitbeugen stehend",
+    standing_arm_raises: "Armheben stehend",
+    standing_bicycle_crunch: "Bicycle Crunches stehend",
+    progressive_walking: "Zuegiges Gehen",
+    hamstring_curls: "Beinbeuger-Curls",
+    standing_hamstring_curls: "Beinbeuger-Curls stehend",
+    arm_circles: "Armkreisen",
+    reverse_lunges: "Rueckwaerts-Ausfallschritte",
+    incline_push_ups: "Erhoehte Liegestuetze",
+    bear_crawl: "Bear Crawl",
+    dead_bug: "Dead Bug",
+    bird_dog: "Bird Dog"
+  };
+  if (known[withoutPrefix]) return known[withoutPrefix];
+
+  return withoutPrefix
+    .split("_")
+    .filter(Boolean)
+    .map((part) => part.length <= 3 ? part.toUpperCase() : part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function defaultDescription(displayName: string, isRest: boolean) {
+  if (isRest) return `${displayName} ruhig ausfuehren und bewusst locker bleiben.`;
+  return `${displayName} kontrolliert ausfuehren und auf saubere Technik achten.`;
+}
+
+function isPlaceholderText(value: unknown) {
+  const text = String(value || "").trim().toLowerCase();
+  return !text ||
+    text === "n/a" ||
+    text === "todo" ||
+    text === "test" ||
+    text === "bonus" ||
+    text === "ki-generierte uebung" ||
+    text.startsWith("uebung ") ||
+    text.startsWith("bonus-uebung") ||
+    /^custom(_|-)/.test(text) ||
+    /^custom_ai_(rest_)?fill_\d+$/.test(text);
+}
+
+function isPlaceholderExercise(ex: any) {
+  if (!ex || typeof ex !== "object") return true;
+  const key = String(ex.nameKey || "").trim();
+  if (!key) return true;
+  if (/^custom_ai_(rest_)?fill_\d+$/i.test(key)) return true;
+  if (isPlaceholderText(ex.displayName) && isPlaceholderText(ex.description)) return true;
+  return false;
+}
+
+function trimExercisesPreservingRest(exercises: any[], maxCount = 30) {
+  if (!Array.isArray(exercises) || exercises.length <= maxCount) return exercises;
+  const rest = exercises.filter((ex: any) => ex?.isRest === true);
+  const training = exercises.filter((ex: any) => ex?.isRest !== true);
+  const restToKeep = rest.slice(0, Math.min(rest.length, maxCount));
+  const trainingToKeep = training.slice(0, Math.max(0, maxCount - restToKeep.length));
+  return trainingToKeep.concat(restToKeep);
+}
+
 function validatePlanShape(plan: any): string[] {
   const errors: string[] = [];
 
@@ -185,7 +300,9 @@ function validatePlanShape(plan: any): string[] {
   if (!Array.isArray(plan.exercises)) {
     errors.push("exercises kein Array");
   } else {
-    if (plan.exercises.length !== 30) errors.push(`need 30 exercises, got ${plan.exercises.length}`);
+    if (plan.exercises.length < 24 || plan.exercises.length > 30) {
+      errors.push(`need 24-30 exercises, got ${plan.exercises.length}`);
+    }
     const seen = new Set<string>();
     let restCount = 0;
     for (const [i, ex] of plan.exercises.entries()) {
@@ -282,8 +399,27 @@ function normalizePlanShape(plan: any, userContext: any) {
     fullbody: "full_body"
   };
 
-  plan.exercises = plan.exercises.map((ex: any, index: number) => {
+  const keyAliases: Record<string, string> = {
+    jumpingjacks: "jumping_jacks",
+    custom_jumpingjacks: "jumping_jacks",
+    custom_push_ups: "push_ups_normal",
+    custom_pushups: "push_ups_normal",
+    custom_squats: "squats",
+    custom_lunges: "lunges",
+    custom_plank: "plank",
+    custom_bicycle_crunch: "bicycle_crunch",
+    custom_standing_bicycle_crunch: "bicycle_crunch",
+    custom_mountain_climbers: "mountain_climbers",
+    custom_high_knees: "high_knees",
+    custom_calf_raises: "custom_standing_calf_raises",
+    custom_hamstring_curls: "custom_standing_hamstring_curls"
+  };
+
+  plan.exercises = plan.exercises.filter((ex: any) => !isPlaceholderExercise(ex)).map((ex: any, index: number) => {
     const normalized = ex && typeof ex === "object" ? { ...ex } : {};
+    const originalKey = String(normalized.nameKey || "").trim();
+    if (keyAliases[originalKey]) normalized.nameKey = keyAliases[originalKey];
+
     const rawTags = Array.isArray(normalized.tags) ? normalized.tags : [];
     const validTags = rawTags
       .map((tag: unknown) => String(tag || "").trim().toLowerCase())
@@ -296,12 +432,16 @@ function normalizePlanShape(plan: any, userContext: any) {
     if (isRest && !normalized.tags.includes("rest")) normalized.tags.unshift("rest");
     if (!VALID_TYPES.includes(normalized.type)) normalized.type = isRest ? "check" : "reps";
     if (typeof normalized.baseValue !== "number" || normalized.baseValue < 1) normalized.baseValue = isRest ? 1 : 10;
-    if (typeof normalized.nameKey !== "string" || !normalized.nameKey) normalized.nameKey = `custom_ai_${index}`;
+    if (typeof normalized.nameKey !== "string" || !normalized.nameKey) normalized.nameKey = `custom_generated_${index}`;
     if (!EXISTING_NAMEKEYS.includes(normalized.nameKey) && !normalized.nameKey.startsWith("custom_")) {
       normalized.nameKey = `custom_${normalized.nameKey.replace(/[^a-zA-Z0-9_]/g, "_")}`;
     }
-    if (typeof normalized.displayName !== "string" || !normalized.displayName) normalized.displayName = `Uebung ${index + 1}`;
-    if (typeof normalized.description !== "string") normalized.description = "KI-generierte Uebung";
+    const knownDetails = EXISTING_NAMEKEY_DETAILS[normalized.nameKey];
+    const prettyName = knownDetails?.displayName || prettifyNameKey(normalized.nameKey);
+    if (isPlaceholderText(normalized.displayName)) normalized.displayName = prettyName || `Training ${index + 1}`;
+    if (isPlaceholderText(normalized.description)) {
+      normalized.description = knownDetails?.description || defaultDescription(normalized.displayName, isRest);
+    }
     if (userContext?.hasEquipment === false) normalized.needsEquipment = false;
     if (typeof normalized.needsEquipment !== "boolean") normalized.needsEquipment = false;
     if (!Array.isArray(normalized.muscles)) normalized.muscles = ["general"];
@@ -319,9 +459,14 @@ function normalizePlanShape(plan: any, userContext: any) {
   let fillIndex = 0;
   while (restCount < 4) {
     plan.exercises.unshift({
-      nameKey: `custom_ai_rest_fill_${fillIndex}`,
-      displayName: `Aktive Erholung ${fillIndex + 1}`,
-      description: "Sanfte Erholung fuer Rest Days.",
+      nameKey: `custom_active_recovery_${fillIndex}`,
+      displayName: ["Aktive Erholung", "Sanfte Mobilitaet", "Atemfokus", "Locker Dehnen"][fillIndex] || "Aktive Erholung",
+      description: [
+        "Bewege dich locker und halte die Intensitaet bewusst niedrig.",
+        "Mobilisiere Schultern, Ruecken und Huefte ohne Druck.",
+        "Atme ruhig, entspanne die Schultern und fahre bewusst herunter.",
+        "Dehne die grossen Muskelgruppen sanft und kontrolliert."
+      ][fillIndex] || "Erhole dich aktiv und achte auf lockere Atmung.",
       type: "check",
       baseValue: 1,
       tags: ["rest", "mobility"],
@@ -336,31 +481,12 @@ function normalizePlanShape(plan: any, userContext: any) {
     fillIndex++;
   }
 
-  while (plan.exercises.length < 30) {
-    const index = plan.exercises.length;
-    const tag = ["push", "pull", "legs", "core", "cardio", "full_body"][index % 6];
-    plan.exercises.push({
-      nameKey: `custom_ai_fill_${index}`,
-      displayName: `Bonus-Uebung ${index + 1}`,
-      description: "Ergaenzende KI-Uebung fuer einen vollstaendigen Plan.",
-      type: tag === "cardio" ? "time" : "reps",
-      baseValue: tag === "cardio" ? 30 : 12,
-      tags: [tag],
-      isRest: false,
-      needsEquipment: false,
-      muscles: ["general"],
-      statPoints: { durchhaltevermoegen: 1 },
-      mana: 20,
-      gold: 10
-    });
-  }
-
-  plan.exercises = plan.exercises.slice(0, 30);
+  plan.exercises = trimExercisesPreservingRest(plan.exercises, 30);
 
   const seenKeys = new Set<string>();
   plan.exercises = plan.exercises.map((ex: any, index: number) => {
-    let key = String(ex.nameKey || `custom_ai_${index}`);
-    if (seenKeys.has(key)) key = `custom_ai_unique_${index}`;
+    let key = String(ex.nameKey || `custom_generated_${index}`);
+    if (seenKeys.has(key)) key = `${key}_${index}`;
     seenKeys.add(key);
     return { ...ex, nameKey: key };
   });
@@ -447,12 +573,13 @@ Deno.serve(async (req: Request) => {
       const repairMessage = attempt === 0 ? userMessage : `${userMessage}
 
 Deine letzte Antwort war nicht nutzbar. Repariere den Plan strikt:
-- GENAU 30 exercises
+- 24 BIS 30 echte exercises, Ziel 30
 - GENAU 4 stages
 - letzte stage weeks:9999
 - mindestens 4 isRest:true
 - nur erlaubte type/tags/statPoints
 - unbekannte nameKeys nur mit custom_ Prefix
+- displayName und description muessen echte deutsche Texte sein, kein snake_case, keine Platzhalter
 - bei Equipment nein: ALLE needsEquipment:false
 Antworte NUR mit JSON.`;
 

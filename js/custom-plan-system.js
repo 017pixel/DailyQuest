@@ -12,6 +12,71 @@ const DQ_CUSTOM_PLAN = {
     STATE_STORE: 'training_plan_state',
     PRIORITY_TAGS: ['push', 'pull', 'legs', 'core', 'cardio', 'full_body', 'mobility'],
 
+    prettifyNameKey(nameKey) {
+        const raw = String(nameKey || '')
+            .replace(/^custom_ai_(rest_)?fill_\d+$/i, '')
+            .replace(/^custom_+/i, '')
+            .replace(/_\d+$/g, '')
+            .trim();
+        if (!raw) return '';
+
+        const known = {
+            standing_calf_raises: 'Wadenheben stehend',
+            calf_raises: 'Wadenheben',
+            standing_side_bends: 'Seitbeugen stehend',
+            progressive_walking: 'Zuegiges Gehen',
+            standing_arm_raises: 'Armheben stehend',
+            standing_bicycle_crunch: 'Bicycle Crunches stehend',
+            hamstring_curls: 'Beinbeuger-Curls',
+            standing_hamstring_curls: 'Beinbeuger-Curls stehend',
+            active_recovery: 'Aktive Erholung'
+        };
+        if (known[raw]) return known[raw];
+
+        return raw
+            .split('_')
+            .filter(Boolean)
+            .map(part => part.length <= 3 ? part.toUpperCase() : part.charAt(0).toUpperCase() + part.slice(1))
+            .join(' ');
+    },
+
+    isPlaceholderExercise(ex) {
+        if (!ex || typeof ex !== 'object') return true;
+        const key = String(ex.nameKey || '');
+        if (!key || /^custom_ai_(rest_)?fill_\d+$/i.test(key)) return true;
+        const display = String(ex.displayName || '').trim().toLowerCase();
+        const desc = String(ex.description || '').trim().toLowerCase();
+        return (!display || display === key.toLowerCase() || /^custom_/.test(display) || display.startsWith('bonus-uebung') || display.startsWith('uebung '))
+            && (!desc || desc === 'ki-generierte uebung' || desc === 'bonus');
+    },
+
+    normalizeExercise(ex) {
+        if (!ex || typeof ex !== 'object') return null;
+        if (/^custom_ai_(rest_)?fill_\d+$/i.test(String(ex.nameKey || ''))) return null;
+
+        const normalized = { ...ex };
+        if (!normalized.nameKey) return null;
+        const pretty = this.prettifyNameKey(normalized.nameKey);
+        const badDisplay = !normalized.displayName ||
+            normalized.displayName === normalized.nameKey ||
+            /^custom_/.test(String(normalized.displayName).toLowerCase()) ||
+            /^custom_/.test(String(normalized.nameKey).toLowerCase()) && String(normalized.displayName).includes('_');
+        if (badDisplay && pretty) normalized.displayName = pretty;
+        if (!normalized.description || String(normalized.description).trim().length < 8 || String(normalized.description).toLowerCase() === 'ki-generierte uebung') {
+            normalized.description = normalized.isRest
+                ? `${normalized.displayName || 'Erholung'} ruhig ausfuehren und bewusst locker bleiben.`
+                : `${normalized.displayName || 'Training'} kontrolliert ausfuehren und auf saubere Technik achten.`;
+        }
+        return normalized;
+    },
+
+    normalizeExercises(exercises) {
+        if (!Array.isArray(exercises)) return [];
+        return exercises
+            .map(ex => this.normalizeExercise(ex))
+            .filter(ex => ex && !this.isPlaceholderExercise(ex));
+    },
+
     /**
      * Speichert einen Plan in IndexedDB.
      * @param {object} plan - Der validierte Plan aus Mistral
@@ -20,10 +85,11 @@ const DQ_CUSTOM_PLAN = {
      */
     savePlan(plan, prompt = '') {
         return new Promise((resolve, reject) => {
+            const exercises = this.normalizeExercises(plan.exercises);
             const record = {
                 planName: plan.planName,
                 planDescription: plan.planDescription,
-                exercises: plan.exercises,
+                exercises,
                 stages: plan.stages,
                 prompt: prompt,
                 createdAt: Date.now(),
@@ -213,6 +279,7 @@ const DQ_CUSTOM_PLAN = {
      * auszugeben.
      */
     getAvailableExercises(exercises, hasEquipment) {
+        exercises = this.normalizeExercises(exercises);
         if (!Array.isArray(exercises)) return [];
         if (hasEquipment !== false) return exercises;
 

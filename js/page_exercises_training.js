@@ -1,4 +1,41 @@
 Object.assign(DQ_EXERCISES, {
+    prettifyExerciseName(nameKey) {
+        const raw = String(nameKey || '')
+            .replace(/^custom_ai_(rest_)?fill_\d+$/i, '')
+            .replace(/^custom_+/i, '')
+            .replace(/_\d+$/g, '')
+            .trim();
+        if (!raw) return 'Training';
+
+        const known = {
+            standing_calf_raises: 'Wadenheben stehend',
+            calf_raises: 'Wadenheben',
+            standing_side_bends: 'Seitbeugen stehend',
+            progressive_walking: 'Zuegiges Gehen',
+            standing_arm_raises: 'Armheben stehend',
+            standing_bicycle_crunch: 'Bicycle Crunches stehend',
+            hamstring_curls: 'Beinbeuger-Curls',
+            standing_hamstring_curls: 'Beinbeuger-Curls stehend',
+            active_recovery: 'Aktive Erholung'
+        };
+        if (known[raw]) return known[raw];
+
+        return raw
+            .split('_')
+            .filter(Boolean)
+            .map(part => part.length <= 3 ? part.toUpperCase() : part.charAt(0).toUpperCase() + part.slice(1))
+            .join(' ');
+    },
+
+    resolveExerciseName(exercise, lang) {
+        const customName = String(exercise?.customDisplayName || '').trim();
+        if (customName && !/^custom_/.test(customName.toLowerCase()) && !customName.includes('_')) {
+            return customName;
+        }
+        const nameKey = exercise?.nameKey || '';
+        return DQ_DATA.translations[lang].exercise_names[nameKey] || this.prettifyExerciseName(nameKey);
+    },
+
     async renderTrainingPhaseBanner() {
         const banner = DQ_UI.elements.trainingPhaseBanner;
         if (!banner || typeof DQ_TRAINING_SYSTEM === 'undefined') {
@@ -148,9 +185,11 @@ Object.assign(DQ_EXERCISES, {
             const questsToday = e.target.result || [];
             const hasEquipment = DQ_CONFIG.userSettings.hasEquipment !== false;
             const templates = Object.values(DQ_DATA.exercisePool).flat();
-            const visibleQuests = hasEquipment
+            const isPlaceholderQuest = quest => /^custom_ai_(rest_)?fill_\d+$/i.test(String(quest?.nameKey || ''));
+            const visibleQuests = (hasEquipment
                 ? questsToday
-                : questsToday.filter(quest => !templates.find(ex => ex.nameKey === quest.nameKey)?.needsEquipment);
+                : questsToday.filter(quest => !templates.find(ex => ex.nameKey === quest.nameKey)?.needsEquipment))
+                .filter(quest => !isPlaceholderQuest(quest));
 
             if (questsToday.length === 0) {
                 if (isRestDay && DQ_DATA.translations[lang]?.restday_info_box) {
@@ -176,7 +215,7 @@ Object.assign(DQ_EXERCISES, {
                     ? DQ_TRAINING_SYSTEM.formatQuestTarget(quest)
                     : this.formatTargetDisplay(quest.type, quest.target);
 
-                const translatedName = (DQ_DATA.translations[lang].exercise_names[quest.nameKey] || quest.nameKey);
+                const translatedName = this.resolveExerciseName(quest, lang);
                 const isFocusQuest = quest.type === 'focus';
                 const isTimeQuest = quest.type === 'time' && quest.target <= 180;
                 const buttonAction = isFocusQuest ? 'start-focus' : (isTimeQuest ? 'start-timer' : 'complete');
@@ -367,11 +406,17 @@ Object.assign(DQ_EXERCISES, {
         const goal = DQ_CONFIG.userSettings.goal || 'muscle';
         const isSeniorMode = goal === 'senior';
 
-        const template = Object.values(DQ_DATA.exercisePool).flat().find(t => t.nameKey === exercise.nameKey);
-        if (!template) return;
+        const template = Object.values(DQ_DATA.exercisePool).flat().find(t => t.nameKey === exercise.nameKey) || {
+            nameKey: exercise.nameKey,
+            muscles: exercise.muscles || [],
+            statPoints: exercise.statPoints || null,
+            directStatGain: exercise.directStatGain || null,
+            mana: exercise.manaReward || 1,
+            gold: exercise.goldReward || 1
+        };
 
-        const translatedName = (trans.exercise_names[exercise.nameKey] || exercise.nameKey);
-        const explanation = (DQ_DATA.exerciseExplanations[lang][exercise.nameKey] || 'Keine Beschreibung verfügbar.');
+        const translatedName = this.resolveExerciseName(exercise, lang);
+        const explanation = exercise.customDescription || DQ_DATA.exerciseExplanations[lang][exercise.nameKey] || 'Keine Beschreibung verfügbar.';
 
         // Ziel-Anzeige: Quest mit setPlan zeigt Sets-Info, sonst formatTargetDisplay
         let targetDisplay = '';
@@ -383,8 +428,12 @@ Object.assign(DQ_EXERCISES, {
         }
 
         // Belohnungen
-        const scaledMana = isQuest ? exercise.manaReward : Math.ceil(exercise.manaReward * (1 + 0.2 * (difficulty - 1)));
-        const scaledGold = isQuest ? exercise.goldReward : Math.ceil(exercise.goldReward * (1 + 0.15 * (difficulty - 1)));
+        const scaledMana = isQuest
+            ? (exercise.manaReward || template.mana || 1)
+            : Math.ceil((template.mana || 1) * (1 + 0.2 * (difficulty - 1)));
+        const scaledGold = isQuest
+            ? (exercise.goldReward || template.gold || 1)
+            : Math.ceil((template.gold || 1) * (1 + 0.15 * (difficulty - 1)));
 
         // Kategorien (Trainingspläne)
         const categories = [];
@@ -609,7 +658,7 @@ Object.assign(DQ_EXERCISES, {
 
             let targetDisplay = this.formatTargetDisplay(quest.type, quest.target);
 
-            const translatedName = (DQ_DATA.translations[lang].exercise_names[quest.nameKey] || quest.nameKey);
+            const translatedName = this.resolveExerciseName(quest, lang);
             
             const isFocusQuest = quest.type === 'focus';
             const buttonAction = isFocusQuest ? 'start-focus' : 'complete';
@@ -695,4 +744,3 @@ Object.assign(DQ_EXERCISES, {
         return activeRestDays.includes(dayOfWeek);
     }
 });
-
