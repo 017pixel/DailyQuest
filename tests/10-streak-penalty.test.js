@@ -3,6 +3,9 @@
  * Datengetriebene Tests fuer Penalty-Reset, Quest-Completion, Level-Up.
  */
 const { TestRunner } = require('./helpers');
+const fs = require('fs');
+const path = require('path');
+const { BASE } = require('./helpers');
 
 function run() {
     const t = new TestRunner('Streak/Penalty/Level-Up Logik');
@@ -133,6 +136,15 @@ function run() {
     // Leere Exercise
     const result2 = processStatGains({ strength: 5 }, null);
     t.equal(result2.strength, 5, 'Null-Exercise: unveraendert');
+
+    // ── Streak-Filler fuer zu wenige Daily Quests ─────────────
+    const mainCode = fs.readFileSync(path.join(BASE, 'main.js'), 'utf8');
+    t.ok(mainCode.includes('ensureMinimumTrainingQuestCount'), 'Trainingstage werden auf mindestens 6 Daily Quests aufgefuellt');
+    t.ok(mainCode.includes('buildFreeChoiceQuest'), 'Freie-Uebung Platzhalter existiert');
+    t.ok(mainCode.includes('custom_free_choice_') && mainCode.includes('Freie Uebung'), 'Freie-Uebung Quest ist benannt');
+    t.ok(mainCode.includes("completionMode: 'tap'") && mainCode.includes('canComplete: true'), 'Freie-Uebung Quest ist direkt abhakbar');
+    t.ok(mainCode.includes('isRestOrRecoveryDayForQuestTopUp'), 'Restdays/Krankheitstage werden vom Top-up ausgenommen');
+    t.ok(mainCode.includes('hiddenUnavailable') && mainCode.includes('store.delete(quest.questId)'), 'Unsichtbare unmachbare Quests werden ersetzt statt Streak zu blockieren');
 
     return t;
 }

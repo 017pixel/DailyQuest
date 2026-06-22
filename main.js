@@ -1415,6 +1415,88 @@ async function handlePostUpdateMigration() {
     localStorage.setItem(APP_UPDATE_FLAG_KEY, APP_VERSION);
 }
 
+function isRestOrRecoveryDayForQuestTopUp(goal, questsToday) {
+    if (goal === 'restday' || goal === 'sick') return true;
+    if (DQ_CONFIG.userSettings.planType === 'custom' &&
+        typeof DQ_CUSTOM_PLAN !== 'undefined' &&
+        typeof DQ_CUSTOM_PLAN.checkRestDay === 'function') {
+        return DQ_CUSTOM_PLAN.checkRestDay(DQ_CONFIG.userSettings.restDays || 0);
+    }
+    return Array.isArray(questsToday) && questsToday.length > 0 &&
+        questsToday.every(q => q.goal === 'restday' || q.goal === 'sick' || q.slotKey === 'rest');
+}
+
+function buildFreeChoiceQuest(todayStr, index, goal) {
+    return {
+        date: todayStr,
+        goal: goal || 'custom',
+        slotKey: 'free_choice',
+        nameKey: `custom_free_choice_${index + 1}`,
+        customDisplayName: index === 0 ? 'Freie Uebung' : `Freie Uebung ${index + 1}`,
+        customDescription: 'Waehle eine sinnvolle Uebung, die zu deinem heutigen Training passt. Fuehre sie kontrolliert aus und hake diese Aufgabe danach ab.',
+        type: 'check',
+        target: 1,
+        targetLabel: null,
+        setPlan: null,
+        setProgress: [],
+        completionMode: 'tap',
+        completed: false,
+        canComplete: true,
+        manaReward: 60,
+        goldReward: 25,
+        bonusInfoSynced: true,
+        needsEquipment: false,
+        isCustom: true,
+        isStreakFiller: true,
+        muscles: ['general'],
+        statPoints: { durchhaltevermoegen: 1 }
+    };
+}
+
+async function ensureMinimumTrainingQuestCount(todayStr, goal, questsToday) {
+    const MIN_TRAINING_QUESTS = 6;
+    if (!Array.isArray(questsToday) || questsToday.length === 0) return false;
+    if (isRestOrRecoveryDayForQuestTopUp(goal, questsToday)) return false;
+
+    const hasEquipment = DQ_CONFIG.userSettings.hasEquipment !== false;
+    const allTemplates = Object.values(DQ_DATA.exercisePool).flat();
+    const questNeedsEquipment = quest => {
+        const template = allTemplates.find(ex => ex.nameKey === quest.nameKey);
+        return quest.needsEquipment === true || !!template?.needsEquipment;
+    };
+    const hiddenUnavailable = hasEquipment
+        ? []
+        : questsToday.filter(q => !q.completed && questNeedsEquipment(q));
+    const eligibleQuests = questsToday.filter(q => !hiddenUnavailable.includes(q));
+    if (eligibleQuests.length >= MIN_TRAINING_QUESTS && hiddenUnavailable.length === 0) return false;
+
+    const existingKeys = new Set(eligibleQuests.map(q => q.nameKey));
+    const missing = Math.max(0, MIN_TRAINING_QUESTS - eligibleQuests.length);
+    const fillers = [];
+    let index = 0;
+    while (fillers.length < missing) {
+        const quest = buildFreeChoiceQuest(todayStr, index, goal);
+        index++;
+        if (existingKeys.has(quest.nameKey)) continue;
+        existingKeys.add(quest.nameKey);
+        fillers.push(quest);
+    }
+
+    await new Promise(resolve => {
+        const tx = DQ_DB.db.transaction(['daily_quests'], 'readwrite');
+        const store = tx.objectStore('daily_quests');
+        hiddenUnavailable.forEach(quest => store.delete(quest.questId));
+        fillers.forEach(quest => store.add(quest));
+        tx.oncomplete = resolve;
+        tx.onerror = resolve;
+    });
+
+    localStorage.setItem('dq_last_local_update', String(Date.now()));
+    if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+    console.warn(`Daily Quests Top-up: ${fillers.length} freie Uebung(en) ergaenzt und ${hiddenUnavailable.length} unmachbare Quest(s) ersetzt, damit heute ${MIN_TRAINING_QUESTS} Quests abschliessbar sind.`);
+    return true;
+}
+
 async function generateDailyQuestsIfNeeded(forceRegenerate = false) {
     const todayStr = DQ_CONFIG.getTodayString();
     let goal = DQ_CONFIG.userSettings.goal || 'muscle';
@@ -1489,6 +1571,8 @@ async function generateDailyQuestsIfNeeded(forceRegenerate = false) {
         });
 
         if (changed) console.log('Bestehende Daily Quests wurden mit neuen Belohnungen/Daten synchronisiert.');
+        const toppedUp = await ensureMinimumTrainingQuestCount(todayStr, goal, questsToday);
+        if (toppedUp && typeof DQ_EXERCISES !== 'undefined') DQ_EXERCISES.renderQuests();
         return;
     }
 
