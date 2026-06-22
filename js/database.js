@@ -10,7 +10,7 @@ const DQ_DB = {
     init: function () {
         return new Promise((resolve, reject) => {
             // --- VERSION ERHÖHT, UM UPDATE FÜR ALLE NUTZER ZU ERZWINGEN ---
-            const dbName = 'VibeCodenDB', dbVersion = 36;
+            const dbName = 'VibeCodenDB', dbVersion = 37;
             const request = indexedDB.open(dbName, dbVersion);
 
             request.onerror = (e) => {
@@ -128,6 +128,10 @@ const DQ_DB = {
                     if (!db.objectStoreNames.contains('custom_plans')) {
                         db.createObjectStore('custom_plans', { keyPath: 'id', autoIncrement: true });
                     }
+                }
+
+                if (oldVersion < 37) {
+                    console.log("Upgrade-Schritt: 2.13.2 Streak-Filler-Fix aktiv. Heutige Quests werden nach App-Start bei Bedarf aufgefuellt.");
                 }
 
                 // Sicherheits-Check: custom_plans sicherstellen

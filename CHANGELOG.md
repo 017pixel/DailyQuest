@@ -4,6 +4,24 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## Version 2.13.2 - Streak-Filler Hotfix
+
+### Erstellt
+- Freie-Uebung-Platzhalter fuer Trainingstage mit weniger als 6 Daily Quests ergänzt
+- Schutz gegen unsichtbare, unmachbare Equipment-Quests ergänzt, damit sie die Streak nicht blockieren
+- Tests fuer Streak-Filler, direkte Abhakbarkeit und Restday-Ausnahme ergänzt
+
+### Veraendert
+- App-Version auf 2.13.2 erhöht
+- Service-Worker-Cache auf v29 erhöht
+- IndexedDB-Version auf 37 erhöht, damit der Hotfix bei bestehenden Installationen sichtbar ankommt
+- Settings-Version auf v2.13.2 aktualisiert
+
+### Geloescht
+- Streak-blockierende Altlast durch zu wenige sichtbare Tagesquests wird beim App-Start ersetzt
+
+---
+
 ## Version 2.13.1 - KI-Plan Backend Fix
 
 ### Erstellt
