@@ -272,7 +272,7 @@ const DQ_CONFIG = {
     }
 };
 
-const APP_VERSION = '2.13.3';
+const APP_VERSION = '2.14.0';
 const APP_UPDATE_FLAG_KEY = 'dq_seen_app_version';
 
 async function initializeApp() {
@@ -308,7 +308,7 @@ async function initializeApp() {
             difficultySlider: document.getElementById('difficulty-slider'),
             difficultyValue: document.getElementById('difficulty-value'),
             // Bug H Fix: goalSelect entfernt - Dropdown ist deprecated,
-            // KI-generierter Plan wird ueber goal-setup-button konfiguriert.
+            // Plan wird ueber goal-setup-button konfiguriert (manuelles System).
             goalSetupButton: document.getElementById('goal-setup-button'),
             goalSetupPopup: document.getElementById('goal-setup-popup'),
             goalRegenerateButton: document.getElementById('goal-regenerate-button'),
@@ -316,11 +316,8 @@ async function initializeApp() {
             currentPlanTitle: document.getElementById('current-plan-title'),
             currentPlanDesc: document.getElementById('current-plan-desc'),
             currentPlanStats: document.getElementById('current-plan-stats'),
-            regenerationCounter: document.getElementById('regeneration-counter'),
             goalGeneratePopup: document.getElementById('goal-generate-popup'),
-            customPlanPrompt: document.getElementById('custom-plan-prompt'),
             customPlanGenerateButton: document.getElementById('custom-plan-generate-button'),
-            planGenerationLoading: document.getElementById('plan-generation-loading'),
             restdaysSelect: document.getElementById('restdays-select'),
             characterNameInput: document.getElementById('character-name-input'),
             characterAgeInput: document.getElementById('character-age-input'),
@@ -508,7 +505,23 @@ async function initializeApp() {
 async function loadInitialData() {
     await loadSettings();
     await handlePostUpdateMigration();
+    let didMigrate = false;
+    if (typeof DQ_MANUAL_PLAN !== 'undefined') {
+        const migrated = await DQ_MANUAL_PLAN.migrateOldAiPlan();
+        if (migrated) {
+            DQ_CONFIG.pendingUpdateNotice = true;
+            didMigrate = true;
+        }
+    }
     const char = await initializeCharacter();
+    if (didMigrate) {
+        try {
+            await regenerateTodayDailyQuestsManually(true);
+            localStorage.setItem('lastPenaltyCheck', DQ_CONFIG.getTodayString());
+        } catch (e) {
+            console.warn('Migration: Quest-Neugenerierung fehlgeschlagen:', e);
+        }
+    }
     await DQ_VIBE_STATE.loadState();
     await populateInitialDataIfNeeded(); // NEUER ZENTRALER AUFRUF
     await migrateItemNames(); // Migration für Namensänderungen
@@ -855,23 +868,60 @@ function addSettingsListeners(elements) {
             DQ_UI.showPopup(elements.goalGeneratePopup);
         });
     }
-    if (elements.customPlanPrompt) {
-        elements.customPlanPrompt.addEventListener('input', () => {
-            const val = elements.customPlanPrompt.value.trim();
-            elements.customPlanGenerateButton.disabled = val.length < 3;
-        });
-    }
-    document.querySelectorAll('[data-preset]').forEach(btn => {
-        if (!btn.closest('#goal-generate-popup')) return;
+    document.querySelectorAll('#goal-generate-popup [data-preset]').forEach(btn => {
         btn.addEventListener('click', async () => {
-            await handlePlanGeneration(btn.dataset.preset, null);
+            await handlePresetSelection(btn.dataset.preset);
         });
     });
     if (elements.customPlanGenerateButton) {
-        elements.customPlanGenerateButton.addEventListener('click', async () => {
-            const prompt = elements.customPlanPrompt.value.trim();
-            if (prompt.length < 3) return;
-            await handlePlanGeneration('custom', prompt);
+        elements.customPlanGenerateButton.addEventListener('click', () => {
+            DQ_UI.hideAllPopups();
+            openManualPlanOverlay();
+        });
+    }
+
+    const manualPlanBackBtn = document.getElementById('manual-plan-back-btn');
+    if (manualPlanBackBtn) {
+        manualPlanBackBtn.addEventListener('click', () => {
+            closeManualPlanOverlay();
+            manualPlanSelected.clear();
+            DQ_UI.showPopup(elements.goalGeneratePopup);
+        });
+    }
+    document.querySelectorAll('.manual-plan-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.manual-plan-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            renderManualPlanList(tab.dataset.cat);
+        });
+    });
+    const manualPlanSaveBtn = document.getElementById('manual-plan-save-btn');
+    if (manualPlanSaveBtn) {
+        manualPlanSaveBtn.addEventListener('click', saveManualPlan);
+    }
+    const manualPlanCreateExBtn = document.getElementById('manual-plan-create-exercise');
+    if (manualPlanCreateExBtn) {
+        manualPlanCreateExBtn.addEventListener('click', openCustomExercisePopup);
+    }
+    const customExSaveBtn = document.getElementById('custom-ex-save');
+    if (customExSaveBtn) {
+        customExSaveBtn.addEventListener('click', saveCustomExerciseFromPopup);
+    }
+    const customExCancelBtn = document.getElementById('custom-ex-cancel');
+    if (customExCancelBtn) {
+        customExCancelBtn.addEventListener('click', () => {
+            const popup = document.getElementById('custom-exercise-popup');
+            if (popup) {
+                popup.classList.remove('show');
+                popup.style.zIndex = '';
+            }
+        });
+    }
+    const manualPlanOverlayBg = document.querySelector('#manual-plan-overlay .settings-overlay-bg');
+    if (manualPlanOverlayBg) {
+        manualPlanOverlayBg.addEventListener('click', () => {
+            closeManualPlanOverlay();
+            manualPlanSelected.clear();
         });
     }
 
@@ -1086,12 +1136,22 @@ function getUpdateNoticePages(trans) {
     return [
         {
             title: trans.update_notice_title || 'DailyQuest wurde aktualisiert',
-            body: trans.update_notice_intro || 'Das ist neu in dieser Version:',
+            body: trans.update_notice_intro || 'Das ist neu in Version 2.14:',
             points: [
-                trans.update_notice_page1_point1 || 'KI-Trainingsplan: Personalisierte Pläne mit Mistral AI',
-                trans.update_notice_page1_point2 || 'Drei Presets (Kraft/Ausdauer/Abnehmen) oder eigene Ziele',
-                trans.update_notice_page2_point1 || 'Intelligentes Balancing: 6 Quests/Tag, abwechslungsreich',
-                trans.update_notice_page2_point2 || 'Rest Days respektieren Erholungsübungen automatisch',
+                trans.update_point_1 || 'KI-Trainingsplaene entfernt – jetzt manuelle Plan-Erstellung',
+                trans.update_point_2 || '4 Presets (Kraft, Ausdauer, Abnehmen, Calisthenics) als Schnellwahl',
+                trans.update_point_3 || 'Eigene Trainingsplaene mit bis zu 30 Uebungen aus dem freien Training',
+                trans.update_point_4 || 'Selbst erstellte Uebungen mit Namen und eigenem Basiswert',
+            ]
+        },
+        {
+            title: trans.update_notice_title || 'DailyQuest wurde aktualisiert',
+            body: trans.update_notice_intro || 'Das ist neu in Version 2.14:',
+            points: [
+                trans.update_point_5 || 'Bugfix: Rest-Day-Logik stabilisiert, keine doppelten Quests mehr',
+                trans.update_point_6 || 'Heute-oder-morgen-Wahl beim Planwechsel',
+                trans.update_point_7 || 'Deine Phase und Streak bleiben erhalten beim Update',
+                trans.update_notice_finish || 'Viel Spass mit deinem neuen Trainingsplan!',
             ]
         }
     ];
@@ -1313,14 +1373,15 @@ async function updateCurrentPlanInfo() {
     if (!elements.currentPlanName) return;
 
     const planType = DQ_CONFIG.userSettings.planType || 'predefined';
-    if (planType === 'custom' && DQ_CONFIG.userSettings.customPlanId && typeof DQ_CUSTOM_PLAN !== 'undefined') {
+    if (planType === 'custom' && DQ_CONFIG.userSettings.customPlanId && typeof DQ_MANUAL_PLAN !== 'undefined') {
         try {
-            const plan = await DQ_CUSTOM_PLAN.getActivePlan(DQ_CONFIG.userSettings.customPlanId);
+            const plan = await DQ_MANUAL_PLAN.getActivePlan(DQ_CONFIG.userSettings.customPlanId);
             if (plan) {
-                const phaseInfo = plan.stages ? `${plan.exercises.length} Uebungen, ${plan.stages.length} Phasen` : '';
-                elements.currentPlanName.textContent = `KI-Plan: ${plan.planName}`;
-                if (elements.currentPlanTitle) elements.currentPlanTitle.textContent = `KI-Plan: ${plan.planName}`;
-                if (elements.currentPlanDesc) elements.currentPlanDesc.textContent = plan.planDescription || '';
+                const exerciseCount = (plan.exerciseIds || []).length;
+                const phaseInfo = `${exerciseCount} Uebungen ausgewaehlt`;
+                elements.currentPlanName.textContent = `Custom: ${plan.planName}`;
+                if (elements.currentPlanTitle) elements.currentPlanTitle.textContent = `Custom: ${plan.planName}`;
+                if (elements.currentPlanDesc) elements.currentPlanDesc.textContent = '';
                 if (elements.currentPlanStats) elements.currentPlanStats.textContent = phaseInfo;
                 return;
             }
@@ -1344,74 +1405,304 @@ async function updateCurrentPlanInfo() {
 }
 
 async function updateGoalSetupPopup() {
-    const elements = DQ_UI.elements;
     await updateCurrentPlanInfo();
-    if (elements.regenerationCounter && typeof DQ_MISTRAL !== 'undefined') {
-        const remaining = DQ_MISTRAL.getRemainingRegenerations();
-        elements.regenerationCounter.textContent = `${remaining}/${DQ_MISTRAL.REGEN_LIMIT} Regenerierungen heute uebrig`;
-        if (elements.goalRegenerateButton) {
-            elements.goalRegenerateButton.disabled = remaining === 0;
+}
+
+async function handlePresetSelection(presetKey) {
+    const goalMap = {
+        muscle: 'muscle',
+        endurance: 'endurance',
+        fatloss: 'fatloss',
+        calisthenics: 'calisthenics'
+    };
+    const goal = goalMap[presetKey] || 'muscle';
+
+    DQ_UI.hideAllPopups();
+    const lang = DQ_CONFIG.userSettings.language || 'de';
+    const trans = DQ_DATA.translations[lang] || DQ_DATA.translations.de;
+    const planLabels = {
+        muscle: trans.goal_muscle || 'Muskelaufbau',
+        endurance: trans.goal_endurance || 'Ausdauer',
+        fatloss: trans.goal_fatloss || 'Abnehmen',
+        calisthenics: trans.goal_calisthenics || 'Calisthenics'
+    };
+
+        const startTodayBtn = `<button type="button" id="plan-start-today" class="card-button">${trans.manual_plan_start_today || 'Heute starten'}</button>`;
+        const startTomorrowBtn = `<button type="button" id="plan-start-tomorrow" class="card-button secondary-button">${trans.manual_plan_start_tomorrow || 'Ab morgen'}</button>`;
+        DQ_UI.showCustomPopup(
+            `<h3>${trans.goal_success_title || 'Plan aktiviert!'}</h3><p>${planLabels[goal]}</p><p style="font-size:12px;opacity:0.7;margin-bottom:12px;">${trans.manual_plan_start_question || 'Moechtest du sofort mit deinem neuen Plan beginnen oder ab morgen?'}</p><div class="popup-actions">${startTodayBtn}${startTomorrowBtn}</div>`,
+        'info'
+    );
+
+    setTimeout(() => {
+        const todayBtn = document.querySelector('#plan-start-today');
+        const tomorrowBtn = document.querySelector('#plan-start-tomorrow');
+        if (todayBtn) {
+            todayBtn.addEventListener('click', async () => {
+                DQ_UI.hideAllPopups();
+                await saveSetting('planType', 'predefined');
+                await saveSetting('goal', goal);
+                await saveSetting('customPlanId', null);
+                await regenerateTodayDailyQuestsManually(true);
+                await updateCurrentPlanInfo();
+            }, { once: true });
         }
+        if (tomorrowBtn) {
+            tomorrowBtn.addEventListener('click', async () => {
+                DQ_UI.hideAllPopups();
+                await saveSetting('planType', 'predefined');
+                await saveSetting('goal', goal);
+                await saveSetting('customPlanId', null);
+                await updateCurrentPlanInfo();
+            }, { once: true });
+        }
+    }, 100);
+}
+
+async function openManualPlanOverlay() {
+    DQ_UI.hideAllPopups();
+    const overlay = document.getElementById('manual-plan-overlay');
+    if (overlay) {
+        overlay.classList.add('open');
+        await renderManualPlanList('all');
     }
 }
 
-async function handlePlanGeneration(preset, customPrompt) {
-    const elements = DQ_UI.elements;
+function closeManualPlanOverlay() {
+    const overlay = document.getElementById('manual-plan-overlay');
+    if (!overlay) return;
+    const sheet = overlay.querySelector('.settings-sheet');
+    overlay.style.opacity = '0';
+    if (sheet) sheet.style.transform = 'translateY(100%)';
+    setTimeout(() => {
+        overlay.classList.remove('open');
+        overlay.style.opacity = '';
+        if (sheet) sheet.style.transform = '';
+    }, 350);
+}
+
+let manualPlanSelected = new Set();
+
+async function renderManualPlanList(category) {
+    const listEl = document.getElementById('manual-plan-list');
+    if (!listEl) return;
+
+    listEl.classList.add('fading');
+    listEl.innerHTML = '<p style="text-align:center;opacity:0.5;padding:20px;">Lade...</p>';
+
+    const allExercises = DQ_MANUAL_PLAN.getAllExercises();
+    const customExercises = await DQ_MANUAL_PLAN.getAllCustomExercises();
+
+    let displayList = [];
+    if (category === 'all') {
+        displayList = allExercises.concat(customExercises.map(ex => ({ ...ex, category: 'user_created' })));
+    } else if (category === 'user_created') {
+        displayList = customExercises.map(ex => ({ ...ex, category: 'user_created' }));
+    } else {
+        displayList = allExercises.filter(ex => ex.category === category);
+    }
+
+    const lang = DQ_CONFIG.userSettings.language || 'de';
+    const trans = DQ_DATA.translations[lang] || DQ_DATA.translations.de;
+    const exerciseNames = trans.exercise_names || {};
+
+    if (displayList.length === 0) {
+        if (category === 'user_created') {
+            listEl.innerHTML = `
+                <div class="manual-plan-empty">
+                    <p data-lang-key="no_custom_exercises">${trans.no_custom_exercises || 'Noch keine eigenen Custom Aufgaben hinzugefuegt.'}</p>
+                </div>
+            `;
+        } else {
+            listEl.innerHTML = '<p style="text-align:center;opacity:0.5;padding:20px;">Keine Uebungen in dieser Kategorie.</p>';
+        }
+        listEl.classList.remove('fading');
+        updateManualPlanCounter();
+        return;
+    }
+
+    const atMax = manualPlanSelected.size >= DQ_MANUAL_PLAN.MAX_EXERCISES;
+
+    const html = displayList.map(ex => {
+        const name = exerciseNames[ex.nameKey] || ex.displayName || ex.nameKey;
+        const isChecked = manualPlanSelected.has(ex.id);
+        const dimmed = atMax && !isChecked;
+        return `
+            <div class="manual-plan-item ${isChecked ? 'selected' : ''} ${dimmed ? 'dimmed' : ''}" data-ex-id="${ex.id}">
+                <span class="manual-plan-check ${isChecked ? 'checked' : ''}">
+                    <span class="material-symbols-rounded">${isChecked ? 'check_circle' : 'circle'}</span>
+                </span>
+                <span class="manual-plan-item-name">${name}</span>
+            </div>
+        `;
+    }).join('');
+
+    listEl.innerHTML = html;
+
+    listEl.querySelectorAll('.manual-plan-item').forEach(item => {
+        item.addEventListener('click', () => {
+            if (item.classList.contains('dimmed')) return;
+            const exId = parseInt(item.dataset.exId, 10);
+            if (manualPlanSelected.has(exId)) {
+                manualPlanSelected.delete(exId);
+                item.classList.remove('selected');
+                item.querySelector('.manual-plan-check').classList.remove('checked');
+                item.querySelector('.manual-plan-check .material-symbols-rounded').textContent = 'circle';
+            } else {
+                if (manualPlanSelected.size >= DQ_MANUAL_PLAN.MAX_EXERCISES) {
+                    DQ_UI.showCustomPopup(`<p>${trans.manual_plan_max_reached || 'Maximal 30 Uebungen auswaehlbar.'}</p>`, 'penalty');
+                    return;
+                }
+                manualPlanSelected.add(exId);
+                item.classList.add('selected');
+                item.querySelector('.manual-plan-check').classList.add('checked');
+                item.querySelector('.manual-plan-check .material-symbols-rounded').textContent = 'check_circle';
+            }
+            updateManualPlanCounter();
+            updateDimmedState();
+        });
+    });
+
+    listEl.classList.remove('fading');
+    updateManualPlanCounter();
+    updateDimmedState();
+
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            const sheet = document.querySelector('#manual-plan-overlay .settings-sheet');
+            if (!sheet || !listEl) return;
+            const headerHeight = sheet.querySelector('.manual-plan-header')?.offsetHeight || 0;
+            const tabsHeight = sheet.querySelector('.manual-plan-tabs')?.offsetHeight || 0;
+            const footerHeight = sheet.querySelector('.manual-plan-footer')?.offsetHeight || 0;
+            const targetHeight = Math.min(listEl.scrollHeight + headerHeight + tabsHeight + footerHeight + 32, window.innerHeight * 0.9);
+            sheet.style.maxHeight = targetHeight + 'px';
+        });
+    });
+}
+
+function updateManualPlanCounter() {
+    const counter = document.getElementById('manual-plan-counter');
+    const saveBtn = document.getElementById('manual-plan-save-btn');
+    const minNeeded = 6;
+    if (counter) {
+        const count = manualPlanSelected.size;
+        counter.textContent = count >= minNeeded
+            ? `${count}/${DQ_MANUAL_PLAN.MAX_EXERCISES}`
+            : `${count}/${DQ_MANUAL_PLAN.MAX_EXERCISES} (mind. ${minNeeded})`;
+    }
+    if (saveBtn) saveBtn.disabled = manualPlanSelected.size < minNeeded;
+}
+
+function updateDimmedState() {
+    const atMax = manualPlanSelected.size >= DQ_MANUAL_PLAN.MAX_EXERCISES;
+    document.querySelectorAll('.manual-plan-item').forEach(item => {
+        const exId = parseInt(item.dataset.exId, 10);
+        if (atMax && !manualPlanSelected.has(exId)) {
+            item.classList.add('dimmed');
+        } else {
+            item.classList.remove('dimmed');
+        }
+    });
+}
+
+async function saveManualPlan() {
+    if (manualPlanSelected.size === 0) return;
+
     const lang = DQ_CONFIG.userSettings.language || 'de';
     const trans = DQ_DATA.translations[lang] || DQ_DATA.translations.de;
 
-    if (typeof DQ_MISTRAL === 'undefined') {
-        DQ_UI.showCustomPopup('KI-Modul nicht geladen.', 'penalty');
-        return;
-    }
-    if (!DQ_MISTRAL.canRegenerate()) {
-        DQ_UI.showCustomPopup(trans.goal_regen_limit || 'Regenerations-Limit erreicht (max 3/Tag).', 'penalty');
-        return;
-    }
-
-    if (elements.customPlanGenerateButton) elements.customPlanGenerateButton.disabled = true;
-    document.querySelectorAll('#goal-generate-popup [data-preset]').forEach(b => b.disabled = true);
-    if (elements.planGenerationLoading) elements.planGenerationLoading.style.display = 'flex';
-
-    const userContext = {
-        age: DQ_CONFIG.userSettings.age || null,
-        hasEquipment: DQ_CONFIG.userSettings.hasEquipment !== false,
-        difficulty: DQ_CONFIG.userSettings.difficulty || 3,
-        restDays: DQ_CONFIG.userSettings.restDays || 2
-    };
+    const planName = `Mein Plan (${manualPlanSelected.size} Uebungen)`;
+    const exerciseIds = Array.from(manualPlanSelected);
 
     try {
-        const result = await DQ_MISTRAL.generateAndSavePlan(customPrompt || preset, userContext);
-        if (result.success) {
-            await saveSetting('planType', 'custom');
-            await saveSetting('customPlanId', result.planId);
+        const planId = await DQ_MANUAL_PLAN.savePlan(planName, exerciseIds);
+        await DQ_MANUAL_PLAN.setActivePlan(planId);
 
-            DQ_UI.hideAllPopups();
-            const startsTomorrowText = trans.goal_success_tomorrow_info ||
-                'Dein neuer KI-Plan ist gespeichert und startet ab morgen. Heute bleiben deine aktuellen Daily Quests unveraendert; erledige heute noch die bisherigen Aufgaben.';
-            DQ_UI.showCustomPopup(
-                `<h3>${trans.goal_success_title || 'Plan erstellt!'}</h3><p>${result.plan.planName}</p><p style="font-size:12px;opacity:0.7;">${result.plan.planDescription || ''}</p><p style="font-size:12px;opacity:0.75;margin-top:10px;">${startsTomorrowText}</p>`,
-                'info'
-            );
+        closeManualPlanOverlay();
+        manualPlanSelected.clear();
 
-            await updateCurrentPlanInfo();
-        } else {
-            throw new Error(result.error || 'Generierung fehlgeschlagen');
+        const startTodayBtn = `<button type="button" id="plan-start-today" class="card-button">${trans.manual_plan_start_today || 'Heute starten'}</button>`;
+        const startTomorrowBtn = `<button type="button" id="plan-start-tomorrow" class="card-button secondary-button">${trans.manual_plan_start_tomorrow || 'Ab morgen'}</button>`;
+        DQ_UI.showCustomPopup(
+            `<h3>${trans.plan_created_title || 'Plan erstellt!'}</h3><p>${planName}</p><p style="font-size:12px;opacity:0.7;margin-bottom:12px;">${trans.manual_plan_start_question || 'Moechtest du sofort mit deinem neuen Plan beginnen oder ab morgen?'}</p><div class="popup-actions">${startTodayBtn}${startTomorrowBtn}</div>`,
+            'info'
+        );
+
+        setTimeout(() => {
+            const todayBtn = document.querySelector('#plan-start-today');
+            const tomorrowBtn = document.querySelector('#plan-start-tomorrow');
+            if (todayBtn) {
+                todayBtn.addEventListener('click', async () => {
+                    DQ_UI.hideAllPopups();
+                    await saveSetting('planType', 'custom');
+                    await saveSetting('customPlanId', planId);
+                    await regenerateTodayDailyQuestsManually(true);
+                    await updateCurrentPlanInfo();
+                }, { once: true });
+            }
+            if (tomorrowBtn) {
+                tomorrowBtn.addEventListener('click', async () => {
+                    DQ_UI.hideAllPopups();
+                    await saveSetting('planType', 'custom');
+                    await saveSetting('customPlanId', planId);
+                    await updateCurrentPlanInfo();
+                }, { once: true });
+            }
+        }, 100);
+    } catch (e) {
+        console.error('saveManualPlan error:', e);
+        DQ_UI.showCustomPopup(`<h3>Fehler</h3><p>Plan konnte nicht gespeichert werden.</p>`, 'penalty');
+    }
+}
+
+function openCustomExercisePopup() {
+    const popup = document.getElementById('custom-exercise-popup');
+    if (!popup) return;
+    document.getElementById('custom-ex-name').value = '';
+    document.getElementById('custom-ex-desc').value = '';
+    popup.style.zIndex = '10001';
+    popup.classList.add('show');
+}
+
+async function saveCustomExerciseFromPopup() {
+    const name = document.getElementById('custom-ex-name').value.trim();
+    const desc = document.getElementById('custom-ex-desc').value.trim();
+    const type = document.getElementById('custom-ex-type').value;
+    const baseValue = parseInt(document.getElementById('custom-ex-value').value, 10) || 10;
+    const needsEquipment = document.getElementById('custom-ex-equipment').value === 'true';
+    const muscle = document.getElementById('custom-ex-muscle').value;
+
+    if (!name) {
+        DQ_UI.showCustomPopup('<p>Bitte gib einen Namen ein.</p>', 'penalty');
+        return;
+    }
+
+    try {
+        await DQ_MANUAL_PLAN.saveCustomExercise({
+            displayName: name,
+            description: desc,
+            type: type,
+            baseValue: baseValue,
+            needsEquipment: needsEquipment,
+            muscles: [muscle]
+        });
+
+        const popup = document.getElementById('custom-exercise-popup');
+        if (popup) {
+            popup.classList.remove('show');
+            popup.style.zIndex = '';
+        }
+
+        const activeTab = document.querySelector('.manual-plan-tab.active');
+        if (activeTab) {
+            await renderManualPlanList(activeTab.dataset.cat);
+        }
+        if (typeof DQ_EXERCISES !== 'undefined') {
+            DQ_EXERCISES.renderFreeExercisesPage();
         }
     } catch (e) {
-        console.error('handlePlanGeneration error:', e);
-        DQ_UI.hideAllPopups();
-        DQ_UI.showCustomPopup(
-            `<h3>${trans.goal_error_title || 'Fehler bei Generierung'}</h3><p>${trans.goal_error_msg || 'Ein Fallback-Plan wird genutzt.'}</p><p style="font-size:11px;opacity:0.6;">${e.message || ''}</p>`,
-            'penalty'
-        );
-    } finally {
-        if (elements.customPlanGenerateButton) elements.customPlanGenerateButton.disabled = false;
-        document.querySelectorAll('#goal-generate-popup [data-preset]').forEach(b => b.disabled = false);
-        if (elements.planGenerationLoading) elements.planGenerationLoading.style.display = 'none';
-        if (elements.customPlanPrompt) elements.customPlanPrompt.value = '';
-        if (elements.customPlanGenerateButton) elements.customPlanGenerateButton.disabled = true;
-        await updateGoalSetupPopup();
+        console.error('saveCustomExercise error:', e);
+        DQ_UI.showCustomPopup('<p>Fehler beim Speichern.</p>', 'penalty');
     }
 }
 
@@ -1450,10 +1741,8 @@ function isRestOrRecoveryDayForQuestTopUp(goal, questsToday) {
         q.goal !== 'restday' && q.goal !== 'sick' && q.slotKey !== 'rest'
     );
     if (hasTrainingQuest) return false;
-    if (DQ_CONFIG.userSettings.planType === 'custom' &&
-        typeof DQ_CUSTOM_PLAN !== 'undefined' &&
-        typeof DQ_CUSTOM_PLAN.checkRestDay === 'function') {
-        return DQ_CUSTOM_PLAN.checkRestDay(DQ_CONFIG.userSettings.restDays || 0);
+    if (typeof DQ_MANUAL_PLAN !== 'undefined' && typeof DQ_MANUAL_PLAN.checkRestDay === 'function') {
+        return DQ_MANUAL_PLAN.checkRestDay(DQ_CONFIG.userSettings.restDays || 0);
     }
     return Array.isArray(questsToday) && questsToday.length > 0 &&
         questsToday.every(q => q.goal === 'restday' || q.goal === 'sick' || q.slotKey === 'rest');
@@ -1548,8 +1837,73 @@ async function repairTodayTrainingQuestCount() {
     return changed;
 }
 
-async function regenerateTodayDailyQuestsManually() {
+async function regenerateTodayDailyQuestsManually(forceTraining = false) {
     const todayStr = DQ_CONFIG.getTodayString();
+    const settings = DQ_CONFIG.userSettings || {};
+
+    if (forceTraining && settings.planType === 'custom' && settings.customPlanId && typeof DQ_MANUAL_PLAN !== 'undefined') {
+        const plan = await DQ_MANUAL_PLAN.getActivePlan(settings.customPlanId);
+        if (plan) {
+            const questsToday = await new Promise((resolve, reject) => {
+                const tx = DQ_DB.db.transaction(['daily_quests'], 'readonly');
+                const index = tx.objectStore('daily_quests').index('date');
+                const request = index.getAll(todayStr);
+                request.onsuccess = e => resolve(e.target.result || []);
+                request.onerror = e => reject(e.target.error);
+            });
+            await new Promise(resolve => {
+                const tx = DQ_DB.db.transaction(['daily_quests'], 'readwrite');
+                const store = tx.objectStore('daily_quests');
+                questsToday.forEach(q => store.delete(q.questId));
+                tx.oncomplete = resolve;
+                tx.onerror = resolve;
+            });
+            const result = await DQ_MANUAL_PLAN.getTodayQuestSet(plan, settings, true);
+            await new Promise(resolve => {
+                const tx = DQ_DB.db.transaction(['daily_quests'], 'readwrite');
+                const store = tx.objectStore('daily_quests');
+                result.quests.forEach(quest => store.add(quest));
+                tx.oncomplete = resolve;
+                tx.onerror = resolve;
+            });
+            localStorage.setItem('dq_last_local_update', String(Date.now()));
+            if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+            if (typeof DQ_EXERCISES !== 'undefined') DQ_EXERCISES.renderQuests();
+            return;
+        }
+    }
+
+    if (forceTraining && settings.planType === 'predefined') {
+        // Direkt Training-Quests generieren ohne Rest-Day-Check
+        const questsToday = await new Promise((resolve, reject) => {
+            const tx = DQ_DB.db.transaction(['daily_quests'], 'readonly');
+            const index = tx.objectStore('daily_quests').index('date');
+            const request = index.getAll(todayStr);
+            request.onsuccess = e => resolve(e.target.result || []);
+            request.onerror = e => reject(e.target.error);
+        });
+        await new Promise(resolve => {
+            const tx = DQ_DB.db.transaction(['daily_quests'], 'readwrite');
+            const store = tx.objectStore('daily_quests');
+            questsToday.forEach(q => store.delete(q.questId));
+            tx.oncomplete = resolve;
+            tx.onerror = resolve;
+        });
+        const goal = DQ_TRAINING_SYSTEM.normalizeGoal(settings.goal || 'muscle');
+        const result = await DQ_TRAINING_SYSTEM.getTodayQuestSet(true);
+        await new Promise(resolve => {
+            const tx = DQ_DB.db.transaction(['daily_quests'], 'readwrite');
+            const store = tx.objectStore('daily_quests');
+            result.quests.forEach(quest => store.add(quest));
+            tx.oncomplete = resolve;
+            tx.onerror = resolve;
+        });
+        localStorage.setItem('dq_last_local_update', String(Date.now()));
+        if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+        if (typeof DQ_EXERCISES !== 'undefined') DQ_EXERCISES.renderQuests();
+        return;
+    }
+
     const questsToday = await new Promise((resolve, reject) => {
         const tx = DQ_DB.db.transaction(['daily_quests'], 'readonly');
         const index = tx.objectStore('daily_quests').index('date');
@@ -1578,7 +1932,7 @@ async function generateDailyQuestsIfNeeded(forceRegenerate = false) {
     let goal = DQ_CONFIG.userSettings.goal || 'muscle';
     const hasEquipment = DQ_CONFIG.userSettings.hasEquipment !== false;
 
-    if (goal !== 'sick') {
+    if (goal !== 'sick' && DQ_CONFIG.userSettings.planType !== 'custom') {
         const dayOfWeek = new Date().getDay();
         const numRestDays = DQ_CONFIG.userSettings.restDays || 0;
         let activeRestDays = [];
@@ -1586,8 +1940,11 @@ async function generateDailyQuestsIfNeeded(forceRegenerate = false) {
             case 1: activeRestDays = [0]; break;
             case 2: activeRestDays = [2, 6]; break;
             case 3: activeRestDays = [0, 2, 4]; break;
+            case 4: activeRestDays = [0, 2, 4, 6]; break;
+            case 5: activeRestDays = [0, 1, 3, 5, 6]; break;
+            case 6: activeRestDays = [0, 1, 2, 4, 5, 6]; break;
         }
-        if (activeRestDays.includes(dayOfWeek) && DQ_CONFIG.userSettings.planType !== 'custom') {
+        if (activeRestDays.includes(dayOfWeek)) {
             goal = 'restday';
             console.log('Heute ist ein Rest Day! Generiere Erholungs-Quests.');
         }

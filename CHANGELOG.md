@@ -4,6 +4,40 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## Version 2.14.0 - Manuelles Trainingsplan-System
+
+### Erstellt
+- Manuelles Trainingsplan-System (DQ_MANUAL_PLAN) als Ersatz fuer KI-Generierung
+- Slide-up Panel zur Konfiguration eines eigenen Plans mit bis zu 30 Uebungen
+- Custom-Exercise-Erstellung: Eigene Uebungen mit Name, Beschreibung, Typ, Basiswert anlegen
+- "Selbst erstellte Uebungen"-Bereich im Freien Training
+- 4 Presets: Kraft, Ausdauer, Abnehmen, Calisthenics
+- Variety-Logik: Randomizer vermeidet Wiederholungen an aufeinanderfolgenden Tagen
+- Neue IndexedDB-Store "custom_user_exercises" fuer eigene Uebungen
+- Migration: User mit alten KI-Plaenen werden auf Standard-Preset zurueckgesetzt
+- Tutorial-Onboarding ohne KI: Presets und Custom-Plan-Auswahl direkt im Tutorial
+
+### Veraendert
+- App-Version auf 2.14.0 erhoeht
+- Service-Worker-Cache auf v31 erhoeht
+- IndexedDB-Version auf 39 erhoeht
+- Rest-Day-Logik vereinfacht: planType !== 'custom' Check entfernt, alle Pläne nutzen dieselbe Restday-Erkennung
+- Rest-Day-Patterns auf 0-6 Restdays erweitert (vorher nur 0-3)
+- Settings-UI: Trainingsziel-Popup zeigt Presets und Custom-Option statt KI-Generator
+- Training-System: Custom-Plan-Zweige nutzen DQ_MANUAL_PLAN statt DQ_CUSTOM_PLAN
+
+### Geloescht
+- KI-Trainingsplan-System komplett entfernt (Mistral AI Integration)
+- js/mistral-client.js geloescht (505 Zeilen)
+- js/custom-plan-system.js geloescht (606 Zeilen)
+- supabase/functions/mistral-proxy/ Edge Function geloescht (628+ Zeilen)
+- dq_ai_generations Supabase-Tabelle aus schema.sql entfernt
+- tests/11-custom-plan.test.js und tests/12-ai-plan-flow.test.js geloescht
+- KI-bezogene Uebersetzungsschluessel entfernt
+- Plan-Dokumente (plans/ai-training-plan*.md) geloescht
+
+---
+
 ## Version 2.13.3 - Daily-Quest-Reparatur fuer Heute
 
 ### Erstellt

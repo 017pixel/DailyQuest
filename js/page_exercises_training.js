@@ -517,55 +517,120 @@ Object.assign(DQ_EXERCISES, {
         const store = db.transaction(['exercises'], 'readonly').objectStore('exercises');
         const lang = DQ_CONFIG.userSettings.language || 'de';
         const difficulty = DQ_CONFIG.userSettings.difficulty || 3;
-        store.getAll().onsuccess = (e) => {
+        store.getAll().onsuccess = async (e) => {
             DQ_UI.elements.exerciseList.innerHTML = '';
             const allExercises = e.target.result;
             let filteredExercises = this.currentFreeExerciseFilter === 'all' 
                 ? allExercises 
                 : allExercises.filter(ex => ex.category === this.currentFreeExerciseFilter);
 
-            // --- FILTER: Hanteln ausblenden im Freien Training ---
             if (DQ_CONFIG.userSettings.hasEquipment === false) {
                 filteredExercises = filteredExercises.filter(ex => !ex.needsEquipment);
             }
 
             if (filteredExercises.length === 0) {
                 DQ_UI.elements.exerciseList.innerHTML = `<div class="card"><p>Keine Übungen in dieser Kategorie gefunden. <span class="material-symbols-rounded icon-accent" style="vertical-align: middle;">search_off</span></p></div>`;
-                return;
+            } else {
+                filteredExercises.forEach(exercise => {
+                    let targetValue = exercise.baseValue;
+                    if (exercise.type !== 'check' && exercise.type !== 'link' && exercise.type !== 'focus') {
+                        targetValue = Math.ceil(exercise.baseValue + (exercise.baseValue * 0.4 * (difficulty - 1)));
+                    }
+                    let targetDisplay = this.formatTargetDisplay(exercise.type, targetValue);
+
+                    const translatedName = (DQ_DATA.translations[lang].exercise_names[exercise.nameKey] || exercise.nameKey);
+                    
+                    const isFocusExercise = exercise.type === 'focus';
+                    const isTimeExercise = exercise.type === 'time' && targetValue <= 180;
+                    const buttonAction = isFocusExercise ? 'start-focus' : (isTimeExercise ? 'start-timer' : 'complete');
+                    const buttonText = isFocusExercise 
+                        ? (DQ_DATA.translations[lang].start_task_button || 'Los')
+                        : (isTimeExercise ? (DQ_DATA.translations[lang].timer_start_button || 'Los') : 'OK');
+
+                    const card = document.createElement('div');
+                    card.className = 'card exercise-card';
+                    card.dataset.exerciseId = exercise.id;
+                    card.innerHTML = `
+                        <div class="quest-info">
+                            <h2>${translatedName}</h2>
+                            ${targetDisplay ? `<p class="quest-target">${targetDisplay}</p>` : ''}
+                        </div>
+                        <div class="exercise-card-actions">
+                            <button class="action-button info-button-small" data-action="info" aria-label="Info">?</button>
+                            <button class="action-button complete-button-small" data-action="${buttonAction}" aria-label="Absolvieren">${buttonText}</button>
+                        </div>
+                    `;
+                    DQ_UI.elements.exerciseList.appendChild(card);
+                });
             }
 
-            filteredExercises.forEach(exercise => {
-                let targetValue = exercise.baseValue;
-                if (exercise.type !== 'check' && exercise.type !== 'link' && exercise.type !== 'focus') {
-                    targetValue = Math.ceil(exercise.baseValue + (exercise.baseValue * 0.4 * (difficulty - 1)));
-                }
-                let targetDisplay = this.formatTargetDisplay(exercise.type, targetValue);
-
-                const translatedName = (DQ_DATA.translations[lang].exercise_names[exercise.nameKey] || exercise.nameKey);
-                
-                const isFocusExercise = exercise.type === 'focus';
-                const isTimeExercise = exercise.type === 'time' && targetValue <= 180;
-                const buttonAction = isFocusExercise ? 'start-focus' : (isTimeExercise ? 'start-timer' : 'complete');
-                const buttonText = isFocusExercise 
-                    ? (DQ_DATA.translations[lang].start_task_button || 'Los')
-                    : (isTimeExercise ? (DQ_DATA.translations[lang].timer_start_button || 'Los') : 'OK');
-
-                const card = document.createElement('div');
-                card.className = 'card exercise-card';
-                card.dataset.exerciseId = exercise.id;
-                card.innerHTML = `
-                    <div class="quest-info">
-                        <h2>${translatedName}</h2>
-                        ${targetDisplay ? `<p class="quest-target">${targetDisplay}</p>` : ''}
-                    </div>
-                    <div class="exercise-card-actions">
-                        <button class="action-button info-button-small" data-action="info" aria-label="Info">?</button>
-                        <button class="action-button complete-button-small" data-action="${buttonAction}" aria-label="Absolvieren">${buttonText}</button>
-                    </div>
-                `;
-                DQ_UI.elements.exerciseList.appendChild(card);
-            });
+            if (this.currentFreeExerciseFilter === 'all' || this.currentFreeExerciseFilter === 'user_created') {
+                await this.renderCustomExercisesSection();
+            }
         };
+    },
+
+    async renderCustomExercisesSection() {
+        const lang = DQ_CONFIG.userSettings.language || 'de';
+        const trans = DQ_DATA.translations[lang] || DQ_DATA.translations.de;
+        const difficulty = DQ_CONFIG.userSettings.difficulty || 3;
+
+        let customExercises = [];
+        if (typeof DQ_MANUAL_PLAN !== 'undefined') {
+            try {
+                customExercises = await DQ_MANUAL_PLAN.getAllCustomExercises();
+            } catch (e) {
+                console.warn('Could not load custom exercises:', e);
+            }
+        }
+
+        const sectionHeader = document.createElement('div');
+        sectionHeader.className = 'custom-exercises-section-header';
+        sectionHeader.innerHTML = `<h2 class="section-divider-title" data-lang-key="self_created_exercises">${trans.self_created_exercises || 'Selbst erstellte Uebungen'}</h2>`;
+        DQ_UI.elements.exerciseList.appendChild(sectionHeader);
+
+        if (customExercises.length === 0) {
+            const emptyCard = document.createElement('div');
+            emptyCard.className = 'card custom-exercise-empty';
+            emptyCard.innerHTML = `<p data-lang-key="no_custom_exercises">Noch keine eigenen Custom Aufgaben hinzugefuegt. Erstelle deine erste eigene Uebung.</p>`;
+            DQ_UI.elements.exerciseList.appendChild(emptyCard);
+            return;
+        }
+
+        if (DQ_CONFIG.userSettings.hasEquipment === false) {
+            customExercises = customExercises.filter(ex => !ex.needsEquipment);
+        }
+
+        customExercises.forEach(exercise => {
+            let targetValue = exercise.baseValue;
+            if (exercise.type !== 'check' && exercise.type !== 'focus') {
+                targetValue = Math.ceil(exercise.baseValue + (exercise.baseValue * 0.4 * (difficulty - 1)));
+            }
+            let targetDisplay = this.formatTargetDisplay(exercise.type, targetValue);
+            const displayName = exercise.displayName || exercise.nameKey;
+
+            const isFocusExercise = exercise.type === 'focus';
+            const isTimeExercise = exercise.type === 'time' && targetValue <= 180;
+            const buttonAction = isFocusExercise ? 'start-focus' : (isTimeExercise ? 'start-timer' : 'complete');
+            const buttonText = isFocusExercise 
+                ? (trans.start_task_button || 'Los')
+                : (isTimeExercise ? (trans.timer_start_button || 'Los') : 'OK');
+
+            const card = document.createElement('div');
+            card.className = 'card exercise-card custom-exercise-card';
+            card.dataset.customExerciseId = exercise.id;
+            card.innerHTML = `
+                <div class="quest-info">
+                    <h2>${displayName}</h2>
+                    ${targetDisplay ? `<p class="quest-target">${targetDisplay}</p>` : ''}
+                </div>
+                <div class="exercise-card-actions">
+                    <button class="action-button info-button-small" data-action="info" aria-label="Info">?</button>
+                    <button class="action-button complete-button-small" data-action="${buttonAction}" aria-label="Absolvieren">${buttonText}</button>
+                </div>
+            `;
+            DQ_UI.elements.exerciseList.appendChild(card);
+        });
     },
     
     async completeFreeExercise(exerciseId) {

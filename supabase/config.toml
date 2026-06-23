@@ -1,6 +1,3 @@
-
-[functions.mistral-proxy]
-enabled = true
-verify_jwt = false
-import_map = "./functions/mistral-proxy/deno.json"
-entrypoint = "./functions/mistral-proxy/index.ts"
+# DailyQuest Supabase Configuration
+# KI-Edge-Function (mistral-proxy) wurde entfernt.
+# Das manuelle Trainingsplan-System benoetigt keine Edge Functions.

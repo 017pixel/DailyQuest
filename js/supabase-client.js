@@ -141,7 +141,7 @@ const DQ_SUPABASE = {
         this._resolveAuthDecision();
 
         // Bug L Fix: Wenn der User mit E-Mail-Redirect zurueckkommt und
-        // dq_intro_state existiert, stelle KI-Plan-Status wieder her,
+        // dq_intro_state existiert, stelle Trainingsplan-Status wieder her,
         // bevor weitere Sync-Operationen laufen.
         try {
             if (typeof DQ_TUTORIAL_STATE !== 'undefined' &&
@@ -527,7 +527,7 @@ const DQ_SUPABASE = {
                 'character', 'exercises', 'shop', 'daily_quests', 'extra_quest',
                 'weight_entries', 'vibe_state', 'dungeon_progress', 'tutorial_state',
                 'tutorial_dynamic_state', 'training_plan_state', 'training_activity_log',
-                'settings', 'focus_labels', 'custom_plans'
+                'settings', 'focus_labels', 'custom_plans', 'custom_user_exercises'
             ];
 
             for (const storeName of stores) {

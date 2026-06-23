@@ -10,7 +10,7 @@ const DQ_DB = {
     init: function () {
         return new Promise((resolve, reject) => {
             // --- VERSION ERHÖHT, UM UPDATE FÜR ALLE NUTZER ZU ERZWINGEN ---
-            const dbName = 'VibeCodenDB', dbVersion = 38;
+            const dbName = 'VibeCodenDB', dbVersion = 39;
             const request = indexedDB.open(dbName, dbVersion);
 
             request.onerror = (e) => {
@@ -138,9 +138,20 @@ const DQ_DB = {
                     console.log("Upgrade-Schritt: 2.13.3 Daily-Quest-Reparatur aktiv. Heute kann bei Bedarf neu generiert oder aufgefuellt werden.");
                 }
 
+                if (oldVersion < 39) {
+                    console.log("Upgrade-Schritt: Erstelle 'custom_user_exercises' Object Store fuer eigene Übungen.");
+                    if (!db.objectStoreNames.contains('custom_user_exercises')) {
+                        db.createObjectStore('custom_user_exercises', { keyPath: 'id', autoIncrement: true });
+                    }
+                }
+
                 // Sicherheits-Check: custom_plans sicherstellen
                 if (!db.objectStoreNames.contains('custom_plans')) {
                     db.createObjectStore('custom_plans', { keyPath: 'id', autoIncrement: true });
+                }
+                // Sicherheits-Check: custom_user_exercises sicherstellen
+                if (!db.objectStoreNames.contains('custom_user_exercises')) {
+                    db.createObjectStore('custom_user_exercises', { keyPath: 'id', autoIncrement: true });
                 }
 
                 console.log("Datenbank-Upgrade abgeschlossen.");

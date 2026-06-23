@@ -56,10 +56,10 @@ DQ_DATA.translations = {
         goal_setup_title: "Trainingsziel einrichten",
         goal_setup_current: "Dein aktueller Plan:",
         goal_setup_hint: "Pruefe deinen aktiven Plan oder erstelle einen neuen.",
-        goal_regenerate: "Neuen Plan erstellen",
-        goal_generate_kicker: "Plan Generator",
-        goal_generate_title: "Neuen Trainingsplan",
-        goal_generate_hint: "Waehle eine Richtung oder beschreibe dein Ziel selbst.",
+        goal_regenerate: "Plan aendern",
+        goal_generate_kicker: "Plan konfigurieren",
+        goal_generate_title: "Trainingsplan waehlen",
+        goal_generate_hint: "Waehle einen Preset oder stell dir deinen eigenen Plan zusammen.",
         goal_presets: "Schnellwahl",
         goal_preset_kraft: "Kraft & Muskelaufbau",
         goal_preset_kraft_hint: "Progressiv, stark, strukturiert.",
@@ -67,16 +67,29 @@ DQ_DATA.translations = {
         goal_preset_ausdauer_hint: "Kondition und Belastbarkeit.",
         goal_preset_abnehmen: "Gewicht verlieren",
         goal_preset_abnehmen_hint: "Kraft und Cardio kombiniert.",
-        goal_custom: "Oder eigene Beschreibung",
-        goal_custom_placeholder: "z.B. starke Beine und mehr Flexibilitaet",
-        goal_custom_help: "Beschreibe dein Ziel, Einschränkungen und Vorlieben kurz. Beispiel: mehr Beweglichkeit, keine Sprünge, 20 Minuten pro Tag.",
-        goal_generate_btn: "Plan generieren",
-        goal_generating: "Plan wird generiert...",
-        goal_success_title: "Plan erstellt!",
-        goal_success_tomorrow_info: "Dein neuer KI-Plan ist gespeichert und startet ab morgen. Heute bleiben deine aktuellen Daily Quests unveraendert; erledige heute noch die bisherigen Aufgaben.",
-        goal_error_title: "Fehler bei Generierung",
-        goal_error_msg: "Der KI-Plan konnte nicht erstellt werden. Dein aktueller Plan bleibt unveraendert. Bitte versuche es gleich nochmal.",
-        goal_regen_limit: "Regenerations-Limit erreicht (max 3/Tag).",
+        goal_preset_calisthenics: "Calisthenics",
+        goal_preset_calisthenics_hint: "Koerpergewicht, Skill, Kontrolle.",
+        goal_success_title: "Plan aktiviert!",
+        goal_success_tomorrow_info: "Dein neuer Plan ist gespeichert und startet ab morgen. Heute bleiben deine aktuellen Daily Quests unveraendert.",
+        manual_plan_title: "Eigenen Plan konfigurieren",
+        manual_plan_save: "Plan speichern",
+        manual_plan_max_reached: "Maximal 30 Uebungen auswaehlbar.",
+        manual_plan_start_today: "Heute starten",
+        manual_plan_start_tomorrow: "Ab morgen",
+        manual_plan_start_question: "Moechtest du sofort mit deinem neuen Plan beginnen oder ab morgen?",
+        plan_created_title: "Plan erstellt!",
+        manual_plan_applied_today: "Deine heutigen Daily Quests werden mit deinem neuen Plan ersetzt.",
+        manual_plan_applied_tomorrow: "Dein neuer Plan startet ab morgen. Heute bleiben deine aktuellen Daily Quests unveraendert.",
+        custom_exercise_create: "Eigene Uebung erstellen",
+        custom_exercise_name: "Name",
+        custom_exercise_desc: "Beschreibung",
+        custom_exercise_type: "Typ",
+        custom_exercise_value: "Basiswert",
+        custom_exercise_equipment: "Equipment noetig",
+        custom_exercise_muscle: "Muskelgruppe",
+        no_custom_exercises: "Noch keine eigenen Custom Aufgaben hinzugefuegt. Erstelle deine erste eigene Uebung.",
+        self_created_exercises: "Selbst erstellte Uebungen",
+        migration_ai_plan_replaced: "KI-Plaene entfernt - jetzt manuelle Plan-Erstellung",
         current_plan: "Aktuell:",
         goal_muscle: "Muskelaufbau",
         goal_endurance: "Ausdauer",
@@ -132,13 +145,27 @@ DQ_DATA.translations = {
 
         update_notice_intro: "Das ist neu in dieser Version:",
 
-        update_notice_page1_point1: "KI-Trainingsplan erstellt Plaene jetzt wieder zuverlaessig",
+        update_notice_page1_point1: "KI-Trainingsplaene entfernt - jetzt manuelle Plan-Erstellung",
 
-        update_notice_page1_point2: "Fehler werden sichtbar angezeigt und der aktive Plan bleibt stabil",
+        update_notice_page1_point2: "4 Presets und individuelle eigene Plaene konfigurierbar",
 
-        update_notice_page2_point1: "Supabase-Backend und Mistral-Antworten wurden robuster gemacht",
+        update_notice_page2_point1: "Eigene Uebungen mit Namen und Basiswert selbst erstellbar",
 
-        update_notice_page2_point2: "Ladeanzeige, Texte und Plan-Erstellung wurden nachgeschaerft",
+        update_notice_page2_point2: "Stabilere Rest-Day-Logik und Bugfixes",
+
+        update_point_1: "KI-Trainingsplaene entfernt – jetzt manuelle Plan-Erstellung",
+
+        update_point_2: "4 Presets (Kraft, Ausdauer, Abnehmen, Calisthenics) als Schnellwahl",
+
+        update_point_3: "Eigene Trainingsplaene mit bis zu 30 Uebungen aus dem freien Training",
+
+        update_point_4: "Selbst erstellte Uebungen mit Namen und eigenem Basiswert",
+
+        update_point_5: "Bugfix: Rest-Day-Logik stabilisiert, keine doppelten Quests mehr",
+
+        update_point_6: "Heute-oder-morgen-Wahl beim Planwechsel",
+
+        update_point_7: "Deine Phase und Streak bleiben erhalten beim Update",
 
         update_notice_step_label: "Seite",
 
@@ -398,10 +425,10 @@ DQ_DATA.translations = {
         goal_setup_title: "Configure Training Goal",
         goal_setup_current: "Your current plan:",
         goal_setup_hint: "Review your active plan or create a new one.",
-        goal_regenerate: "Create new plan",
-        goal_generate_kicker: "Plan Generator",
-        goal_generate_title: "New Training Plan",
-        goal_generate_hint: "Pick a direction or describe your goal yourself.",
+        goal_regenerate: "Change plan",
+        goal_generate_kicker: "Configure plan",
+        goal_generate_title: "Choose training plan",
+        goal_generate_hint: "Pick a preset or build your own plan.",
         goal_presets: "Quick selection",
         goal_preset_kraft: "Strength & Muscle",
         goal_preset_kraft_hint: "Progressive, strong, structured.",
@@ -409,16 +436,29 @@ DQ_DATA.translations = {
         goal_preset_ausdauer_hint: "Conditioning and stamina.",
         goal_preset_abnehmen: "Weight loss",
         goal_preset_abnehmen_hint: "Strength and cardio combined.",
-        goal_custom: "Or custom description",
-        goal_custom_placeholder: "e.g. strong legs and more flexibility",
-        goal_custom_help: "Briefly describe your goal, limits, and preferences. Example: more mobility, no jumping, 20 minutes per day.",
-        goal_generate_btn: "Generate plan",
-        goal_generating: "Generating plan...",
-        goal_success_title: "Plan created!",
-        goal_success_tomorrow_info: "Your new AI plan is saved and starts tomorrow. Today's Daily Quests stay unchanged; finish the current tasks for today.",
-        goal_error_title: "Generation failed",
-        goal_error_msg: "The AI plan could not be created. Your current plan stays unchanged. Please try again in a moment.",
-        goal_regen_limit: "Regeneration limit reached (max 3/day).",
+        goal_preset_calisthenics: "Calisthenics",
+        goal_preset_calisthenics_hint: "Bodyweight, skill, control.",
+        goal_success_title: "Plan activated!",
+        goal_success_tomorrow_info: "Your new plan is saved and starts tomorrow. Today's Daily Quests stay unchanged.",
+        manual_plan_title: "Configure your own plan",
+        manual_plan_save: "Save plan",
+        manual_plan_max_reached: "Maximum 30 exercises selectable.",
+        manual_plan_start_today: "Start today",
+        manual_plan_start_tomorrow: "From tomorrow",
+        manual_plan_start_question: "Do you want to start with your new plan now or tomorrow?",
+        plan_created_title: "Plan created!",
+        manual_plan_applied_today: "Today's Daily Quests will be replaced with your new plan.",
+        manual_plan_applied_tomorrow: "Your new plan starts tomorrow. Today's Daily Quests remain unchanged.",
+        custom_exercise_create: "Create custom exercise",
+        custom_exercise_name: "Name",
+        custom_exercise_desc: "Description",
+        custom_exercise_type: "Type",
+        custom_exercise_value: "Base value",
+        custom_exercise_equipment: "Equipment needed",
+        custom_exercise_muscle: "Muscle group",
+        no_custom_exercises: "No custom exercises yet. Create your first own exercise.",
+        self_created_exercises: "Self-created exercises",
+        migration_ai_plan_replaced: "AI plans removed - now manual plan creation",
         current_plan: "Current:",
         goal_muscle: "Muscle Building",
         goal_endurance: "Endurance",
@@ -474,13 +514,27 @@ DQ_DATA.translations = {
 
         update_notice_intro: "What's new in this version:",
 
-        update_notice_page1_point1: "AI training plans now create plans reliably again",
+        update_notice_page1_point1: "AI training plans removed - now manual plan creation",
 
-        update_notice_page1_point2: "Errors are shown clearly and the active plan stays stable",
+        update_notice_page1_point2: "4 presets and configurable individual plans",
 
-        update_notice_page2_point1: "Supabase backend and Mistral responses are more robust",
+        update_notice_page2_point1: "Create your own exercises with name and base value",
 
-        update_notice_page2_point2: "Loading feedback, copy, and plan creation were refined",
+        update_notice_page2_point2: "More stable rest-day logic and bug fixes",
+
+        update_point_1: "AI training plans removed – now manual plan creation",
+
+        update_point_2: "4 presets (Strength, Endurance, Weight Loss, Calisthenics)",
+
+        update_point_3: "Custom training plans with up to 30 exercises from free training",
+
+        update_point_4: "Self-created exercises with custom name and base value",
+
+        update_point_5: "Bugfix: Rest-day logic stabilized, no more duplicate quests",
+
+        update_point_6: "Start-today-or-tomorrow choice when switching plans",
+
+        update_point_7: "Your phase and streak are preserved during the update",
 
         update_notice_step_label: "Page",
 

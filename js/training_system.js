@@ -350,11 +350,11 @@ const DQ_TRAINING_SYSTEM = {
         const settings = DQ_CONFIG.userSettings || {};
         const goal = this.normalizeGoal(settings.goal || 'muscle');
 
-        if (settings.planType === 'custom' && settings.customPlanId && typeof DQ_CUSTOM_PLAN !== 'undefined') {
+        if (settings.planType === 'custom' && settings.customPlanId && typeof DQ_MANUAL_PLAN !== 'undefined') {
             try {
-                const customPlan = await DQ_CUSTOM_PLAN.getActivePlan(settings.customPlanId);
+                const customPlan = await DQ_MANUAL_PLAN.getActivePlan(settings.customPlanId);
                 if (customPlan) {
-                    return await DQ_CUSTOM_PLAN.getTodayQuestSet(customPlan, settings);
+                    return await DQ_MANUAL_PLAN.getTodayQuestSet(customPlan, settings);
                 }
                 console.warn('Custom Plan nicht gefunden (id=' + settings.customPlanId + '), nutze predefined');
             } catch (e) {
@@ -403,9 +403,9 @@ const DQ_TRAINING_SYSTEM = {
         const difficulty = opts.difficulty != null ? opts.difficulty : (settings.difficulty || 3);
         const hasEquipment = settings.hasEquipment !== false;
 
-        if (settings.planType === 'custom' && settings.customPlanId && typeof DQ_CUSTOM_PLAN !== 'undefined') {
+        if (settings.planType === 'custom' && settings.customPlanId && typeof DQ_MANUAL_PLAN !== 'undefined') {
             try {
-                await DQ_CUSTOM_PLAN.rescaleOpenQuests(openQuests, todayStr, { difficulty });
+                await DQ_MANUAL_PLAN.rescaleOpenQuests(openQuests, todayStr, { difficulty });
                 return openQuests;
             } catch (e) {
                 console.error('Custom rescaleOpenQuests error:', e);
@@ -577,13 +577,8 @@ const DQ_TRAINING_SYSTEM = {
     async applyPhaseAction(goal, action) {
         const settings = DQ_CONFIG.userSettings || {};
 
-        if (settings.planType === 'custom' && settings.customPlanId && typeof DQ_CUSTOM_PLAN !== 'undefined') {
-            try {
-                await DQ_CUSTOM_PLAN.applyPhaseAction(action);
-                return;
-            } catch (e) {
-                console.error('Custom applyPhaseAction error:', e);
-            }
+        if (settings.planType === 'custom' && settings.customPlanId && typeof DQ_MANUAL_PLAN !== 'undefined') {
+            return;
         }
 
         const normalized = this.normalizeGoal(goal);

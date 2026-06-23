@@ -147,6 +147,11 @@ const DQ_UI = {
     showPopup(popupElement) {
         if (this.popupStack.includes(popupElement)) return;
 
+        if (this._overlayHideTimeout) {
+            clearTimeout(this._overlayHideTimeout);
+            this._overlayHideTimeout = null;
+        }
+
         this.elements.popupOverlay.classList.add('show');
         
         requestAnimationFrame(() => {
@@ -353,8 +358,14 @@ const DQ_UI = {
         popupToHide.classList.remove('show');
 
         if (this.popupStack.length === 0) {
-            setTimeout(() => {
-                this.elements.popupOverlay.classList.remove('show');
+            if (this._overlayHideTimeout) {
+                clearTimeout(this._overlayHideTimeout);
+            }
+            this._overlayHideTimeout = setTimeout(() => {
+                if (this.popupStack.length === 0) {
+                    this.elements.popupOverlay.classList.remove('show');
+                }
+                this._overlayHideTimeout = null;
             }, 400);
         }
     },

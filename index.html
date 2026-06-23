@@ -647,14 +647,14 @@
         </div>
     </div>
 
-    <!-- Popup: Trainingsziel einrichten (aktueller Plan + Regenerieren) -->
+    <!-- Popup: Trainingsziel einrichten (neues manuelles System) -->
     <div id="goal-setup-popup" class="popup popup-large training-plan-popup">
         <div class="popup-drag-handle"></div>
         <div class="popup-content training-plan-sheet">
             <header class="training-plan-sheet-header">
                 <span class="training-plan-kicker" data-lang-key="settings_training">Training</span>
                 <h3 data-lang-key="goal_setup_title">Trainingsziel einrichten</h3>
-                <p data-lang-key="goal_setup_hint">Pruefe deinen aktiven Plan oder erstelle einen neuen.</p>
+                <p data-lang-key="goal_setup_hint">Waehle einen Preset oder konfiguriere deinen eigenen Plan.</p>
             </header>
             <section id="current-plan-display" class="active-plan-card" aria-live="polite">
                 <span class="active-plan-label" data-lang-key="goal_setup_current">Dein aktueller Plan:</span>
@@ -665,60 +665,148 @@
             <div class="training-plan-actions">
                 <button id="goal-regenerate-button" class="training-primary-action">
                     <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
-                    <span data-lang-key="goal_regenerate">Neuen Plan erstellen</span>
+                    <span data-lang-key="goal_regenerate">Plan aendern</span>
                 </button>
-                <span id="regeneration-counter" class="training-plan-counter"></span>
             </div>
         </div>
     </div>
 
-    <!-- Popup: Neuen Plan generieren (Presets + Custom) -->
+    <!-- Popup: Neuen Plan waehlen (Presets + Custom) -->
     <div id="goal-generate-popup" class="popup popup-large training-plan-popup">
         <div class="popup-drag-handle"></div>
         <div class="popup-content training-plan-sheet">
             <header class="training-plan-sheet-header">
-                <span class="training-plan-kicker" data-lang-key="goal_generate_kicker">Plan Generator</span>
-                <h3 data-lang-key="goal_generate_title">Neuen Trainingsplan</h3>
-                <p data-lang-key="goal_generate_hint">Waehle eine Richtung oder beschreibe dein Ziel selbst.</p>
+                <span class="training-plan-kicker" data-lang-key="goal_generate_kicker">Plan konfigurieren</span>
+                <h3 data-lang-key="goal_generate_title">Trainingsplan waehlen</h3>
+                <p data-lang-key="goal_generate_hint">Waehle einen Preset oder stell dir deinen eigenen Plan zusammen.</p>
             </header>
             <div class="training-plan-section-title" data-lang-key="goal_presets">Schnellwahl</div>
             <section class="training-preset-grid" aria-label="Schnellwahl">
-                <button class="training-preset-card" data-preset="kraft">
+                <button class="training-preset-card" data-preset="muscle">
                     <span class="material-symbols-rounded" aria-hidden="true">fitness_center</span>
                     <span class="training-preset-copy">
                         <strong data-lang-key="goal_preset_kraft">Kraft &amp; Muskelaufbau</strong>
                         <small data-lang-key="goal_preset_kraft_hint">Progressiv, stark, strukturiert.</small>
                     </span>
                 </button>
-                <button class="training-preset-card" data-preset="ausdauer">
+                <button class="training-preset-card" data-preset="endurance">
                     <span class="material-symbols-rounded" aria-hidden="true">directions_run</span>
                     <span class="training-preset-copy">
                         <strong data-lang-key="goal_preset_ausdauer">Ausdauer &amp; Cardio</strong>
                         <small data-lang-key="goal_preset_ausdauer_hint">Kondition und Belastbarkeit.</small>
                     </span>
                 </button>
-                <button class="training-preset-card" data-preset="abnehmen">
+                <button class="training-preset-card" data-preset="fatloss">
                     <span class="material-symbols-rounded" aria-hidden="true">local_fire_department</span>
                     <span class="training-preset-copy">
                         <strong data-lang-key="goal_preset_abnehmen">Gewicht verlieren</strong>
                         <small data-lang-key="goal_preset_abnehmen_hint">Kraft und Cardio kombiniert.</small>
                     </span>
                 </button>
-            </section>
-            <section class="custom-plan-field">
-                <label for="custom-plan-prompt" data-lang-key="goal_custom">Oder eigene Beschreibung</label>
-                <input type="text" id="custom-plan-prompt" data-lang-key-placeholder="goal_custom_placeholder" placeholder="z.B. starke Beine und mehr Flexibilitaet" maxlength="200" autocomplete="off">
-                <small data-lang-key="goal_custom_help">Beschreibe dein Ziel, Einschränkungen und Vorlieben kurz. Beispiel: mehr Beweglichkeit, keine Sprünge, 20 Minuten pro Tag.</small>
+                <button class="training-preset-card" data-preset="calisthenics">
+                    <span class="material-symbols-rounded" aria-hidden="true">self_improvement</span>
+                    <span class="training-preset-copy">
+                        <strong data-lang-key="goal_preset_calisthenics">Calisthenics</strong>
+                        <small data-lang-key="goal_preset_calisthenics_hint">Koerpergewicht, Skill, Kontrolle.</small>
+                    </span>
+                </button>
             </section>
             <div class="training-plan-actions">
-                <button id="custom-plan-generate-button" class="training-primary-action" disabled>
-                    <span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span>
-                    <span data-lang-key="goal_generate_btn">Plan generieren</span>
+                <button id="custom-plan-generate-button" class="training-primary-action">
+                    <span class="material-symbols-rounded" aria-hidden="true">edit</span>
+                    <span data-lang-key="manual_plan_title">Eigenen Plan konfigurieren</span>
                 </button>
             </div>
-            <div id="plan-generation-loading" class="training-plan-loading">
-                <span class="material-symbols-rounded" aria-hidden="true">progress_activity</span>
-                <p data-lang-key="goal_generating">Plan wird generiert...</p>
+        </div>
+    </div>
+
+    <!-- Popup: Custom Plan Konfigurator (Slide-up Panel) -->
+    <div id="manual-plan-overlay" class="settings-overlay">
+        <div class="settings-overlay-bg"></div>
+        <div class="settings-sheet manual-plan-sheet">
+            <div class="settings-swipe-handle"></div>
+            <div class="manual-plan-header">
+                <button id="manual-plan-back-btn" class="manual-plan-back-btn">
+                    <span class="material-symbols-rounded">arrow_back</span>
+                </button>
+                <h3 data-lang-key="manual_plan_title">Eigenen Plan konfigurieren</h3>
+            </div>
+            <div class="manual-plan-tabs" id="manual-plan-tabs">
+                <button class="manual-plan-tab active" data-cat="all" data-lang-key="filter_all">Alle</button>
+                <button class="manual-plan-tab" data-cat="user_created" data-lang-key="self_created_exercises">Eigene Übungen</button>
+                <button class="manual-plan-tab" data-cat="muscle" data-lang-key="filter_muscle">Kraft</button>
+                <button class="manual-plan-tab" data-cat="endurance" data-lang-key="filter_endurance">Ausdauer</button>
+                <button class="manual-plan-tab" data-cat="fatloss" data-lang-key="filter_fatloss">Fettverbrennung</button>
+                <button class="manual-plan-tab" data-cat="calisthenics" data-lang-key="filter_bodyweight">Koerpergewicht</button>
+                <button class="manual-plan-tab" data-cat="learning" data-lang-key="filter_learning">Lernen</button>
+                <button class="manual-plan-tab" data-cat="restday" data-lang-key="filter_restday">Erholung</button>
+            </div>
+            <div id="manual-plan-list" class="manual-plan-list"></div>
+            <div class="manual-plan-footer">
+                <button id="manual-plan-create-exercise" class="manual-plan-create-btn">
+                    <span class="material-symbols-rounded">add</span>
+                    <span data-lang-key="custom_exercise_create">Eigene Uebung erstellen</span>
+                </button>
+                <div class="manual-plan-save-row">
+                    <span id="manual-plan-counter" class="manual-plan-counter">0/30</span>
+                    <button id="manual-plan-save-btn" class="training-primary-action" disabled>
+                        <span class="material-symbols-rounded">check</span>
+                        <span data-lang-key="manual_plan_save">Plan speichern</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popup: Custom Exercise erstellen -->
+    <div id="custom-exercise-popup" class="popup popup-large">
+        <div class="popup-drag-handle"></div>
+        <div class="popup-content">
+            <h3 data-lang-key="custom_exercise_create">Eigene Uebung erstellen</h3>
+            <div class="setting-item">
+                <label for="custom-ex-name" data-lang-key="custom_exercise_name">Name</label>
+                <input type="text" id="custom-ex-name" placeholder="z.B. Meine Spezialuebung" maxlength="60" autocomplete="off">
+            </div>
+            <div class="setting-item">
+                <label for="custom-ex-desc" data-lang-key="custom_exercise_desc">Beschreibung</label>
+                <input type="text" id="custom-ex-desc" placeholder="Kurze Anleitung" maxlength="200" autocomplete="off">
+            </div>
+            <div class="setting-item">
+                <label for="custom-ex-type" data-lang-key="custom_exercise_type">Typ</label>
+                <select id="custom-ex-type">
+                    <option value="reps">Wiederholungen</option>
+                    <option value="time">Zeit</option>
+                    <option value="check">Check (abhaken)</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label for="custom-ex-value" data-lang-key="custom_exercise_value">Basiswert</label>
+                <input type="number" id="custom-ex-value" min="1" max="999" step="1" value="10">
+            </div>
+            <div class="setting-item">
+                <label for="custom-ex-equipment" data-lang-key="custom_exercise_equipment">Equipment noetig</label>
+                <select id="custom-ex-equipment">
+                    <option value="false">Nein</option>
+                    <option value="true">Ja</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label for="custom-ex-muscle" data-lang-key="custom_exercise_muscle">Muskelgruppe</label>
+                <select id="custom-ex-muscle">
+                    <option value="general">Allgemein</option>
+                    <option value="chest">Brust</option>
+                    <option value="back">Ruecken</option>
+                    <option value="legs">Beine</option>
+                    <option value="abs">Bauch</option>
+                    <option value="shoulders">Schultern</option>
+                    <option value="arms">Arme</option>
+                    <option value="full_body">Ganzkoerper</option>
+                    <option value="mind">Geist & Mental</option>
+                </select>
+            </div>
+            <div class="popup-actions">
+                <button id="custom-ex-cancel" class="card-button secondary-button" data-lang-key="cancel">Abbrechen</button>
+                <button id="custom-ex-save" class="card-button" data-lang-key="save_button">Speichern</button>
             </div>
         </div>
     </div>
@@ -900,7 +988,7 @@
                         <div class="qr-code-wrapper"><div id="qr-code-canvas"></div></div>
                         <button class="settings-action-btn share-copy-btn" id="copy-url-btn" data-lang-key="share_copy">Link kopieren</button>
                         <a href="https://github.com/017pixel/DailyQuest" target="_blank" class="share-github-link"><span class="material-symbols-rounded">code</span><span data-lang-key="share_github">Zum Code</span></a>
-                        <div class="share-version">v2.13.3</div>
+                        <div class="share-version">v2.14.0</div>
                     </div>
                 </div>
             </div>
@@ -1192,9 +1280,8 @@
     <script src="js/supabase-config.js"></script>
     <script src="js/supabase-client.js"></script>
 
-    <!-- KI-Trainingsplan Integration -->
-    <script src="js/custom-plan-system.js"></script>
-    <script src="js/mistral-client.js"></script>
+    <!-- Manuelles Trainingsplan-System -->
+    <script src="js/manual-plan-system.js"></script>
 
     <script src="main.js"></script>
     <script src="js/fallback-check.js"></script>
