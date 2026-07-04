@@ -493,6 +493,72 @@
 }
 
 /* ===========================
+   LANGUAGE SELECTION
+   =========================== */
+
+.tutorial-language-selection .tutorial-choice-btn {
+    flex-direction: row;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.tutorial-beta-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #1a1a1a;
+    background: #f59e0b;
+    border-radius: 8px;
+    text-transform: uppercase;
+}
+
+.tutorial-choice-btn:hover .tutorial-beta-badge {
+    background: #fbbf24;
+}
+
+/* ===========================
+   INSTALL SELECTION & SKIP
+   =========================== */
+
+.tutorial-install-selection {
+    margin-bottom: 20px;
+}
+
+.tutorial-install-panel {
+    padding: 18px 22px;
+    background: rgba(95, 133, 117, 0.12);
+    border: 1px solid rgba(95, 133, 117, 0.3);
+    border-radius: 14px;
+    color: #ffffff;
+    font-size: 1rem;
+    line-height: 1.6;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.tutorial-skip-link {
+    display: block;
+    margin: 0 auto;
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.55);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    transition: color 0.2s ease;
+}
+
+.tutorial-skip-link:hover {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* ===========================
    PROGRESSIVE TUTORIAL SYSTEM
    =========================== */
 
@@ -726,6 +792,20 @@
         padding: 8px 18px;
         font-size: 0.85rem;
     }
+
+    .tutorial-install-panel {
+        padding: 14px 16px;
+        font-size: 0.9rem;
+    }
+
+    .tutorial-skip-link {
+        font-size: 0.82rem;
+    }
+
+    .tutorial-language-selection .tutorial-choice-btn {
+        gap: 8px;
+        padding: 18px 16px;
+    }
 }
 
 /* ===========================
@@ -773,4 +853,18 @@
 
 [data-theme="light"] .tutorial-spotlight {
     box-shadow: 0 0 0 4px rgba(95, 133, 117, 0.6), 0 0 0 8px rgba(95, 133, 117, 0.4), 0 0 40px 20px rgba(95, 133, 117, 0.5) !important;
+}
+
+[data-theme="light"] .tutorial-install-panel {
+    background: rgba(95, 133, 117, 0.1);
+    border-color: rgba(95, 133, 117, 0.4);
+    color: #1a1a1a;
+}
+
+[data-theme="light"] .tutorial-skip-link {
+    color: rgba(0, 0, 0, 0.45);
+}
+
+[data-theme="light"] .tutorial-skip-link:hover {
+    color: rgba(0, 0, 0, 0.7);
 }

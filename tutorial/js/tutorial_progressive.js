@@ -38,17 +38,6 @@ const DQ_TUTORIAL_PROGRESSIVE = {
                     text: 'WICHTIG: Schließe ALLE Daily Quests bis Mitternacht ab - sonst verlierst du ein Level und deine Streak wird zurückgesetzt!',
                     highlight: null,
                     position: 'center'
-                },
-                {
-                    text: 'Tipp: Installiere DailyQuest als App für das beste Erlebnis!',
-                    highlight: null,
-                    position: 'center'
-                },
-                {
-                    // Text wird dynamisch basierend auf OS gesetzt
-                    text: 'iOS: Tippe auf "Teilen" und dann "Zum Home-Bildschirm". Android: Tippe auf das Menü und "Zum Startbildschirm hinzufügen".',
-                    highlight: null,
-                    position: 'bottom'
                 }
             ]
         },
@@ -289,17 +278,6 @@ const DQ_TUTORIAL_PROGRESSIVE = {
 
         this.isShowing = false;
         this.currentFeature = null;
-
-        // OS Detection für Install-Text im Exercises Tutorial
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const exercisesGuide = this.featureGuides.exercises;
-        if (exercisesGuide && exercisesGuide.steps[4]) {
-            if (isIOS) {
-                exercisesGuide.steps[4].text = 'iOS: Tippe unten auf "Teilen" <span class="material-symbols-rounded" style="vertical-align:middle">ios_share</span> und dann auf "Zum Home-Bildschirm".';
-            } else {
-                exercisesGuide.steps[4].text = 'Android: Tippe oben rechts auf das Menü <span class="material-symbols-rounded" style="vertical-align:middle">more_vert</span> und wähle "Zum Startbildschirm zufügen".';
-            }
-        }
     },
 
     /**

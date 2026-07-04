@@ -1,4 +1,141 @@
 ﻿Object.assign(DQ_TUTORIAL_MAIN, {
+    async showBilingualWelcome() {
+        this.showText('Hallo! Willkommen bei DailyQuest.<br><br>Hello! Welcome to DailyQuest.');
+        this.showContinueButton('Starten');
+        await this.waitForContinue();
+        this.hideContinueButton();
+        await this.hideText();
+        await this.delay(250);
+    },
+
+    async showLanguageSelection() {
+        const textContainer = document.getElementById('tutorial-text-container');
+        if (!textContainer) return;
+
+        this.showText('Auf welcher Sprache moechtest du fortfahren?<br><br>Which language would you like to continue in?');
+        await this.delay(600);
+
+        textContainer.insertAdjacentHTML('beforeend', `
+            <div id="tutorial-language-selection" class="tutorial-selection-container tutorial-language-selection">
+                <button class="tutorial-choice-btn" data-lang="de">
+                    <span>Deutsch</span>
+                    <span class="choice-description">Standard</span>
+                </button>
+                <button class="tutorial-choice-btn" data-lang="en">
+                    <span>English</span>
+                    <span class="tutorial-beta-badge">Beta</span>
+                    <span class="choice-description">Translation still in progress</span>
+                </button>
+            </div>
+        `);
+
+        const buttons = document.querySelectorAll('#tutorial-language-selection [data-lang]');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', async () => {
+                this.selectedLanguage = btn.dataset.lang;
+
+                if (typeof DQ_CONFIG !== 'undefined') {
+                    DQ_CONFIG.userSettings.language = this.selectedLanguage;
+                }
+                if (typeof DQ_UI !== 'undefined' && typeof DQ_UI.applyTranslations === 'function') {
+                    DQ_UI.applyTranslations();
+                }
+
+                const selection = document.getElementById('tutorial-language-selection');
+                if (selection) {
+                    selection.classList.add('fade-out');
+                    await this.delay(500);
+                }
+
+                await this.hideText();
+                await this.delay(250);
+            });
+        });
+    },
+
+    async showInstallChoice() {
+        const textContainer = document.getElementById('tutorial-text-container');
+        if (!textContainer) return;
+
+        this.showText('Moechtest du DailyQuest im Browser nutzen oder als App installieren?');
+        await this.delay(600);
+
+        textContainer.insertAdjacentHTML('beforeend', `
+            <div id="tutorial-install-selection" class="tutorial-selection-container tutorial-install-selection">
+                <button class="tutorial-choice-btn" data-install="browser">
+                    <span>Im Browser nutzen</span>
+                    <span class="choice-description">Direkt loslegen, keine Installation noetig</span>
+                </button>
+                <button class="tutorial-choice-btn" data-install="app">
+                    <span>Als App installieren</span>
+                    <span class="choice-description">Fuer das beste Erlebnis auf deinem Geraet</span>
+                </button>
+            </div>
+            <button id="tutorial-install-skip" class="tutorial-skip-link">Diesen Schritt habe ich schon gemacht, ueberspringen</button>
+        `);
+
+        const self = this;
+
+        async function proceedToNextStep() {
+            const selection = document.getElementById('tutorial-install-selection');
+            const skipBtn = document.getElementById('tutorial-install-skip');
+            if (selection) {
+                selection.classList.add('fade-out');
+                await self.delay(300);
+                selection.remove();
+            }
+            if (skipBtn) skipBtn.remove();
+            await self.hideText();
+            await self.delay(250);
+        }
+
+        document.querySelectorAll('#tutorial-install-selection [data-install]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (btn.dataset.install === 'browser') {
+                    await proceedToNextStep();
+                } else {
+                    self.choseAppInstall = true;
+                    const selection = document.getElementById('tutorial-install-selection');
+                    const skipBtn = document.getElementById('tutorial-install-skip');
+                    if (selection) selection.remove();
+                    if (skipBtn) skipBtn.remove();
+                    await self.hideText();
+                    await self.showInstallInstructions();
+                }
+            });
+        });
+
+        document.getElementById('tutorial-install-skip').addEventListener('click', async () => {
+            await proceedToNextStep();
+        });
+    },
+
+    async showInstallInstructions() {
+        const textContainer = document.getElementById('tutorial-text-container');
+        if (!textContainer) return;
+
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isAndroid = /Android/.test(navigator.userAgent);
+
+        let instructions = '';
+        if (isIOS) {
+            instructions = 'iOS: Tippe unten in der Browser-Leiste auf "Teilen" und dann auf "Zum Home-Bildschirm".';
+        } else if (isAndroid) {
+            instructions = 'Android: Tippe oben rechts auf das Menu und waehle "Zum Startbildschirm hinzufuegen" oder "App installieren".';
+        } else {
+            instructions = 'Oeffne die Einstellungen deines Browsers und waehle "App installieren" oder "Zum Home-Bildschirm hinzufuegen".';
+        }
+
+        const container = document.getElementById('tutorial-text-container');
+        container.innerHTML += `<div id="tutorial-install-instructions" class="tutorial-panel tutorial-install-panel">${instructions}</div>`;
+
+        this.showContinueButton('Weiter');
+        await this.waitForContinue();
+        this.hideContinueButton();
+        await this.hidePanel('tutorial-install-panel');
+        await this.delay(250);
+    },
+
     async showPreNameWelcome() {
         this.showText('Willkommen bei DailyQuest.');
         this.showContinueButton('Starten');
@@ -49,6 +186,7 @@
                     customPlanId: (typeof this.customPlanId === 'number') ? this.customPlanId : null,
                     seniorMode: this.seniorMode,
                     seniorModeOptOut: this.seniorModeOptOut,
+                    selectedLanguage: this.selectedLanguage || 'de',
                     savedAt: Date.now()
                 };
                 localStorage.setItem('dq_intro_state', JSON.stringify(introState));

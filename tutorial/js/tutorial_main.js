@@ -13,6 +13,8 @@ const DQ_TUTORIAL_MAIN = {
     customPlanId: null,
     seniorMode: false,
     seniorModeOptOut: false,
+    selectedLanguage: 'de',
+    choseAppInstall: false,
     continueButton: null,
     waitingForContinue: false,
 
@@ -25,6 +27,8 @@ const DQ_TUTORIAL_MAIN = {
         this.customPlanId = null;
         this.seniorMode = false;
         this.seniorModeOptOut = false;
+        this.selectedLanguage = 'de';
+        this.choseAppInstall = false;
         this.waitingForContinue = false;
     },
 
@@ -65,6 +69,7 @@ const DQ_TUTORIAL_MAIN = {
             this.customPlanId = (typeof savedState.customPlanId === 'number') ? savedState.customPlanId : null;
             this.seniorMode = savedState.seniorMode || false;
             this.seniorModeOptOut = savedState.seniorModeOptOut || false;
+            this.selectedLanguage = savedState.selectedLanguage || 'de';
 
             // Loesche gespeicherten Zustand
             this.clearIntroState();
@@ -78,7 +83,9 @@ const DQ_TUTORIAL_MAIN = {
             }
         }
 
-        await this.showPreNameWelcome();
+        await this.showBilingualWelcome();
+        await this.showLanguageSelection();
+        await this.showInstallChoice();
         await this.showNameInput();
     },
 

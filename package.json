@@ -1,0 +1,14 @@
+{
+  "name": "dailyquest",
+  "version": "2.14.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 1111",
+    "build": "vite build",
+    "preview": "vite preview --port 1111"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}
