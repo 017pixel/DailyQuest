@@ -4,6 +4,31 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## [2.15.2] - 2026-07-05
+
+### Erstellt
+- Sicherer Abschlussweg fuer Timer-Aufgaben hinzugefuegt
+- Neue Hotfix-Version fuer Timer-Aufgaben vorbereitet
+- Aktualisierte Versionsanzeige fuer die App hinzugefuegt
+- Neuer Offline-Cache fuer die aktuelle Version vorbereitet
+- Zusaetzliche Absicherung fuer Browser-Kompatibilitaet hinzugefuegt
+
+### Verändert
+- Timer-Aufgaben speichern nach dem Abschluss wieder zuverlaessig
+- Rote Fehlermeldung nach abgeschlossenen Timer-Aufgaben verhindert
+- App-Version von 2.15.1 auf 2.15.2 aktualisiert
+- Versionsanzeige in der App auf den neuen Hotfix angepasst
+- Offline-Aktualisierung fuer Nutzer sauber erneuert
+
+### Gelöscht
+- Zwingende Browser-Sonderfunktion beim Quest-Abschluss entfernt
+- Fehlerquelle beim Speichern von Timer-Aufgaben entfernt
+- Veraltete Versionsanzeige der vorherigen App-Version entfernt
+- Alten Offline-Cache-Namen fuer diese Version entfernt
+- Unnoetige Blockade beim Timer-Abschluss entfernt
+
+---
+
 ## [2.15.1] - 2026-07-05
 
 ### Erstellt

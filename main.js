@@ -195,7 +195,7 @@ const DQ_CONFIG = {
     },
 
     async performQuestCompletion(questId) {
-        await navigator.locks.request('quest-completion-lock', async () => {
+        const runCompletion = () => {
             return new Promise((resolve, reject) => {
                 const db = DQ_DB.db;
                 const tx = db.transaction(['daily_quests', 'character'], 'readwrite');
@@ -263,11 +263,19 @@ const DQ_CONFIG = {
                     };
                 };
             });
-        });
+
+        };
+
+        if (navigator.locks && typeof navigator.locks.request === 'function') {
+            await navigator.locks.request('quest-completion-lock', runCompletion);
+            return;
+        }
+
+        await runCompletion();
     }
 };
 
-const APP_VERSION = '2.15.0';
+const APP_VERSION = '2.15.2';
 const APP_UPDATE_FLAG_KEY = 'dq_seen_app_version';
 
 async function initializeApp() {
