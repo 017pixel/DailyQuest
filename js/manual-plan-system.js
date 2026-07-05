@@ -2,14 +2,13 @@
  * @file manual-plan-system.js
  * @description DQ_MANUAL_PLAN Modul - Verwaltet manuelle Trainingsplaene.
  * Zweck: Custom Pläne mit bis zu 30 ausgewählten Übungen, Randomizer für 6/Tag,
- *         Variety-Logik, Custom-Exercises CRUD, Rest-Day-Logik.
+ *         Variety-Logik, wger-Auswahl, Rest-Day-Logik.
  * Verbindungen: Wird von DQ_TRAINING_SYSTEM.getTodayQuestSet() aufgerufen wenn
  *               planType === 'custom'. Arbeitet mit DQ_CONFIG zusammen.
  */
 
 const DQ_MANUAL_PLAN = {
     STORE_NAME: 'custom_plans',
-    EXERCISE_STORE: 'custom_user_exercises',
     STATE_STORE: 'training_plan_state',
     MAX_EXERCISES: 30,
     DAILY_QUEST_COUNT: 6,
@@ -26,13 +25,16 @@ const DQ_MANUAL_PLAN = {
 
     CATEGORY_TABS: [
         { key: 'all', labelKey: 'filter_all' },
-        { key: 'muscle', labelKey: 'filter_muscle' },
-        { key: 'endurance', labelKey: 'filter_endurance' },
-        { key: 'fatloss', labelKey: 'filter_fatloss' },
-        { key: 'calisthenics', labelKey: 'filter_bodyweight' },
+        { key: 'Abs', labelKey: 'Abs' },
+        { key: 'Arms', labelKey: 'Arms' },
+        { key: 'Back', labelKey: 'Back' },
+        { key: 'Calves', labelKey: 'Calves' },
+        { key: 'Cardio', labelKey: 'Cardio' },
+        { key: 'Chest', labelKey: 'Chest' },
+        { key: 'Legs', labelKey: 'Legs' },
+        { key: 'Shoulders', labelKey: 'Shoulders' },
         { key: 'learning', labelKey: 'filter_learning' },
-        { key: 'restday', labelKey: 'filter_restday' },
-        { key: 'user_created', labelKey: 'self_created_exercises' }
+        { key: 'restday', labelKey: 'filter_restday' }
     ],
 
     t(key, fallback = key) {
@@ -47,6 +49,28 @@ const DQ_MANUAL_PLAN = {
             if (name) return name;
         }
         return nameKey;
+    },
+
+    getLegacyExerciseById(id) {
+        const numeric = Number(id);
+        const pool = (typeof DQ_DATA !== 'undefined' && DQ_DATA.exercisePool) ? DQ_DATA.exercisePool : {};
+        return Object.values(pool).flat().find(ex => Number(ex.id) === numeric) || null;
+    },
+
+    getLegacyExerciseByNameKey(nameKey) {
+        const pool = (typeof DQ_DATA !== 'undefined' && DQ_DATA.exercisePool) ? DQ_DATA.exercisePool : {};
+        return Object.values(pool).flat().find(ex => ex.nameKey === nameKey) || null;
+    },
+
+    normalizeLegacyExercise(ex, category = null) {
+        if (!ex) return null;
+        return {
+            ...ex,
+            category: category || ex.category || 'legacy',
+            source: ex.source || 'legacy_local',
+            manaReward: ex.manaReward ?? ex.mana,
+            goldReward: ex.goldReward ?? ex.gold
+        };
     },
 
     shuffle(arr) {
@@ -76,73 +100,65 @@ const DQ_MANUAL_PLAN = {
     },
 
     getAllExercises() {
-        const pool = (typeof DQ_DATA !== 'undefined' && DQ_DATA.exercisePool) ? DQ_DATA.exercisePool : {};
-        const all = [];
-        for (const category in pool) {
-            if (category === 'senior' || category === 'sick' || category === 'general_workout') continue;
-            pool[category].forEach(ex => {
-                all.push({ ...ex, category });
-            });
+        if (typeof DQ_WGER !== 'undefined') {
+            return DQ_WGER.getLocalExercises().filter(ex => !['senior', 'sick', 'general_workout'].includes(ex.category));
         }
-        return all;
+        const pool = (typeof DQ_DATA !== 'undefined' && DQ_DATA.exercisePool) ? DQ_DATA.exercisePool : {};
+        return ['learning', 'restday'].flatMap(category => (pool[category] || []).map(ex => ({ ...ex, category })));
     },
 
-    getExerciseById(id) {
+    async getSelectableExercises(category = 'all', filters = {}) {
+        if (typeof DQ_WGER === 'undefined') return this.getAllExercises();
+        const result = await DQ_WGER.queryExercises({
+            category,
+            search: filters.search || '',
+            equipment: filters.equipment || 'all',
+            muscle: filters.muscle || 'all',
+            hasEquipment: DQ_CONFIG.userSettings.hasEquipment !== false,
+            offset: 0,
+            limit: 1000
+        });
+        return result.items.filter(ex => !['sick', 'senior', 'general_workout'].includes(ex.category));
+    },
+
+    async getExerciseById(id) {
+        if (typeof DQ_WGER !== 'undefined') {
+            const wger = await DQ_WGER.getById(id);
+            if (wger) return wger;
+        }
+        const legacy = this.getLegacyExerciseById(id);
+        if (legacy) return this.normalizeLegacyExercise(legacy);
         const all = this.getAllExercises();
-        return all.find(ex => ex.id === id) || null;
+        return all.find(ex => String(ex.id) === String(id)) || null;
     },
 
-    getExerciseByNameKey(nameKey) {
+    async getExerciseByNameKey(nameKey) {
+        if (typeof DQ_WGER !== 'undefined') {
+            const wger = await DQ_WGER.getByNameKey(nameKey);
+            if (wger) return wger;
+        }
+        const legacy = this.getLegacyExerciseByNameKey(nameKey);
+        if (legacy) return this.normalizeLegacyExercise(legacy);
         const all = this.getAllExercises();
         return all.find(ex => ex.nameKey === nameKey) || null;
     },
 
     async getAllCustomExercises() {
-        return new Promise((resolve, reject) => {
-            const tx = DQ_DB.db.transaction([this.EXERCISE_STORE], 'readonly');
-            const request = tx.objectStore(this.EXERCISE_STORE).getAll();
-            request.onsuccess = () => resolve(request.result || []);
-            request.onerror = () => reject(request.error);
+        if (!DQ_DB.db?.objectStoreNames.contains('custom_user_exercises')) return [];
+        return new Promise(resolve => {
+            const tx = DQ_DB.db.transaction(['custom_user_exercises'], 'readonly');
+            const request = tx.objectStore('custom_user_exercises').getAll();
+            request.onsuccess = () => resolve((request.result || []).map(ex => this.normalizeLegacyExercise(ex, 'user_created')));
+            request.onerror = () => resolve([]);
         });
     },
 
     async saveCustomExercise(exercise) {
-        return new Promise((resolve, reject) => {
-            const tx = DQ_DB.db.transaction([this.EXERCISE_STORE], 'readwrite');
-            const store = tx.objectStore(this.EXERCISE_STORE);
-            const record = {
-                nameKey: exercise.nameKey || ('custom_user_' + Date.now().toString(36)),
-                displayName: exercise.displayName || 'Eigene Übung',
-                description: exercise.description || '',
-                type: exercise.type || 'reps',
-                baseValue: Math.max(1, parseInt(exercise.baseValue, 10) || 10),
-                category: 'user_created',
-                mana: this.calculateMana(exercise),
-                gold: this.calculateGold(exercise),
-                statPoints: this.calculateStatPoints(exercise),
-                needsEquipment: !!exercise.needsEquipment,
-                muscles: exercise.muscles || ['general'],
-                createdAt: Date.now()
-            };
-            const request = store.add(record);
-            request.onsuccess = () => {
-                if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
-                resolve(request.result);
-            };
-            request.onerror = () => reject(request.error);
-        });
+        throw new Error('Eigene Übungen wurden durch die wger-Datenbank ersetzt.');
     },
 
     async deleteCustomExercise(id) {
-        return new Promise((resolve, reject) => {
-            const tx = DQ_DB.db.transaction([this.EXERCISE_STORE], 'readwrite');
-            const request = tx.objectStore(this.EXERCISE_STORE).delete(id);
-            request.onsuccess = () => {
-                if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
-                resolve();
-            };
-            request.onerror = () => reject(request.error);
-        });
+        return;
     },
 
     calculateMana(ex) {
@@ -265,18 +281,18 @@ const DQ_MANUAL_PLAN = {
         });
     },
 
-    resolveExerciseById(id, customExercises) {
-        const builtIn = this.getExerciseById(id);
+    async resolveExerciseById(id, customExercises) {
+        const builtIn = await this.getExerciseById(id);
         if (builtIn) return builtIn;
         if (Array.isArray(customExercises)) {
-            const custom = customExercises.find(ex => ex.id === id);
+            const custom = customExercises.find(ex => String(ex.id) === String(id));
             if (custom) return custom;
         }
         return null;
     },
 
-    resolveExerciseByNameKey(nameKey, customExercises) {
-        const builtIn = this.getExerciseByNameKey(nameKey);
+    async resolveExerciseByNameKey(nameKey, customExercises) {
+        const builtIn = await this.getExerciseByNameKey(nameKey);
         if (builtIn) return builtIn;
         if (Array.isArray(customExercises)) {
             const custom = customExercises.find(ex => ex.nameKey === nameKey);
@@ -352,8 +368,8 @@ const DQ_MANUAL_PLAN = {
         const state = await this.getState(customPlan.id);
         const recent = Array.isArray(state.recentExercises) ? state.recentExercises.slice(-this.RECENT_HISTORY_SIZE) : [];
 
-        let pool = customPlan.exerciseIds
-            .map(id => this.resolveExerciseById(id, customExercises))
+        let pool = (await Promise.all((customPlan.exerciseIds || [])
+            .map(id => this.resolveExerciseById(id, customExercises))))
             .filter(ex => !!ex);
 
         pool = hasEquipment ? pool : pool.filter(ex => !ex.needsEquipment);
@@ -437,8 +453,8 @@ const DQ_MANUAL_PLAN = {
             target = Math.max(10, Math.round(template.baseValue * diffMultiplier));
         }
 
-        const manaReward = Math.max(5, Math.round(template.mana * (1 + 0.2 * (difficulty - 1))));
-        const goldReward = Math.max(3, Math.round(template.gold * (1 + 0.15 * (difficulty - 1))));
+        const manaReward = Math.max(5, Math.round((template.mana ?? template.manaReward ?? 1) * (1 + 0.2 * (difficulty - 1))));
+        const goldReward = Math.max(3, Math.round((template.gold ?? template.goldReward ?? 1) * (1 + 0.15 * (difficulty - 1))));
 
         let completionMode = 'tap';
         let setPlan = null;
@@ -460,8 +476,12 @@ const DQ_MANUAL_PLAN = {
             goal: 'custom',
             slotKey: 'custom',
             nameKey: template.nameKey,
-            customDisplayName: template.displayName || this.getExerciseDisplayName(template.nameKey),
-            customDescription: template.description || '',
+            nameDe: template.nameDe || null,
+            nameEn: template.nameEn || null,
+            descriptionDe: template.descriptionDe || null,
+            descriptionEn: template.descriptionEn || null,
+            customDisplayName: template.displayName || (typeof DQ_WGER !== 'undefined' ? DQ_WGER.getDisplayName(template) : this.getExerciseDisplayName(template.nameKey)),
+            customDescription: template.description || (typeof DQ_WGER !== 'undefined' ? DQ_WGER.getDescription(template) : ''),
             type: template.type,
             target: target,
             targetLabel: null,
@@ -484,7 +504,20 @@ const DQ_MANUAL_PLAN = {
             directStatGain: template.directStatGain || null,
             timerDuration: template.timerDuration || null,
             muscles: template.muscles || [],
-            isCustom: template.category === 'user_created'
+            musclesSecondary: template.musclesSecondary || [],
+            equipment: template.equipment || [],
+            source: template.source || (template.wgerId ? 'wger' : 'local'),
+            wgerId: template.wgerId || null,
+            imageUrl: template.imageUrl || '',
+            imageThumbSm: template.imageThumbSm || '',
+            imageThumbMd: template.imageThumbMd || '',
+            category: template.category || null,
+            license: template.license || null,
+            licenseUrl: template.licenseUrl || null,
+            licenseAuthor: template.licenseAuthor || null,
+            hasImage: template.hasImage || false,
+            videos: template.videos || [],
+            isCustom: true
         };
     },
 
@@ -502,7 +535,7 @@ const DQ_MANUAL_PLAN = {
 
         for (const quest of openQuests) {
             if (!quest.isCustom && quest.goal !== 'custom') continue;
-            const template = this.resolveExerciseByNameKey(quest.nameKey, customExercises);
+            const template = await this.resolveExerciseByNameKey(quest.nameKey, customExercises);
             if (!template) continue;
 
             const rebuilt = this.buildQuest(template, todayStr, 0, difficulty, hasEquipment);

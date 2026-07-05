@@ -115,6 +115,14 @@ senior: [
     ]
 };
 
+DQ_DATA.exercisePool = {
+    restday: DQ_DATA.exercisePool.restday || [],
+    learning: DQ_DATA.exercisePool.learning || [],
+    sick: DQ_DATA.exercisePool.sick || [],
+    senior: DQ_DATA.exercisePool.senior || [],
+    general_workout: DQ_DATA.exercisePool.general_workout || []
+};
+
 DQ_DATA.extraQuestPool = [
     { id: 601, nameKey: 'extra_clean_room', mana: 400, gold: 200, statPoints: { durchhaltevermoegen: 2, willenskraft: 2 }, muscles: ['mind', 'full_body'] },
     { id: 602, nameKey: 'extra_walk_hour', mana: 500, gold: 250, statPoints: { ausdauer: 2, durchhaltevermoegen: 3 }, muscles: ['legs'] },

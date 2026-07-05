@@ -42,6 +42,7 @@ const DYNAMIC_IDS = new Set([
     'endurance-power-input',
     // Tutorial-Onboarding (dynamisch im Overlay)
     'tutorial-name-submit', 'tutorial-name-input-container',
+    'tutorial-language-selection', 'tutorial-install-selection', 'tutorial-install-skip',
     'tutorial-equipment-selection', 'tutorial-goal-selection',
     'tutorial-progressive-overlay',
     'tutorial-plan-selection', 'tutorial-custom-input',

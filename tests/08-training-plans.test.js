@@ -15,7 +15,7 @@ function run() {
     const planKeys = Object.keys(plans);
     t.ok(planKeys.length >= 6, `Plan-Kategorien (${planKeys.length})`);
 
-    const validCompletionModes = ['sets', 'log', 'timer', 'tap'];
+    const validCompletionModes = ['sets', 'timer', 'tap'];
     const validGoals = ['muscle', 'calisthenics', 'fatloss', 'kraft_abnehmen', 'endurance', 'senior', 'sick', 'restday'];
 
     for (const key of Object.keys(plans)) {

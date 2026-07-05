@@ -82,8 +82,8 @@ DQ_DATA.trainingPlans = {
         ]
     },
     endurance: {
-        completionMode: 'log',
-        stageType: 'log',
+        completionMode: 'tap',
+        stageType: 'tap',
         stages: DQ_TRAINING_PLAN_ENDURANCE_STAGES,
         slots: [
             { key: 'warmup', candidates: ['walk_30min', 'jumping_jacks', 'short_walk'] },

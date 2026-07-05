@@ -4,6 +4,31 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## [2.15.0] - 2026-07-05
+
+### Erstellt
+- Neue wger-Uebungsdatenbank fuer deutlich mehr Trainingsauswahl hinzugefuegt
+- Neue Such-, Muskel- und Equipment-Filter fuer die Plan-Erstellung hinzugefuegt
+- Neues Update-Popup fuer bestehende Nutzer mit klarer Update-Uebersicht hinzugefuegt
+- Legacy-Schutz fuer alte Trainingsplaene und eigene Uebungen hinzugefuegt
+- Regressionstests fuer Intro, Equipment und Ausdauer-Abschluss hinzugefuegt
+
+### Veraendert
+- Bestehende Trainingsplaene laufen ohne wger-Zwang weiter
+- Ausdauer-Aufgaben werden direkt per OK statt per Eintragen abgeschlossen
+- Intro-Auswahl fuer Sprache und App-Nutzung wartet korrekt auf Nutzerentscheidung
+- Version, Offline-Cache und Datenbank-Migration auf das grosse Update vorbereitet
+- Neue Plaene koennen optional mit der erweiterten wger-Auswahl konfiguriert werden
+
+### Geloescht
+- Eintragen-Zwang fuer Ausdauer- und Strecken-Aufgaben entfernt
+- Blockade fuer alte Log-Ausdauerquests ohne Eintrag entfernt
+- Riskantes Loeschen alter eigener Uebungen aus der Migration entfernt
+- Alte Update-Texte zum KI-Plan-System aus dem Update-Popup entfernt
+- Veraltete Eintragen-Erklaerung aus dem Tutorial entfernt
+
+---
+
 ## Version 2.14.0 - Manuelles Trainingsplan-System
 
 ### Erstellt

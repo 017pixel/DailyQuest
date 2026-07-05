@@ -509,7 +509,8 @@ const DQ_SUPABASE = {
         // Nur App-relevante localStorage Keys loeschen (NICHT Supabase-Auth-Keys!)
         const keysToRemove = [
             'streakData', 'dq_seen_app_version', 'lastPenaltyCheck', 'dq_last_local_update',
-            'dq_has_equipment', 'dq_training_goal', 'dq_character_age', 'tutorial_reset_pending'
+            'dq_has_equipment', 'dq_training_goal', 'dq_character_age', 'tutorial_reset_pending',
+            'dq_wger_custom_plans_preserved', 'dq_wger_custom_plans_migrated'
         ];
         keysToRemove.forEach(key => localStorage.removeItem(key));
 
@@ -527,7 +528,7 @@ const DQ_SUPABASE = {
                 'character', 'exercises', 'shop', 'daily_quests', 'extra_quest',
                 'weight_entries', 'vibe_state', 'dungeon_progress', 'tutorial_state',
                 'tutorial_dynamic_state', 'training_plan_state', 'training_activity_log',
-                'settings', 'focus_labels', 'custom_plans', 'custom_user_exercises'
+                'settings', 'focus_labels', 'custom_plans', 'custom_user_exercises', 'wger_exercises'
             ];
 
             for (const storeName of stores) {

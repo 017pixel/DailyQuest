@@ -20,6 +20,7 @@ function loadData() {
     const files = [
         'data/translations.js',
         'data/exercises.js',
+        'data/wger-defaults.js',
         'data/training_plans.js',
         'data/achievements.js',
         'data/dungeons.js',
@@ -54,7 +55,7 @@ function getJsFiles(dir = BASE, rel = '') {
     const results = [];
     const entries = fs.readdirSync(path.join(dir, rel), { withFileTypes: true });
     for (const e of entries) {
-        if (e.name.startsWith('.') || e.name === 'vendor') continue;
+        if (e.name.startsWith('.') || e.name === 'vendor' || e.name === 'node_modules' || e.name === 'dist') continue;
         const fullRel = rel ? `${rel}/${e.name}` : e.name;
         if (e.isDirectory()) {
             results.push(...getJsFiles(dir, fullRel));

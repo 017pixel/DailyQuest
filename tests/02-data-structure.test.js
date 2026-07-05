@@ -11,7 +11,8 @@ function run() {
     // ── Exercise Pool ──
     const pool = DQ_DATA.exercisePool || {};
     const categories = Object.keys(pool);
-    t.ok(categories.length >= 6, `Exercise-Kategorien (${categories.length})`);
+    t.ok(categories.length >= 5, `Lokale Exercise-Kategorien (${categories.length})`);
+    t.ok(DQ_DATA.wgerDefaults && DQ_DATA.wgerDefaults.WGER_CATEGORIES.length === 8, 'wger-Sportkategorien definiert');
 
     const requiredFields = ['id', 'nameKey', 'type', 'baseValue', 'mana', 'gold'];
     let exerciseCount = 0;
@@ -29,7 +30,7 @@ function run() {
             exerciseCount++;
         }
     }
-    t.ok(exerciseCount >= 40, `Insgesamt >= 40 Exercises (${exerciseCount})`);
+    t.ok(exerciseCount >= 30, `Insgesamt >= 30 lokale Nicht-Sport-Exercises (${exerciseCount})`);
 
     // ── Achievements ──
     const achievements = DQ_DATA.achievements || {};

@@ -388,9 +388,22 @@
 .info-instruction-text {
     font-size: 13px;
     line-height: 1.7;
-    padding: 0 12px 12px 12px;
+    padding: 5px;
     text-align: left;
     word-wrap: break-word;
+}
+
+.info-instruction-text > *:first-child {
+    margin-top: 0;
+}
+
+.info-instruction-text > *:last-child {
+    margin-bottom: 0;
+}
+
+.info-instruction-text p,
+.info-instruction-text li {
+    margin: 4px 0;
 }
 
 /* Summary table – compact 2-col grid */
@@ -638,6 +651,151 @@
     font-weight: 600;
 }
 
+.manual-plan-filter-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    padding: 0 0 10px;
+}
+
+.manual-plan-filter-row select,
+.manual-plan-filter-row input {
+    min-height: 44px;
+    width: 100%;
+    border: 1px solid var(--outline-color);
+    border-radius: 8px;
+    background: var(--surface-container-color);
+    color: var(--on-surface-color);
+    padding: 0 10px;
+    font: inherit;
+}
+
+.loading-sentinel {
+    min-height: 48px;
+    display: grid;
+    place-items: center;
+    color: var(--on-surface-variant-color);
+}
+
+.info-media-frame {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: 8px;
+    background: var(--surface-container-high);
+    margin-bottom: 12px;
+}
+
+.info-exercise-image,
+.info-exercise-placeholder {
+    width: 100%;
+    height: 100%;
+}
+
+.info-exercise-image {
+    display: block;
+    object-fit: cover;
+}
+
+.info-exercise-placeholder {
+    display: grid;
+    place-items: center;
+    color: var(--on-surface-variant-color);
+}
+
+.info-exercise-placeholder .material-symbols-rounded {
+    font-size: 56px;
+}
+
+.muscle-badge.primary {
+    background: color-mix(in srgb, #e53935 22%, var(--surface-container-high));
+}
+
+.muscle-badge.secondary {
+    background: color-mix(in srgb, #fb8c00 18%, var(--surface-container-high));
+}
+
+.muscle-silhouette {
+    position: relative;
+    width: min(310px, 100%);
+    margin: 4px auto 10px;
+    padding: 12px 10px 6px;
+    border: 1px solid color-mix(in srgb, var(--outline-color) 72%, transparent);
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--surface-container-high) 70%, transparent);
+}
+
+.muscle-map {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.muscle-figure .body-base {
+    fill: color-mix(in srgb, var(--outline-color) 28%, var(--surface-container-high));
+    stroke: color-mix(in srgb, var(--outline-color) 75%, transparent);
+    stroke-width: 1.3;
+}
+
+.muscle-zone {
+    fill: color-mix(in srgb, var(--surface-container-high) 82%, var(--outline-color));
+    stroke: color-mix(in srgb, var(--outline-color) 55%, transparent);
+    stroke-width: 1.1;
+    opacity: 0.7;
+    transition: fill 0.2s ease, opacity 0.2s ease, stroke 0.2s ease;
+}
+
+.muscle-zone.is-active {
+    fill: #d94a3a;
+    stroke: #f6b0a8;
+    opacity: 1;
+}
+
+.muscle-zone.is-secondary {
+    fill: #c9792d;
+    stroke: #f1c095;
+    opacity: 0.92;
+}
+
+.muscle-map-label {
+    fill: var(--on-surface-variant-color);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-anchor: middle;
+    text-transform: uppercase;
+}
+
+html[data-theme='light'] .muscle-figure .body-base {
+    fill: color-mix(in srgb, var(--outline-color) 16%, var(--surface-container-high));
+}
+
+html[data-theme='light'] .muscle-zone {
+    fill: color-mix(in srgb, var(--surface-container-high) 92%, var(--outline-color));
+}
+
+html[data-theme='light'] .muscle-zone.is-active {
+    fill: #c83d2f;
+    stroke: #8f2419;
+}
+
+html[data-theme='light'] .muscle-zone.is-secondary {
+    fill: #b96720;
+    stroke: #7c4214;
+}
+
+.info-attribution {
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--on-surface-variant-color);
+}
+
+.info-attribution a {
+    color: inherit;
+    text-decoration: underline;
+}
+
 /* === Manual Plan Overlay === */
 .manual-plan-sheet {
     max-height: 90vh;
@@ -687,6 +845,12 @@
     overflow-x: auto;
     flex-shrink: 0;
     border-bottom: 1px solid var(--outline-color);
+}
+
+.manual-plan-filter-row {
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--outline-color);
+    flex-shrink: 0;
 }
 
 .manual-plan-tab {
@@ -806,6 +970,16 @@
     margin-bottom: 12px;
 }
 
+.manual-plan-create-btn {
+    display: none;
+}
+
+@media (max-width: 520px) {
+    .manual-plan-filter-row {
+        grid-template-columns: 1fr;
+    }
+}
+
 .manual-plan-create-btn:hover {
     border-color: var(--primary-color);
     color: var(--primary-color);
@@ -841,6 +1015,30 @@
 #manual-plan-save-btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+}
+
+.free-training-empty {
+    text-align: center;
+    padding: 40px 20px;
+    opacity: 0.7;
+}
+
+.info-instruction-empty {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px;
+    border-radius: 10px;
+    background: var(--surface-container-high);
+    font-size: 13px;
+    opacity: 0.65;
+    margin-bottom: 6px;
+}
+
+.info-exercise-video {
+    width: 100%;
+    border-radius: 8px;
+    margin-top: 8px;
 }
 
 #manual-plan-overlay {
@@ -881,3 +1079,95 @@ html[data-theme='light'] #manual-plan-overlay.open .settings-sheet {
     box-shadow: var(--popup-glow-light);
 }
 
+.info-exercise-image-clickable {
+    cursor: pointer;
+    transition: opacity 0.2s;
+    display: block;
+    width: 100%;
+}
+
+.info-exercise-image-clickable:hover {
+    opacity: 0.85;
+}
+
+.info-media-frame-img-wrap {
+    position: relative;
+    width: 100%;
+}
+
+.info-image-fullscreen-btn {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: rgba(0, 0, 0, 0.4);
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, opacity 0.2s;
+    opacity: 0.7;
+}
+
+.info-image-fullscreen-btn:hover {
+    background: rgba(0, 0, 0, 0.6);
+    opacity: 1;
+}
+
+.info-image-fullscreen-btn .material-symbols-rounded {
+    font-size: 18px;
+}
+
+.fullscreen-image-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: rgba(0, 0, 0, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    cursor: zoom-out;
+}
+
+.fullscreen-image-overlay.open {
+    opacity: 1;
+}
+
+.fullscreen-image-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: background 0.2s;
+}
+
+.fullscreen-image-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.fullscreen-image-close .material-symbols-rounded {
+    font-size: 24px;
+}
+
+.fullscreen-image-content {
+    max-width: 95vw;
+    max-height: 95vh;
+    object-fit: contain;
+    cursor: default;
+}

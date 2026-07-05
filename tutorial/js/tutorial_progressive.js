@@ -30,7 +30,7 @@ const DQ_TUTORIAL_PROGRESSIVE = {
                     position: 'center'
                 },
                 {
-                    text: 'Hier findest du deine täglichen Herausforderungen. Kraft-Quests haben mehrere Sets zum Abhaken, Ausdauer-Quests werden über "Eintragen" abgeschlossen.',
+                    text: 'Hier findest du deine täglichen Herausforderungen. Kraft-Quests haben mehrere Sets zum Abhaken, Ausdauer-Quests schließt du direkt mit OK ab.',
                     highlight: '#daily-quest-container',
                     position: 'bottom'
                 },

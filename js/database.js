@@ -10,7 +10,7 @@ const DQ_DB = {
     init: function () {
         return new Promise((resolve, reject) => {
             // --- VERSION ERHÖHT, UM UPDATE FÜR ALLE NUTZER ZU ERZWINGEN ---
-            const dbName = 'VibeCodenDB', dbVersion = 39;
+            const dbName = 'VibeCodenDB', dbVersion = 41;
             const request = indexedDB.open(dbName, dbVersion);
 
             request.onerror = (e) => {
@@ -138,8 +138,21 @@ const DQ_DB = {
                     console.log("Upgrade-Schritt: 2.13.3 Daily-Quest-Reparatur aktiv. Heute kann bei Bedarf neu generiert oder aufgefuellt werden.");
                 }
 
-                if (oldVersion < 39) {
-                    console.log("Upgrade-Schritt: Erstelle 'custom_user_exercises' Object Store fuer eigene Übungen.");
+                if (oldVersion < 40) {
+                    console.log("Upgrade-Schritt: Erstelle 'wger_exercises' Object Store.");
+                    if (!db.objectStoreNames.contains('wger_exercises')) {
+                        const wgerStore = db.createObjectStore('wger_exercises', { keyPath: 'id', autoIncrement: false });
+                        wgerStore.createIndex('category', 'category', { unique: false });
+                        wgerStore.createIndex('equipment', 'equipment', { unique: false, multiEntry: true });
+                        wgerStore.createIndex('muscles', 'muscles', { unique: false, multiEntry: true });
+                        wgerStore.createIndex('importedAt', 'importedAt', { unique: false });
+                        wgerStore.createIndex('lastUpdated', 'lastUpdated', { unique: false });
+                        wgerStore.createIndex('nameEn', 'nameEn', { unique: false });
+                    }
+                }
+
+                if (oldVersion < 41) {
+                    console.log("Upgrade-Schritt: 2.15.0 wger-Update aktiv. Bestehende Plaene und heutiger Fortschritt bleiben erhalten.");
                     if (!db.objectStoreNames.contains('custom_user_exercises')) {
                         db.createObjectStore('custom_user_exercises', { keyPath: 'id', autoIncrement: true });
                     }
@@ -149,7 +162,17 @@ const DQ_DB = {
                 if (!db.objectStoreNames.contains('custom_plans')) {
                     db.createObjectStore('custom_plans', { keyPath: 'id', autoIncrement: true });
                 }
-                // Sicherheits-Check: custom_user_exercises sicherstellen
+                // Sicherheits-Check: wger_exercises sicherstellen
+                if (!db.objectStoreNames.contains('wger_exercises')) {
+                    const wgerStore = db.createObjectStore('wger_exercises', { keyPath: 'id', autoIncrement: false });
+                    wgerStore.createIndex('category', 'category', { unique: false });
+                    wgerStore.createIndex('equipment', 'equipment', { unique: false, multiEntry: true });
+                    wgerStore.createIndex('muscles', 'muscles', { unique: false, multiEntry: true });
+                    wgerStore.createIndex('importedAt', 'importedAt', { unique: false });
+                    wgerStore.createIndex('lastUpdated', 'lastUpdated', { unique: false });
+                    wgerStore.createIndex('nameEn', 'nameEn', { unique: false });
+                }
+                // Sicherheits-Check: Legacy-Custom-Uebungen fuer bestehende Plaene erhalten
                 if (!db.objectStoreNames.contains('custom_user_exercises')) {
                     db.createObjectStore('custom_user_exercises', { keyPath: 'id', autoIncrement: true });
                 }

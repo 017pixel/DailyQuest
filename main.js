@@ -233,11 +233,6 @@ const DQ_CONFIG = {
                         return reject(new Error('Alle Sets müssen abgeschlossen sein.'));
                     }
 
-                    if (quest.completionMode === 'log' && !quest.enduranceLog) {
-                        tx.abort();
-                        return reject(new Error('Ausdauer-Daten müssen zuerst eingetragen werden.'));
-                    }
-
                     const charRequest = charStore.get(1);
                     charRequest.onsuccess = () => {
                         let char = charRequest.result;
@@ -246,7 +241,7 @@ const DQ_CONFIG = {
                             return reject(new Error("Charakter nicht gefunden."));
                         }
 
-                        const exerciseTemplate = Object.values(DQ_DATA.exercisePool).flat().find(ex => ex.nameKey === quest.nameKey);
+                        const exerciseTemplate = Object.values(DQ_DATA.exercisePool).flat().find(ex => ex.nameKey === quest.nameKey) || quest;
                         const effectiveExerciseTemplate = exerciseTemplate ? {
                             ...exerciseTemplate,
                             loadFactor: quest.loadFactor || 1
@@ -272,7 +267,7 @@ const DQ_CONFIG = {
     }
 };
 
-const APP_VERSION = '2.14.0';
+const APP_VERSION = '2.15.0';
 const APP_UPDATE_FLAG_KEY = 'dq_seen_app_version';
 
 async function initializeApp() {
@@ -425,6 +420,10 @@ async function initializeApp() {
         DQ_EXTRA.init(elements);
         DQ_ACHIEVEMENTS.init(elements);
         DQ_FOKUS_MAIN.init(elements);
+        if (typeof DQ_WGER !== 'undefined') {
+            DQ_WGER.startBackgroundSync();
+            DQ_WGER.prefetchThumbnails();
+        }
 
         // Cache den Charakterzustand grob für Combat (Sync Zugriff)
         try {
@@ -527,13 +526,76 @@ async function loadInitialData() {
     await migrateItemNames(); // Migration für Namensänderungen
     await checkForPenaltyAndReset();
     await repairTodayTrainingQuestCount();
+    await repairWgerQuestNames();
     if (char) {
         await DQ_ACHIEVEMENTS.checkAllAchievements(char);
     }
     startDailyCheckTimer();
 }
 
+async function repairWgerQuestNames() {
+    if (typeof DQ_WGER === 'undefined') return;
+    const todayStr = DQ_CONFIG.getTodayString();
+    try {
+        const quests = await new Promise(resolve => {
+            const tx = DQ_DB.db.transaction(['daily_quests'], 'readonly');
+            tx.objectStore('daily_quests').index('date').getAll(todayStr).onsuccess = e => resolve(e.target.result || []);
+        });
+        let changed = false;
+        for (const quest of quests) {
+            if (quest.completed) continue;
+            const needsRepair = (quest.source === 'wger' || DQ_WGER.isWgerNameKey(quest.nameKey))
+                && (!quest.nameDe || !quest.nameEn || (!quest.customDisplayName && quest.nameKey.startsWith('wger_')));
+            if (!needsRepair) continue;
+            try {
+                const full = await DQ_WGER.getById(quest.wgerId || `wger:${quest.nameKey.replace('wger_', '')}`);
+                if (full && (full.nameDe || full.nameEn)) {
+                    quest.nameDe = full.nameDe || quest.nameDe || null;
+                    quest.nameEn = full.nameEn || quest.nameEn || null;
+                    quest.descriptionDe = full.descriptionDe || quest.descriptionDe || null;
+                    quest.descriptionEn = full.descriptionEn || quest.descriptionEn || null;
+                    quest.customDisplayName = DQ_WGER.getDisplayName(full);
+                    quest.imageUrl = full.imageUrl || quest.imageUrl || '';
+                    quest.imageThumbMd = full.imageThumbMd || quest.imageThumbMd || '';
+                    quest.license = full.license || quest.license || null;
+                    quest.licenseUrl = full.licenseUrl || quest.licenseUrl || null;
+                    quest.licenseAuthor = full.licenseAuthor || quest.licenseAuthor || null;
+                    quest.bonusInfoSynced = true;
+                    changed = true;
+                }
+            } catch (e) { /* skip */ }
+        }
+        if (changed) {
+            await new Promise(resolve => {
+                const tx = DQ_DB.db.transaction(['daily_quests'], 'readwrite');
+                const store = tx.objectStore('daily_quests');
+                quests.forEach(q => { if (q.questId) store.put(q); });
+                tx.oncomplete = resolve;
+                tx.onerror = resolve;
+            });
+        }
+    } catch (e) {
+        console.warn('repairWgerQuestNames fehlgeschlagen:', e);
+    }
+}
+
 async function populateInitialDataIfNeeded() {
+    await new Promise(resolve => {
+        const localCategories = new Set(DQ_DATA.wgerDefaults?.LOCAL_EXERCISE_CATEGORIES || ['restday', 'learning', 'sick', 'senior', 'general_workout']);
+        const cleanupTx = DQ_DB.db.transaction(['exercises'], 'readwrite');
+        const cleanupStore = cleanupTx.objectStore('exercises');
+        cleanupStore.openCursor().onsuccess = event => {
+            const cursor = event.target.result;
+            if (!cursor) return;
+            if (!localCategories.has(cursor.value?.category)) {
+                cursor.delete();
+            }
+            cursor.continue();
+        };
+        cleanupTx.oncomplete = resolve;
+        cleanupTx.onerror = resolve;
+    });
+
     const tx = DQ_DB.db.transaction(['exercises', 'shop'], 'readwrite');
     const exerciseStore = tx.objectStore('exercises');
     const shopStore = tx.objectStore('shop');
@@ -770,10 +832,8 @@ async function applyTrainingSettingChange(changeType) {
                 DQ_EXERCISES.renderQuests();
                 return;
             }
-            const allTemplates = Object.values(DQ_DATA.exercisePool).flat();
             const questNeedsEquipment = q => {
-                const t = allTemplates.find(ex => ex.nameKey === q.nameKey);
-                return q.needsEquipment === true || (!!t && !!t.needsEquipment);
+                return q.needsEquipment === true;
             };
             const unbrauchbar = open.filter(questNeedsEquipment);
             if (unbrauchbar.length > 0) {
@@ -895,27 +955,18 @@ function addSettingsListeners(elements) {
             renderManualPlanList(tab.dataset.cat);
         });
     });
+    ['manual-plan-search', 'manual-plan-equipment-filter', 'manual-plan-muscle-filter'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const eventName = el.tagName === 'INPUT' ? 'input' : 'change';
+        el.addEventListener(eventName, () => {
+            const activeTab = document.querySelector('.manual-plan-tab.active');
+            renderManualPlanList(activeTab?.dataset.cat || 'all');
+        });
+    });
     const manualPlanSaveBtn = document.getElementById('manual-plan-save-btn');
     if (manualPlanSaveBtn) {
         manualPlanSaveBtn.addEventListener('click', saveManualPlan);
-    }
-    const manualPlanCreateExBtn = document.getElementById('manual-plan-create-exercise');
-    if (manualPlanCreateExBtn) {
-        manualPlanCreateExBtn.addEventListener('click', openCustomExercisePopup);
-    }
-    const customExSaveBtn = document.getElementById('custom-ex-save');
-    if (customExSaveBtn) {
-        customExSaveBtn.addEventListener('click', saveCustomExerciseFromPopup);
-    }
-    const customExCancelBtn = document.getElementById('custom-ex-cancel');
-    if (customExCancelBtn) {
-        customExCancelBtn.addEventListener('click', () => {
-            const popup = document.getElementById('custom-exercise-popup');
-            if (popup) {
-                popup.classList.remove('show');
-                popup.style.zIndex = '';
-            }
-        });
     }
     const manualPlanOverlayBg = document.querySelector('#manual-plan-overlay .settings-overlay-bg');
     if (manualPlanOverlayBg) {
@@ -1136,22 +1187,22 @@ function getUpdateNoticePages(trans) {
     return [
         {
             title: trans.update_notice_title || 'DailyQuest wurde aktualisiert',
-            body: trans.update_notice_intro || 'Das ist neu in Version 2.14:',
+            body: trans.update_notice_intro || 'Das ist neu in Version 2.15:',
             points: [
-                trans.update_point_1 || 'KI-Trainingsplaene entfernt – jetzt manuelle Plan-Erstellung',
-                trans.update_point_2 || '4 Presets (Kraft, Ausdauer, Abnehmen, Calisthenics) als Schnellwahl',
-                trans.update_point_3 || 'Eigene Trainingsplaene mit bis zu 30 Uebungen aus dem freien Training',
-                trans.update_point_4 || 'Selbst erstellte Uebungen mit Namen und eigenem Basiswert',
+                trans.update_point_1 || 'Neue wger-Uebungsdatenbank fuer deutlich mehr Trainingsauswahl',
+                trans.update_point_2 || 'Bestehende Trainingsplaene laufen ohne wger-Zwang weiter',
+                trans.update_point_3 || 'Neue Plaene lassen sich mit Suche, Muskel- und Equipment-Filtern konfigurieren',
+                trans.update_point_4 || 'Daily-Quest-Intro wartet jetzt korrekt auf deine Auswahl',
             ]
         },
         {
             title: trans.update_notice_title || 'DailyQuest wurde aktualisiert',
-            body: trans.update_notice_intro || 'Das ist neu in Version 2.14:',
+            body: trans.update_notice_intro || 'Das ist neu in Version 2.15:',
             points: [
-                trans.update_point_5 || 'Bugfix: Rest-Day-Logik stabilisiert, keine doppelten Quests mehr',
-                trans.update_point_6 || 'Heute-oder-morgen-Wahl beim Planwechsel',
-                trans.update_point_7 || 'Deine Phase und Streak bleiben erhalten beim Update',
-                trans.update_notice_finish || 'Viel Spass mit deinem neuen Trainingsplan!',
+                trans.update_point_5 || 'Ausdauer-Aufgaben werden direkt mit OK abgeschlossen',
+                trans.update_point_6 || 'Dein Tagesfortschritt, Streak und deine Phase bleiben erhalten',
+                trans.update_point_7 || 'Bilder und Infos fuer neue Uebungen werden im Hintergrund geladen',
+                trans.update_point_8 || 'Du kannst sofort weitertrainieren oder spaeter neue Plaene bauen',
             ]
         }
     ];
@@ -1490,32 +1541,27 @@ async function renderManualPlanList(category) {
     listEl.classList.add('fading');
     listEl.innerHTML = '<p style="text-align:center;opacity:0.5;padding:20px;">Lade...</p>';
 
-    const allExercises = DQ_MANUAL_PLAN.getAllExercises();
-    const customExercises = await DQ_MANUAL_PLAN.getAllCustomExercises();
-
-    let displayList = [];
-    if (category === 'all') {
-        displayList = allExercises.concat(customExercises.map(ex => ({ ...ex, category: 'user_created' })));
-    } else if (category === 'user_created') {
-        displayList = customExercises.map(ex => ({ ...ex, category: 'user_created' }));
-    } else {
-        displayList = allExercises.filter(ex => ex.category === category);
-    }
+    const search = document.getElementById('manual-plan-search')?.value?.trim() || '';
+    const equipment = document.getElementById('manual-plan-equipment-filter')?.value || 'all';
+    const muscle = document.getElementById('manual-plan-muscle-filter')?.value || 'all';
+    const displayList = await DQ_MANUAL_PLAN.getSelectableExercises(category, { search, equipment, muscle });
 
     const lang = DQ_CONFIG.userSettings.language || 'de';
     const trans = DQ_DATA.translations[lang] || DQ_DATA.translations.de;
     const exerciseNames = trans.exercise_names || {};
 
     if (displayList.length === 0) {
-        if (category === 'user_created') {
-            listEl.innerHTML = `
-                <div class="manual-plan-empty">
-                    <p data-lang-key="no_custom_exercises">${trans.no_custom_exercises || 'Noch keine eigenen Custom Aufgaben hinzugefuegt.'}</p>
-                </div>
-            `;
+        const hasFilter = search || equipment !== 'all' || muscle !== 'all';
+        const wgerLoaded = typeof DQ_WGER !== 'undefined' && await DQ_WGER.storeCount() > 0;
+        let emptyMsg;
+        if (!wgerLoaded) {
+            emptyMsg = `<div class="manual-plan-empty"><span class="material-symbols-rounded" style="font-size:40px;opacity:0.3;">cloud_off</span><p>Uebungsdatenbank wird geladen...</p></div>`;
+        } else if (hasFilter) {
+            emptyMsg = `<div class="manual-plan-empty"><span class="material-symbols-rounded" style="font-size:40px;opacity:0.3;">search_off</span><p>Keine Uebungen gefunden. Filter anpassen?</p></div>`;
         } else {
-            listEl.innerHTML = '<p style="text-align:center;opacity:0.5;padding:20px;">Keine Uebungen in dieser Kategorie.</p>';
+            emptyMsg = `<div class="manual-plan-empty"><span class="material-symbols-rounded" style="font-size:40px;opacity:0.3;">fitness_center</span><p>Keine Uebungen in dieser Kategorie.</p></div>`;
         }
+        listEl.innerHTML = emptyMsg;
         listEl.classList.remove('fading');
         updateManualPlanCounter();
         return;
@@ -1524,15 +1570,16 @@ async function renderManualPlanList(category) {
     const atMax = manualPlanSelected.size >= DQ_MANUAL_PLAN.MAX_EXERCISES;
 
     const html = displayList.map(ex => {
-        const name = exerciseNames[ex.nameKey] || ex.displayName || ex.nameKey;
-        const isChecked = manualPlanSelected.has(ex.id);
+        const name = typeof DQ_WGER !== 'undefined' ? DQ_WGER.getDisplayName(ex, lang) : (exerciseNames[ex.nameKey] || ex.displayName || ex.nameKey);
+        const id = String(ex.id);
+        const isChecked = manualPlanSelected.has(id);
         const dimmed = atMax && !isChecked;
         return `
-            <div class="manual-plan-item ${isChecked ? 'selected' : ''} ${dimmed ? 'dimmed' : ''}" data-ex-id="${ex.id}">
+            <div class="manual-plan-item ${isChecked ? 'selected' : ''} ${dimmed ? 'dimmed' : ''}" data-ex-id="${id}">
                 <span class="manual-plan-check ${isChecked ? 'checked' : ''}">
                     <span class="material-symbols-rounded">${isChecked ? 'check_circle' : 'circle'}</span>
                 </span>
-                <span class="manual-plan-item-name">${name}</span>
+                <span class="manual-plan-item-name">${typeof DQ_WGER !== 'undefined' ? DQ_WGER.escapeHtml(name) : name}</span>
             </div>
         `;
     }).join('');
@@ -1542,7 +1589,7 @@ async function renderManualPlanList(category) {
     listEl.querySelectorAll('.manual-plan-item').forEach(item => {
         item.addEventListener('click', () => {
             if (item.classList.contains('dimmed')) return;
-            const exId = parseInt(item.dataset.exId, 10);
+            const exId = item.dataset.exId;
             if (manualPlanSelected.has(exId)) {
                 manualPlanSelected.delete(exId);
                 item.classList.remove('selected');
@@ -1596,7 +1643,7 @@ function updateManualPlanCounter() {
 function updateDimmedState() {
     const atMax = manualPlanSelected.size >= DQ_MANUAL_PLAN.MAX_EXERCISES;
     document.querySelectorAll('.manual-plan-item').forEach(item => {
-        const exId = parseInt(item.dataset.exId, 10);
+        const exId = item.dataset.exId;
         if (atMax && !manualPlanSelected.has(exId)) {
             item.classList.add('dimmed');
         } else {
@@ -1652,57 +1699,6 @@ async function saveManualPlan() {
     } catch (e) {
         console.error('saveManualPlan error:', e);
         DQ_UI.showCustomPopup(`<h3>Fehler</h3><p>Plan konnte nicht gespeichert werden.</p>`, 'penalty');
-    }
-}
-
-function openCustomExercisePopup() {
-    const popup = document.getElementById('custom-exercise-popup');
-    if (!popup) return;
-    document.getElementById('custom-ex-name').value = '';
-    document.getElementById('custom-ex-desc').value = '';
-    popup.style.zIndex = '10001';
-    popup.classList.add('show');
-}
-
-async function saveCustomExerciseFromPopup() {
-    const name = document.getElementById('custom-ex-name').value.trim();
-    const desc = document.getElementById('custom-ex-desc').value.trim();
-    const type = document.getElementById('custom-ex-type').value;
-    const baseValue = parseInt(document.getElementById('custom-ex-value').value, 10) || 10;
-    const needsEquipment = document.getElementById('custom-ex-equipment').value === 'true';
-    const muscle = document.getElementById('custom-ex-muscle').value;
-
-    if (!name) {
-        DQ_UI.showCustomPopup('<p>Bitte gib einen Namen ein.</p>', 'penalty');
-        return;
-    }
-
-    try {
-        await DQ_MANUAL_PLAN.saveCustomExercise({
-            displayName: name,
-            description: desc,
-            type: type,
-            baseValue: baseValue,
-            needsEquipment: needsEquipment,
-            muscles: [muscle]
-        });
-
-        const popup = document.getElementById('custom-exercise-popup');
-        if (popup) {
-            popup.classList.remove('show');
-            popup.style.zIndex = '';
-        }
-
-        const activeTab = document.querySelector('.manual-plan-tab.active');
-        if (activeTab) {
-            await renderManualPlanList(activeTab.dataset.cat);
-        }
-        if (typeof DQ_EXERCISES !== 'undefined') {
-            DQ_EXERCISES.renderFreeExercisesPage();
-        }
-    } catch (e) {
-        console.error('saveCustomExercise error:', e);
-        DQ_UI.showCustomPopup('<p>Fehler beim Speichern.</p>', 'penalty');
     }
 }
 
@@ -1781,10 +1777,8 @@ async function ensureMinimumTrainingQuestCount(todayStr, goal, questsToday) {
     if (isRestOrRecoveryDayForQuestTopUp(goal, questsToday)) return false;
 
     const hasEquipment = DQ_CONFIG.userSettings.hasEquipment !== false;
-    const allTemplates = Object.values(DQ_DATA.exercisePool).flat();
     const questNeedsEquipment = quest => {
-        const template = allTemplates.find(ex => ex.nameKey === quest.nameKey);
-        return quest.needsEquipment === true || !!template?.needsEquipment;
+        return quest.needsEquipment === true;
     };
     const hiddenUnavailable = hasEquipment
         ? []
@@ -1959,10 +1953,8 @@ async function generateDailyQuestsIfNeeded(forceRegenerate = false) {
     });
     const hasCompletedToday = questsToday.some(q => q.completed);
 
-    const goalExercises = Object.values(DQ_DATA.exercisePool).flat();
     const questNeedsEquipment = quest => {
-        const template = goalExercises.find(ex => ex.nameKey === quest.nameKey);
-        return quest.needsEquipment === true || !!template?.needsEquipment;
+        return quest.needsEquipment === true;
     };
 
     if (!hasCompletedToday && !hasEquipment && questsToday.some(questNeedsEquipment)) {
@@ -1981,22 +1973,23 @@ async function generateDailyQuestsIfNeeded(forceRegenerate = false) {
     }
 
     if (questsToday.length > 0 && !forceRegenerate) {
-        const allTemplates = Object.values(DQ_DATA.exercisePool).flat();
         let changed = false;
+        const questsToPut = [];
+        for (const quest of questsToday) {
+            if (quest.bonusInfoSynced) continue;
+            const template = await DQ_TRAINING_SYSTEM.getTemplateByNameKey(quest.nameKey);
+            if (!template) continue;
+            const loadFactor = quest.loadFactor || 1;
+            quest.manaReward = Math.ceil((template.mana ?? template.manaReward ?? 1) * loadFactor);
+            quest.goldReward = Math.ceil((template.gold ?? template.goldReward ?? 1) * loadFactor);
+            quest.bonusInfoSynced = true;
+            questsToPut.push(quest);
+            changed = true;
+        }
+
         const tx = DQ_DB.db.transaction(['daily_quests'], 'readwrite');
         const store = tx.objectStore('daily_quests');
-
-        for (const quest of questsToday) {
-            const template = allTemplates.find(t => t.nameKey === quest.nameKey);
-            if (template && !quest.bonusInfoSynced) {
-                const loadFactor = quest.loadFactor || 1;
-                quest.manaReward = Math.ceil(template.mana * loadFactor);
-                quest.goldReward = Math.ceil(template.gold * loadFactor);
-                quest.bonusInfoSynced = true;
-                store.put(quest);
-                changed = true;
-            }
-        }
+        questsToPut.forEach(quest => store.put(quest));
 
         await new Promise(resolve => {
             tx.oncomplete = resolve;
@@ -2035,7 +2028,7 @@ async function generateDailyQuestsIfNeeded(forceRegenerate = false) {
             ? DQ_TRAINING_SYSTEM.blockedQuestNameKeys
             : ['jump_rope'];
         const blockedSet = new Set(blockedQuestNameKeys);
-        let pool = [...(DQ_DATA.exercisePool[goal] || DQ_DATA.exercisePool.muscle)]
+        let pool = [...(DQ_DATA.exercisePool[goal] || DQ_DATA.exercisePool.restday || [])]
             .filter(ex => !blockedSet.has(ex.nameKey));
 
         if (!hasEquipment) {

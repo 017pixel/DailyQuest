@@ -136,36 +136,38 @@ DQ_DATA.translations = {
         duration: "Zeit",
         power: "Power",
         notes: "Notizen",
-        endurance_entry_title: "Ausdauer eintragen",
-        endurance_entry_hint: "Trage Strecke und Zeit ein.",
-        endurance_entry_button: "Eintragen",
+        endurance_entry_title: "Ausdauer abschließen",
+        endurance_entry_hint: "Aufgaben mit Strecke werden direkt per OK abgeschlossen.",
+        endurance_entry_button: "OK",
         cancel: "Abbrechen",
         rest_days: "Rest Days / Woche",
         update_notice_title: "DailyQuest wurde aktualisiert",
 
         update_notice_intro: "Das ist neu in dieser Version:",
 
-        update_notice_page1_point1: "KI-Trainingsplaene entfernt - jetzt manuelle Plan-Erstellung",
+        update_notice_page1_point1: "Neue wger-Uebungsdatenbank mit mehr Trainingsauswahl",
 
-        update_notice_page1_point2: "4 Presets und individuelle eigene Plaene konfigurierbar",
+        update_notice_page1_point2: "Bestehende Trainingsplaene bleiben erhalten und laufen weiter",
 
-        update_notice_page2_point1: "Eigene Uebungen mit Namen und Basiswert selbst erstellbar",
+        update_notice_page2_point1: "Neue Plaene mit Suche, Muskel- und Equipment-Filtern konfigurierbar",
 
-        update_notice_page2_point2: "Stabilere Rest-Day-Logik und Bugfixes",
+        update_notice_page2_point2: "Ausdauer-Aufgaben werden direkt mit OK abgeschlossen",
 
-        update_point_1: "KI-Trainingsplaene entfernt – jetzt manuelle Plan-Erstellung",
+        update_point_1: "Neue wger-Uebungsdatenbank fuer deutlich mehr Trainingsauswahl",
 
-        update_point_2: "4 Presets (Kraft, Ausdauer, Abnehmen, Calisthenics) als Schnellwahl",
+        update_point_2: "Bestehende Trainingsplaene laufen ohne wger-Zwang weiter",
 
-        update_point_3: "Eigene Trainingsplaene mit bis zu 30 Uebungen aus dem freien Training",
+        update_point_3: "Neue Plaene lassen sich mit Suche, Muskel- und Equipment-Filtern konfigurieren",
 
-        update_point_4: "Selbst erstellte Uebungen mit Namen und eigenem Basiswert",
+        update_point_4: "Daily-Quest-Intro wartet jetzt korrekt auf deine Auswahl",
 
-        update_point_5: "Bugfix: Rest-Day-Logik stabilisiert, keine doppelten Quests mehr",
+        update_point_5: "Ausdauer-Aufgaben werden direkt mit OK abgeschlossen",
 
-        update_point_6: "Heute-oder-morgen-Wahl beim Planwechsel",
+        update_point_6: "Dein Tagesfortschritt, Streak und deine Phase bleiben erhalten",
 
-        update_point_7: "Deine Phase und Streak bleiben erhalten beim Update",
+        update_point_7: "Bilder und Infos fuer neue Uebungen werden im Hintergrund geladen",
+
+        update_point_8: "Du kannst sofort weitertrainieren oder spaeter neue Plaene bauen",
 
         update_notice_step_label: "Seite",
 
@@ -505,36 +507,38 @@ DQ_DATA.translations = {
         duration: "Time",
         power: "Power",
         notes: "Notes",
-        endurance_entry_title: "Log endurance",
-        endurance_entry_hint: "Enter distance and time.",
-        endurance_entry_button: "Log",
+        endurance_entry_title: "Complete endurance",
+        endurance_entry_hint: "Distance tasks are completed directly with OK.",
+        endurance_entry_button: "OK",
         cancel: "Cancel",
         rest_days: "Rest Days / Week",
         update_notice_title: "DailyQuest was updated",
 
         update_notice_intro: "What's new in this version:",
 
-        update_notice_page1_point1: "AI training plans removed - now manual plan creation",
+        update_notice_page1_point1: "New wger exercise database with more training options",
 
-        update_notice_page1_point2: "4 presets and configurable individual plans",
+        update_notice_page1_point2: "Existing training plans stay available and keep working",
 
-        update_notice_page2_point1: "Create your own exercises with name and base value",
+        update_notice_page2_point1: "Configure new plans with search, muscle and equipment filters",
 
-        update_notice_page2_point2: "More stable rest-day logic and bug fixes",
+        update_notice_page2_point2: "Endurance tasks now complete directly with OK",
 
-        update_point_1: "AI training plans removed – now manual plan creation",
+        update_point_1: "New wger exercise database for much more training variety",
 
-        update_point_2: "4 presets (Strength, Endurance, Weight Loss, Calisthenics)",
+        update_point_2: "Existing training plans keep working without requiring wger",
 
-        update_point_3: "Custom training plans with up to 30 exercises from free training",
+        update_point_3: "New plans can be configured with search, muscle and equipment filters",
 
-        update_point_4: "Self-created exercises with custom name and base value",
+        update_point_4: "DailyQuest intro now waits correctly for your choice",
 
-        update_point_5: "Bugfix: Rest-day logic stabilized, no more duplicate quests",
+        update_point_5: "Endurance tasks now complete directly with OK",
 
-        update_point_6: "Start-today-or-tomorrow choice when switching plans",
+        update_point_6: "Your daily progress, streak and phase stay preserved",
 
-        update_point_7: "Your phase and streak are preserved during the update",
+        update_point_7: "Images and details for new exercises load in the background",
+
+        update_point_8: "You can keep training now or build new plans later",
 
         update_notice_step_label: "Page",
 

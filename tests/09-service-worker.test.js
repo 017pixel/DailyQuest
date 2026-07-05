@@ -17,18 +17,22 @@ function run() {
     // Cache-Name
     const cacheMatch = sw.match(/dailyquest-cache-v(\d+)/);
     t.ok(!!cacheMatch, `Cache-Name gefunden (v${cacheMatch ? cacheMatch[1] : '?'})`);
-    t.ok(cacheMatch && Number(cacheMatch[1]) >= 31, 'Cache-Version fuer Release 2.14.0 erhoeht');
+    t.ok(cacheMatch && Number(cacheMatch[1]) >= 33, 'Cache-Version fuer Release 2.15.0 erhoeht');
 
     const mainPath = path.join(BASE, 'main.js');
     const htmlPath = path.join(BASE, 'index.html');
     const translationsPath = path.join(BASE, 'data', 'translations.js');
+    const databasePath = path.join(BASE, 'js', 'database.js');
     const mainCode = fs.readFileSync(mainPath, 'utf8');
     const htmlCode = fs.readFileSync(htmlPath, 'utf8');
     const translationsCode = fs.readFileSync(translationsPath, 'utf8');
+    const databaseCode = fs.readFileSync(databasePath, 'utf8');
     const appVersionMatch = mainCode.match(/APP_VERSION\s*=\s*'([^']+)'/);
-    t.equal(appVersionMatch && appVersionMatch[1], '2.14.0', 'APP_VERSION ist 2.14.0');
-    t.ok(htmlCode.includes('v2.14.0'), 'Settings UI zeigt v2.14.0');
-    t.ok(translationsCode.includes('migration_ai_plan_replaced'), 'Update-Hinweis fuer manuelle Plaene vorhanden');
+    t.equal(appVersionMatch && appVersionMatch[1], '2.15.0', 'APP_VERSION ist 2.15.0');
+    t.ok(htmlCode.includes('v2.15.0'), 'Settings UI zeigt v2.15.0');
+    t.ok(translationsCode.includes('update_point_8'), 'Update-Hinweis fuer grosses wger-Update vorhanden');
+    t.ok(databaseCode.includes('dbVersion = 41'), 'IndexedDB-Version fuer Release 2.15.0 erhoeht');
+    t.ok(!databaseCode.includes("deleteObjectStore('custom_user_exercises')"), 'Migration loescht keine alten eigenen Uebungen');
 
     // skipWaiting
     t.ok(sw.includes('skipWaiting'), 'skipWaiting() vorhanden');

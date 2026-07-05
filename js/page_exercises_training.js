@@ -28,12 +28,27 @@ Object.assign(DQ_EXERCISES, {
     },
 
     resolveExerciseName(exercise, lang) {
+        if (!exercise) return 'Training';
+        if (typeof DQ_WGER !== 'undefined') {
+            if (DQ_WGER.isWgerId(exercise.id)) {
+                const name = DQ_WGER.getDisplayName(exercise, lang);
+                if (name && name !== 'Training') return name;
+                if (exercise.nameDe || exercise.nameEn) return (lang === 'en' ? exercise.nameEn : exercise.nameDe) || exercise.nameEn || exercise.nameDe;
+            }
+            if (DQ_WGER.isWgerNameKey(exercise.nameKey) || exercise.source === 'wger') {
+                const name = DQ_WGER.getDisplayName(exercise, lang);
+                if (name && name !== 'Training' && !name.startsWith('wger_')) return name;
+            }
+        }
         const customName = String(exercise?.customDisplayName || '').trim();
         if (customName && !/^custom_/.test(customName.toLowerCase()) && !customName.includes('_')) {
             return customName;
         }
         const nameKey = exercise?.nameKey || '';
-        return DQ_DATA.translations[lang].exercise_names[nameKey] || this.prettifyExerciseName(nameKey);
+        if (nameKey && DQ_DATA.translations[lang]?.exercise_names?.[nameKey]) {
+            return DQ_DATA.translations[lang].exercise_names[nameKey];
+        }
+        return this.prettifyExerciseName(nameKey);
     },
 
     async renderTrainingPhaseBanner() {
@@ -156,7 +171,7 @@ Object.assign(DQ_EXERCISES, {
             phase_endurance_endgame: de ? 'Dauerhafte Ausdauer-Spitzenleistung auf höchstem Niveau.' : 'Sustained peak endurance performance at the highest level.'
         };
 
-        if (completionMode === 'log') {
+        if (completionMode === 'log' || String(labelKey || '').startsWith('phase_endurance_')) {
             return enduranceDesc[labelKey] || (de ? 'Ausdauer-Training mit individuell angepasster Belastung.' : 'Endurance training with individually adjusted load.');
         }
         return setsDesc[labelKey] || (de ? 'Strukturiertes Training mit angepassten Sätzen und Wiederholungen.' : 'Structured training with adjusted sets and reps.');
@@ -184,11 +199,10 @@ Object.assign(DQ_EXERCISES, {
         store.index('date').getAll(DQ_CONFIG.getTodayString()).onsuccess = e => {
             const questsToday = e.target.result || [];
             const hasEquipment = DQ_CONFIG.userSettings.hasEquipment !== false;
-            const templates = Object.values(DQ_DATA.exercisePool).flat();
             const isPlaceholderQuest = quest => /^custom_ai_(rest_)?fill_\d+$/i.test(String(quest?.nameKey || ''));
             const visibleQuests = (hasEquipment
                 ? questsToday
-                : questsToday.filter(quest => !templates.find(ex => ex.nameKey === quest.nameKey)?.needsEquipment))
+                : questsToday.filter(quest => !quest.needsEquipment))
                 .filter(quest => !isPlaceholderQuest(quest));
 
             if (questsToday.length === 0) {
@@ -379,18 +393,22 @@ Object.assign(DQ_EXERCISES, {
             return;
         }
 
-        if (quest.completionMode === 'log') {
-            await this.openEnduranceEntryPopup(questId);
-            return;
-        }
-
         await this.finalizeQuestCompletion(questId);
     },
 
     showQuestInfo(questId) {
-        DQ_DB.db.transaction(['daily_quests'], 'readonly').objectStore('daily_quests').get(questId).onsuccess = (e) => {
+        DQ_DB.db.transaction(['daily_quests'], 'readonly').objectStore('daily_quests').get(questId).onsuccess = async (e) => {
             const quest = e.target.result;
             if (!quest) return;
+            if ((quest.source === 'wger' || DQ_WGER.isWgerNameKey(quest.nameKey)) && !quest.descriptionDe && !quest.descriptionEn) {
+                try {
+                    const full = await DQ_WGER.getById(quest.wgerId || `wger:${quest.nameKey.replace('wger_', '')}`);
+                    if (full) {
+                        quest.descriptionDe = full.descriptionDe || quest.descriptionDe || null;
+                        quest.descriptionEn = full.descriptionEn || quest.descriptionEn || null;
+                    }
+                } catch (_) {}
+            }
             this.renderExerciseInfoPopup(quest, true);
         };
     },
@@ -403,22 +421,46 @@ Object.assign(DQ_EXERCISES, {
         const lang = DQ_CONFIG.userSettings.language || 'de';
         const trans = DQ_DATA.translations[lang];
         const difficulty = DQ_CONFIG.userSettings.difficulty || 3;
-        const goal = DQ_CONFIG.userSettings.goal || 'muscle';
-        const isSeniorMode = goal === 'senior';
-
         const template = Object.values(DQ_DATA.exercisePool).flat().find(t => t.nameKey === exercise.nameKey) || {
             nameKey: exercise.nameKey,
             muscles: exercise.muscles || [],
+            musclesSecondary: exercise.musclesSecondary || [],
             statPoints: exercise.statPoints || null,
             directStatGain: exercise.directStatGain || null,
-            mana: exercise.manaReward || 1,
-            gold: exercise.goldReward || 1
+            mana: exercise.manaReward || exercise.mana || 1,
+            gold: exercise.goldReward || exercise.gold || 1,
+            source: exercise.source,
+            imageUrl: exercise.imageUrl,
+            imageThumbMd: exercise.imageThumbMd,
+            category: exercise.category,
+            license: exercise.license,
+            licenseUrl: exercise.licenseUrl,
+            licenseAuthor: exercise.licenseAuthor
         };
 
         const translatedName = this.resolveExerciseName(exercise, lang);
-        const explanation = exercise.customDescription || DQ_DATA.exerciseExplanations[lang][exercise.nameKey] || 'Keine Beschreibung verfügbar.';
 
-        // Ziel-Anzeige: Quest mit setPlan zeigt Sets-Info, sonst formatTargetDisplay
+        let explanation = '';
+        let explanationLabel = trans.show_instructions;
+        if (typeof DQ_WGER !== 'undefined' && (exercise.source === 'wger' || DQ_WGER.isWgerNameKey(exercise.nameKey))) {
+            const deDesc = exercise.descriptionDe || template.descriptionDe || DQ_WGER.getDescription(exercise, 'de');
+            const enDesc = exercise.descriptionEn || template.descriptionEn || DQ_WGER.getDescription(exercise, 'en');
+            if (lang === 'de' && deDesc) {
+                explanation = deDesc;
+            } else if (lang === 'en' && enDesc) {
+                explanation = enDesc;
+            } else if (lang === 'de' && enDesc) {
+                explanation = enDesc;
+                explanationLabel = lang === 'de' ? 'Anleitung (Englisch)' : 'Instructions (English)';
+            } else {
+                explanation = deDesc || enDesc;
+            }
+        } else {
+            explanation = exercise.customDescription || DQ_DATA.exerciseExplanations[lang][exercise.nameKey] || '';
+        }
+
+        const hasExplanation = !!explanation.trim();
+
         let targetDisplay = '';
         if (isQuest && DQ_TRAINING_SYSTEM) {
             targetDisplay = DQ_TRAINING_SYSTEM.formatQuestTarget(exercise) || '';
@@ -427,7 +469,6 @@ Object.assign(DQ_EXERCISES, {
             targetDisplay = this.formatTargetDisplay(exercise.type, targetValue);
         }
 
-        // Belohnungen
         const scaledMana = isQuest
             ? (exercise.manaReward || template.mana || 1)
             : Math.ceil((template.mana || 1) * (1 + 0.2 * (difficulty - 1)));
@@ -435,24 +476,28 @@ Object.assign(DQ_EXERCISES, {
             ? (exercise.goldReward || template.gold || 1)
             : Math.ceil((template.gold || 1) * (1 + 0.15 * (difficulty - 1)));
 
-        // Kategorien (Trainingspläne)
-        const categories = [];
+        const categories = template.category ? [template.category] : [];
         for (const [catName, list] of Object.entries(DQ_DATA.exercisePool)) {
             if (list.some(item => item.nameKey === exercise.nameKey)) {
                 categories.push(trans[`filter_${catName}`] || catName);
             }
         }
 
-        // Badges
-        const muscleTags = (template.muscles || []).map(m => `<span class="info-badge muscle-badge">${trans[`muscle_${m}`] || m}</span>`).join('') || '<span class="info-badge">—</span>';
-        const categoryTags = categories.map(c => `<span class="info-badge cat-badge">${c}</span>`).join('') || '<span class="info-badge">—</span>';
+        const primaryMuscles = template.muscles || [];
+        const secondaryMuscles = template.musclesSecondary || [];
+        const muscleLabel = (m) => {
+            if (typeof DQ_WGER !== 'undefined' && Number.isFinite(Number(m))) return DQ_WGER.getMuscleName(Number(m), lang);
+            return trans[`muscle_${m}`] || m;
+        };
+        const muscleTags = primaryMuscles.map(m => `<span class="info-badge muscle-badge primary">${muscleLabel(m)}</span>`)
+            .concat(secondaryMuscles.map(m => `<span class="info-badge muscle-badge secondary">${muscleLabel(m)}</span>`))
+            .join('') || '<span class="info-badge">Allgemein</span>';
+        const categoryTags = categories.map(c => `<span class="info-badge cat-badge">${c}</span>`).join('') || '<span class="info-badge">Allgemein</span>';
 
-        // Phase-Info (nur für Quests)
-        const phaseInfo = (isQuest && !isSeniorMode && exercise.phaseSummary)
+        const phaseInfo = (isQuest && exercise.phaseSummary)
             ? `<span class="info-badge phase-badge">${exercise.phaseSummary}</span>`
-            : '<span class="info-badge">—</span>';
+            : '<span class="info-badge">Frei</span>';
 
-        // Stat-Boni
         let statsHtml = '';
         if (template.statPoints) {
             statsHtml = Object.entries(template.statPoints).map(([stat, val]) => {
@@ -468,14 +513,135 @@ Object.assign(DQ_EXERCISES, {
         }
         if (!statsHtml) statsHtml = '<span class="info-badge">—</span>';
 
+        const image = exercise.imageThumbMd || exercise.imageUrl || template.imageThumbMd || template.imageUrl || '';
+        const videos = exercise.videos || template.videos || [];
+        const hasVideo = videos.length > 0;
+        const hasImage = !!image;
+
+        const hasMedia = hasImage || hasVideo;
+
+        const muscleAliases = {
+            '1': ['biceps', 'arms'],
+            '2': ['shoulders'],
+            '3': ['serratus', 'core'],
+            '4': ['chest'],
+            '5': ['triceps', 'arms'],
+            '6': ['abs', 'core'],
+            '7': ['calves', 'legs'],
+            '8': ['glutes'],
+            '9': ['traps', 'back'],
+            '10': ['quads', 'legs'],
+            '11': ['hamstrings', 'legs'],
+            '12': ['lats', 'back'],
+            '13': ['brachialis', 'biceps', 'arms'],
+            '14': ['obliques', 'abs', 'core', 'side'],
+            '15': ['soleus', 'calves', 'legs']
+        };
+        const normalizeMuscleKeys = (muscles) => new Set(muscles.flatMap((muscle) => {
+            const key = String(muscle).trim().toLowerCase();
+            return [key, ...(muscleAliases[key] || [])];
+        }));
+        const primaryMuscleKeys = normalizeMuscleKeys(primaryMuscles);
+        const secondaryMuscleKeys = normalizeMuscleKeys(secondaryMuscles);
+        const muscleAreaState = (keys) => {
+            if (keys.some(key => primaryMuscleKeys.has(key))) return 'is-active';
+            if (keys.some(key => secondaryMuscleKeys.has(key))) return 'is-secondary';
+            return '';
+        };
+        const muscleAreaClass = (keys) => `muscle-zone ${muscleAreaState(keys)}`;
+        const muscleFigure = `
+            <div class="muscle-silhouette" aria-label="Trainierte Muskelbereiche">
+                <svg class="muscle-map" viewBox="0 0 320 246" role="img" aria-hidden="true">
+                    <g class="muscle-figure front" transform="translate(28 10)">
+                        <circle class="body-base" cx="65" cy="18" r="15"></circle>
+                        <path class="body-base" d="M48 39 C54 31 76 31 82 39 L88 88 C90 104 82 120 76 133 L54 133 C48 120 40 104 42 88 Z"></path>
+                        <path class="body-base" d="M44 44 C28 50 22 72 19 102 C18 113 30 115 33 105 C36 83 41 67 50 57 Z"></path>
+                        <path class="body-base" d="M86 44 C102 50 108 72 111 102 C112 113 100 115 97 105 C94 83 89 67 80 57 Z"></path>
+                        <path class="body-base" d="M54 132 C48 154 43 183 41 216 C41 228 56 228 58 217 L65 154 L72 217 C74 228 89 228 89 216 C87 183 82 154 76 132 Z"></path>
+                        <path class="${muscleAreaClass(['shoulders', 'full_body'])}" d="M43 42 C50 33 60 36 63 44 C56 47 50 51 45 58 C41 55 39 49 43 42 Z"></path>
+                        <path class="${muscleAreaClass(['shoulders', 'full_body'])}" d="M87 42 C80 33 70 36 67 44 C74 47 80 51 85 58 C89 55 91 49 87 42 Z"></path>
+                        <path class="${muscleAreaClass(['chest', 'full_body'])}" d="M48 48 C55 42 63 44 64 55 L64 74 C54 73 48 65 46 55 Z"></path>
+                        <path class="${muscleAreaClass(['chest', 'full_body'])}" d="M82 48 C75 42 67 44 66 55 L66 74 C76 73 82 65 84 55 Z"></path>
+                        <path class="${muscleAreaClass(['abs', 'core', 'obliques', 'side', 'full_body'])}" d="M54 76 L76 76 C79 91 77 110 72 126 L58 126 C53 110 51 91 54 76 Z"></path>
+                        <path class="${muscleAreaClass(['biceps', 'triceps', 'arms', 'full_body'])}" d="M36 59 C27 70 25 89 26 104 C32 106 37 103 38 97 C39 84 42 73 48 61 Z"></path>
+                        <path class="${muscleAreaClass(['biceps', 'triceps', 'arms', 'full_body'])}" d="M94 59 C103 70 105 89 104 104 C98 106 93 103 92 97 C91 84 88 73 82 61 Z"></path>
+                        <path class="${muscleAreaClass(['quads', 'legs', 'full_body'])}" d="M54 136 L64 136 L62 190 L48 190 C49 169 51 151 54 136 Z"></path>
+                        <path class="${muscleAreaClass(['quads', 'legs', 'full_body'])}" d="M76 136 L66 136 L68 190 L82 190 C81 169 79 151 76 136 Z"></path>
+                        <path class="${muscleAreaClass(['calves', 'soleus', 'legs', 'full_body'])}" d="M48 193 L62 193 L58 223 C56 229 45 228 45 220 Z"></path>
+                        <path class="${muscleAreaClass(['calves', 'soleus', 'legs', 'full_body'])}" d="M82 193 L68 193 L72 223 C74 229 85 228 85 220 Z"></path>
+                    </g>
+                    <g class="muscle-figure back" transform="translate(176 10)">
+                        <circle class="body-base" cx="65" cy="18" r="15"></circle>
+                        <path class="body-base" d="M48 39 C54 31 76 31 82 39 L88 88 C90 104 82 120 76 133 L54 133 C48 120 40 104 42 88 Z"></path>
+                        <path class="body-base" d="M44 44 C28 50 22 72 19 102 C18 113 30 115 33 105 C36 83 41 67 50 57 Z"></path>
+                        <path class="body-base" d="M86 44 C102 50 108 72 111 102 C112 113 100 115 97 105 C94 83 89 67 80 57 Z"></path>
+                        <path class="body-base" d="M54 132 C48 154 43 183 41 216 C41 228 56 228 58 217 L65 154 L72 217 C74 228 89 228 89 216 C87 183 82 154 76 132 Z"></path>
+                        <path class="${muscleAreaClass(['traps', 'back', 'shoulders', 'full_body'])}" d="M50 39 L80 39 L73 58 L65 64 L57 58 Z"></path>
+                        <path class="${muscleAreaClass(['lats', 'back', 'full_body'])}" d="M48 57 C57 64 61 78 61 99 L51 122 C44 104 41 82 48 57 Z"></path>
+                        <path class="${muscleAreaClass(['lats', 'back', 'full_body'])}" d="M82 57 C73 64 69 78 69 99 L79 122 C86 104 89 82 82 57 Z"></path>
+                        <path class="${muscleAreaClass(['triceps', 'arms', 'full_body'])}" d="M35 61 C28 74 26 90 27 104 C33 106 38 103 39 96 C40 83 43 72 49 60 Z"></path>
+                        <path class="${muscleAreaClass(['triceps', 'arms', 'full_body'])}" d="M95 61 C102 74 104 90 103 104 C97 106 92 103 91 96 C90 83 87 72 81 60 Z"></path>
+                        <path class="${muscleAreaClass(['glutes', 'full_body'])}" d="M52 125 C59 120 65 124 65 134 L65 154 C54 153 48 143 52 125 Z"></path>
+                        <path class="${muscleAreaClass(['glutes', 'full_body'])}" d="M78 125 C71 120 65 124 65 134 L65 154 C76 153 82 143 78 125 Z"></path>
+                        <path class="${muscleAreaClass(['hamstrings', 'legs', 'full_body'])}" d="M53 154 L64 154 L62 190 L48 190 C49 174 50 163 53 154 Z"></path>
+                        <path class="${muscleAreaClass(['hamstrings', 'legs', 'full_body'])}" d="M77 154 L66 154 L68 190 L82 190 C81 174 80 163 77 154 Z"></path>
+                        <path class="${muscleAreaClass(['calves', 'soleus', 'legs', 'full_body'])}" d="M48 193 L62 193 L58 223 C56 229 45 228 45 220 Z"></path>
+                        <path class="${muscleAreaClass(['calves', 'soleus', 'legs', 'full_body'])}" d="M82 193 L68 193 L72 223 C74 229 85 228 85 220 Z"></path>
+                    </g>
+                    <text class="muscle-map-label" x="93" y="242">Front</text>
+                    <text class="muscle-map-label" x="241" y="242">Back</text>
+                </svg>
+            </div>
+        `;
+        const license = exercise.license || template.license;
+        const licenseUrl = exercise.licenseUrl || template.licenseUrl || 'https://creativecommons.org/licenses/by-sa/4.0/';
+        const attribution = (exercise.source === 'wger' || template.source === 'wger')
+            ? `<div class="info-attribution">Daten: <a href="https://wger.de" target="_blank" rel="noopener">wger.de</a>${license ? `, <a href="${licenseUrl}" target="_blank" rel="noopener">${license}</a>` : ''}</div>`
+            : '';
+
+        const instructionBlock = hasExplanation
+            ? (hasMedia
+                ? `<details class="info-instruction-box">
+                        <summary>${explanationLabel}</summary>
+                        <div class="info-instruction-text">${explanation}</div>
+                    </details>`
+                : `<details class="info-instruction-box" open>
+                        <summary>${explanationLabel}</summary>
+                        <div class="info-instruction-text">${explanation}</div>
+                    </details>`)
+            : `<div class="info-instruction-box info-instruction-empty">
+                    <span class="material-symbols-rounded" style="font-size:18px;opacity:0.5;">description</span>
+                    <span>Keine Anleitung verfuegbar.</span>
+                </div>`;
+
+        let mediaFrame = '';
+        if (hasMedia) {
+            let parts = '';
+            if (image) {
+                parts += `<div class="info-media-frame-img-wrap">
+                    <img class="info-exercise-image info-exercise-image-clickable" src="${image}" alt="${translatedName}" loading="lazy">
+                    <button class="info-image-fullscreen-btn" aria-label="Vollbild">
+                        <span class="material-symbols-rounded">fullscreen</span>
+                    </button>
+                </div>`;
+            }
+            if (hasVideo) {
+                const mainVideo = videos.find(v => v.isMain) || videos[0];
+                if (mainVideo.url) {
+                    parts += `<video class="info-exercise-video" controls src="${mainVideo.url}" style="width:100%;border-radius:8px;margin-top:8px;"></video>`;
+                } else if (mainVideo.embed) {
+                    parts += `<div class="info-exercise-placeholder"><span class="material-symbols-rounded">play_circle</span></div>`;
+                }
+            }
+            mediaFrame = `<div class="info-media-frame">${parts}</div>`;
+        }
+
         const content = `
             <div class="enhanced-info-popup">
+                ${mediaFrame}
                 <h3 class="info-title">${translatedName}</h3>
 
-                <details class="info-instruction-box" open>
-                    <summary>${trans.show_instructions}</summary>
-                    <div class="info-instruction-text">${explanation}</div>
-                </details>
+                ${instructionBlock}
 
                 <div class="info-summary-table">
                     <div class="info-summary-cell">
@@ -496,6 +662,8 @@ Object.assign(DQ_EXERCISES, {
                     </div>
                 </div>
 
+                ${muscleFigure}
+
                 <div class="info-footer">
                     ${targetDisplay ? `<div class="info-target"><strong>Ziel:</strong> ${targetDisplay}</div>` : ''}
                     <div>
@@ -506,122 +674,111 @@ Object.assign(DQ_EXERCISES, {
                         </span>
                     </div>
                 </div>
+                ${attribution}
             </div>
         `;
         DQ_UI.showCustomPopup(content, 'info');
+
+        const img = document.querySelector('.info-exercise-image-clickable');
+        if (img) {
+            const openFs = () => this.openFullscreenImage(img.src, translatedName);
+            img.addEventListener('click', openFs);
+            const fsBtn = img.parentElement.querySelector('.info-image-fullscreen-btn');
+            if (fsBtn) fsBtn.addEventListener('click', (e) => { e.stopPropagation(); openFs(); });
+        }
     },
 
-    renderFreeExercisesPage() {
-        const db = DQ_DB.db;
-        if (!db) return;
-        const store = db.transaction(['exercises'], 'readonly').objectStore('exercises');
-        const lang = DQ_CONFIG.userSettings.language || 'de';
-        const difficulty = DQ_CONFIG.userSettings.difficulty || 3;
-        store.getAll().onsuccess = async (e) => {
-            DQ_UI.elements.exerciseList.innerHTML = '';
-            const allExercises = e.target.result;
-            let filteredExercises = this.currentFreeExerciseFilter === 'all' 
-                ? allExercises 
-                : allExercises.filter(ex => ex.category === this.currentFreeExerciseFilter);
-
-            if (DQ_CONFIG.userSettings.hasEquipment === false) {
-                filteredExercises = filteredExercises.filter(ex => !ex.needsEquipment);
+    openFullscreenImage(src, alt) {
+        const overlay = document.createElement('div');
+        overlay.className = 'fullscreen-image-overlay';
+        overlay.innerHTML = `
+            <button class="fullscreen-image-close" aria-label="Schliessen">
+                <span class="material-symbols-rounded">close</span>
+            </button>
+            <img class="fullscreen-image-content" src="${src}" alt="${alt}">
+        `;
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.remove();
             }
-
-            if (filteredExercises.length === 0) {
-                DQ_UI.elements.exerciseList.innerHTML = `<div class="card"><p>Keine Übungen in dieser Kategorie gefunden. <span class="material-symbols-rounded icon-accent" style="vertical-align: middle;">search_off</span></p></div>`;
-            } else {
-                filteredExercises.forEach(exercise => {
-                    let targetValue = exercise.baseValue;
-                    if (exercise.type !== 'check' && exercise.type !== 'link' && exercise.type !== 'focus') {
-                        targetValue = Math.ceil(exercise.baseValue + (exercise.baseValue * 0.4 * (difficulty - 1)));
-                    }
-                    let targetDisplay = this.formatTargetDisplay(exercise.type, targetValue);
-
-                    const translatedName = (DQ_DATA.translations[lang].exercise_names[exercise.nameKey] || exercise.nameKey);
-                    
-                    const isFocusExercise = exercise.type === 'focus';
-                    const isTimeExercise = exercise.type === 'time' && targetValue <= 180;
-                    const buttonAction = isFocusExercise ? 'start-focus' : (isTimeExercise ? 'start-timer' : 'complete');
-                    const buttonText = isFocusExercise 
-                        ? (DQ_DATA.translations[lang].start_task_button || 'Los')
-                        : (isTimeExercise ? (DQ_DATA.translations[lang].timer_start_button || 'Los') : 'OK');
-
-                    const card = document.createElement('div');
-                    card.className = 'card exercise-card';
-                    card.dataset.exerciseId = exercise.id;
-                    card.innerHTML = `
-                        <div class="quest-info">
-                            <h2>${translatedName}</h2>
-                            ${targetDisplay ? `<p class="quest-target">${targetDisplay}</p>` : ''}
-                        </div>
-                        <div class="exercise-card-actions">
-                            <button class="action-button info-button-small" data-action="info" aria-label="Info">?</button>
-                            <button class="action-button complete-button-small" data-action="${buttonAction}" aria-label="Absolvieren">${buttonText}</button>
-                        </div>
-                    `;
-                    DQ_UI.elements.exerciseList.appendChild(card);
-                });
-            }
-
-            if (this.currentFreeExerciseFilter === 'all' || this.currentFreeExerciseFilter === 'user_created') {
-                await this.renderCustomExercisesSection();
-            }
-        };
+        });
+        overlay.querySelector('.fullscreen-image-close').addEventListener('click', () => overlay.remove());
+        document.body.appendChild(overlay);
+        requestAnimationFrame(() => overlay.classList.add('open'));
     },
 
-    async renderCustomExercisesSection() {
+    async renderFreeExercisesPage() {
+        if (typeof DQ_WGER === 'undefined') return;
+        const list = DQ_UI.elements.exerciseList;
+        if (!list) return;
+
+        this.freeTrainingOffset = 0;
+        this.freeTrainingHasMore = true;
+        this.freeTrainingLoading = false;
+        list.innerHTML = '';
+        const sentinel = document.getElementById('lazy-load-sentinel');
+        if (sentinel) sentinel.hidden = false;
+
+        if (this.freeTrainingObserver) {
+            this.freeTrainingObserver.disconnect();
+            this.freeTrainingObserver = null;
+        }
+
+        await this.loadNextFreeExerciseBatch();
+
+        if (sentinel) {
+            this.freeTrainingObserver = new IntersectionObserver(entries => {
+                if (entries[0]?.isIntersecting) this.loadNextFreeExerciseBatch();
+            }, { rootMargin: '240px 0px' });
+            this.freeTrainingObserver.observe(sentinel);
+        }
+    },
+
+    async loadNextFreeExerciseBatch() {
+        if (this.freeTrainingLoading || this.freeTrainingHasMore === false || typeof DQ_WGER === 'undefined') return;
+        const list = DQ_UI.elements.exerciseList;
+        const sentinel = document.getElementById('lazy-load-sentinel');
         const lang = DQ_CONFIG.userSettings.language || 'de';
-        const trans = DQ_DATA.translations[lang] || DQ_DATA.translations.de;
         const difficulty = DQ_CONFIG.userSettings.difficulty || 3;
+        const limit = 30;
 
-        let customExercises = [];
-        if (typeof DQ_MANUAL_PLAN !== 'undefined') {
-            try {
-                customExercises = await DQ_MANUAL_PLAN.getAllCustomExercises();
-            } catch (e) {
-                console.warn('Could not load custom exercises:', e);
-            }
+        this.freeTrainingLoading = true;
+        const result = await DQ_WGER.queryExercises({
+            category: this.currentFreeExerciseFilter || 'all',
+            search: DQ_WGER.searchTerm || '',
+            equipment: 'all',
+            muscle: 'all',
+            hasEquipment: DQ_CONFIG.userSettings.hasEquipment !== false,
+            offset: this.freeTrainingOffset || 0,
+            limit
+        });
+
+        if ((this.freeTrainingOffset || 0) === 0 && result.items.length === 0) {
+            list.innerHTML = `<div class="card free-training-empty"><p>Keine Uebungen gefunden. Die wger-Datenbank wird bei der naechsten Internetverbindung geladen.</p></div>`;
         }
 
-        const sectionHeader = document.createElement('div');
-        sectionHeader.className = 'custom-exercises-section-header';
-        sectionHeader.innerHTML = `<h2 class="section-divider-title" data-lang-key="self_created_exercises">${trans.self_created_exercises || 'Selbst erstellte Uebungen'}</h2>`;
-        DQ_UI.elements.exerciseList.appendChild(sectionHeader);
-
-        if (customExercises.length === 0) {
-            const emptyCard = document.createElement('div');
-            emptyCard.className = 'card custom-exercise-empty';
-            emptyCard.innerHTML = `<p data-lang-key="no_custom_exercises">Noch keine eigenen Custom Aufgaben hinzugefuegt. Erstelle deine erste eigene Uebung.</p>`;
-            DQ_UI.elements.exerciseList.appendChild(emptyCard);
-            return;
-        }
-
-        if (DQ_CONFIG.userSettings.hasEquipment === false) {
-            customExercises = customExercises.filter(ex => !ex.needsEquipment);
-        }
-
-        customExercises.forEach(exercise => {
+        const fragment = document.createDocumentFragment();
+        result.items.forEach(exercise => {
             let targetValue = exercise.baseValue;
-            if (exercise.type !== 'check' && exercise.type !== 'focus') {
+            if (exercise.type !== 'check' && exercise.type !== 'link' && exercise.type !== 'focus') {
                 targetValue = Math.ceil(exercise.baseValue + (exercise.baseValue * 0.4 * (difficulty - 1)));
             }
-            let targetDisplay = this.formatTargetDisplay(exercise.type, targetValue);
-            const displayName = exercise.displayName || exercise.nameKey;
-
+            const targetDisplay = this.formatTargetDisplay(exercise.type, targetValue);
+            const translatedName = this.resolveExerciseName(exercise, lang);
             const isFocusExercise = exercise.type === 'focus';
             const isTimeExercise = exercise.type === 'time' && targetValue <= 180;
             const buttonAction = isFocusExercise ? 'start-focus' : (isTimeExercise ? 'start-timer' : 'complete');
-            const buttonText = isFocusExercise 
-                ? (trans.start_task_button || 'Los')
-                : (isTimeExercise ? (trans.timer_start_button || 'Los') : 'OK');
+            const buttonText = isFocusExercise
+                ? (DQ_DATA.translations[lang].start_task_button || 'Los')
+                : (isTimeExercise ? (DQ_DATA.translations[lang].timer_start_button || 'Los') : 'OK');
 
             const card = document.createElement('div');
-            card.className = 'card exercise-card custom-exercise-card';
-            card.dataset.customExerciseId = exercise.id;
+            card.className = 'card exercise-card';
+            card.dataset.exerciseId = exercise.id;
+            card.dataset.exerciseSource = exercise.source || (DQ_WGER.isWgerId(exercise.id) ? 'wger' : 'local');
             card.innerHTML = `
                 <div class="quest-info">
-                    <h2>${displayName}</h2>
+                    <h2>${DQ_WGER.escapeHtml(translatedName)}</h2>
                     ${targetDisplay ? `<p class="quest-target">${targetDisplay}</p>` : ''}
                 </div>
                 <div class="exercise-card-actions">
@@ -629,10 +786,16 @@ Object.assign(DQ_EXERCISES, {
                     <button class="action-button complete-button-small" data-action="${buttonAction}" aria-label="Absolvieren">${buttonText}</button>
                 </div>
             `;
-            DQ_UI.elements.exerciseList.appendChild(card);
+            fragment.appendChild(card);
         });
+
+        requestAnimationFrame(() => list.appendChild(fragment));
+        this.freeTrainingOffset = (this.freeTrainingOffset || 0) + result.items.length;
+        this.freeTrainingHasMore = result.hasMore;
+        if (sentinel) sentinel.hidden = !result.hasMore;
+        this.freeTrainingLoading = false;
     },
-    
+
     async completeFreeExercise(exerciseId) {
         // --- ANTI-SPAM: Max 3 Abschluesse in 30 Sekunden ---
         if (!this._freeTrainingCompletions) {
@@ -653,11 +816,11 @@ Object.assign(DQ_EXERCISES, {
 
         try {
             const db = DQ_DB.db;
-            const tx = db.transaction(['exercises', 'character'], 'readwrite');
-            const exStore = tx.objectStore('exercises');
+            const tx = db.transaction(['character'], 'readwrite');
             const charStore = tx.objectStore('character');
 
-            const exercise = await new Promise(res => exStore.get(exerciseId).onsuccess = e => res(e.target.result));
+            const exercise = await DQ_WGER.getById(exerciseId);
+            if (!exercise) throw new Error('Exercise not found');
             if (exercise.type === 'link') {
                 window.open(exercise.url, '_blank');
             }
@@ -665,14 +828,16 @@ Object.assign(DQ_EXERCISES, {
             let char = await new Promise(res => charStore.get(1).onsuccess = e => res(e.target.result));
 
             const difficulty = DQ_CONFIG.userSettings.difficulty || 3;
-            const scaledMana = Math.ceil(exercise.manaReward * (1 + 0.2 * (difficulty - 1)));
-            const scaledGold = Math.ceil(exercise.goldReward * (1 + 0.15 * (difficulty - 1)));
+            const baseMana = exercise.manaReward ?? exercise.mana ?? 1;
+            const baseGold = exercise.goldReward ?? exercise.gold ?? 1;
+            const scaledMana = Math.ceil(baseMana * (1 + 0.2 * (difficulty - 1)));
+            const scaledGold = Math.ceil(baseGold * (1 + 0.15 * (difficulty - 1)));
 
             char.mana += scaledMana;
             char.gold += scaledGold;
             char.totalGoldEarned += scaledGold;
 
-            const exerciseTemplate = Object.values(DQ_DATA.exercisePool).flat().find(ex => ex.id === exercise.id);
+            const exerciseTemplate = exercise;
             char = DQ_CONFIG.processStatGains(char, exerciseTemplate);
             char = DQ_CONFIG.levelUpCheck(char);
 
@@ -698,12 +863,10 @@ Object.assign(DQ_EXERCISES, {
         }
     },
 
-    showFreeExerciseInfo(exerciseId) {
-        DQ_DB.db.transaction(['exercises'], 'readonly').objectStore('exercises').get(exerciseId).onsuccess = (e) => {
-            const ex = e.target.result;
-            if (!ex) return;
-            this.renderExerciseInfoPopup(ex, false);
-        };
+    async showFreeExerciseInfo(exerciseId) {
+        const ex = await DQ_WGER.getById(exerciseId);
+        if (!ex) return;
+        this.renderExerciseInfoPopup(ex, false);
     },
 
     displayQuests() {

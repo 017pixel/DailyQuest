@@ -1,4 +1,6 @@
-const CACHE_NAME = 'dailyquest-cache-v31';
+const CACHE_NAME = 'dailyquest-cache-v33';
+const WGER_IMAGE_CACHE = 'dailyquest-wger-images-v1';
+const WGER_IMAGE_LIMIT = 200;
 
 const urlsToCache = [
   '/',
@@ -18,10 +20,12 @@ const urlsToCache = [
   '/tutorial/css/tutorial.css',
   '/data/translations.js',
   '/data/exercises.js',
+  '/data/wger-defaults.js',
   '/data/achievements.js',
   '/data/dungeons.js',
   '/data/training_plans.js',
   '/js/database.js',
+  '/js/wger-import.js',
   '/js/analytics.js',
   '/js/ui.js',
   '/js/timer-popup.js',
@@ -91,6 +95,33 @@ self.addEventListener('activate', event => {
   );
 });
 
+async function trimCache(cacheName, maxEntries) {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+  if (keys.length <= maxEntries) return;
+  await Promise.all(keys.slice(0, keys.length - maxEntries).map(key => cache.delete(key)));
+}
+
+async function handleWgerImage(request, requestUrl) {
+  const cache = await caches.open(WGER_IMAGE_CACHE);
+  const cached = await cache.match(request);
+  const isThumb = requestUrl.pathname.includes('.200x200_') || requestUrl.pathname.includes('.400x400_');
+
+  if (isThumb && cached) return cached;
+
+  try {
+    const response = await fetch(request);
+    if (response && response.status === 200) {
+      await cache.put(request, response.clone());
+      trimCache(WGER_IMAGE_CACHE, WGER_IMAGE_LIMIT);
+    }
+    return response;
+  } catch (error) {
+    if (cached) return cached;
+    return new Response('', { status: 503, statusText: 'Offline' });
+  }
+}
+
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
@@ -98,6 +129,10 @@ self.addEventListener('fetch', event => {
     (async () => {
       const requestUrl = new URL(event.request.url);
       const isSameOrigin = requestUrl.origin === self.location.origin;
+      const isWgerImage = requestUrl.hostname === 'wger.de' && requestUrl.pathname.includes('/media/exercise-images/');
+      if (isWgerImage) {
+        return handleWgerImage(event.request, requestUrl);
+      }
       const isAppAsset = isSameOrigin && (
         requestUrl.pathname === '/' ||
         requestUrl.pathname.endsWith('.html') ||

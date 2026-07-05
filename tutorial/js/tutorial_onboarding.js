@@ -29,26 +29,41 @@
             </div>
         `);
 
-        const buttons = document.querySelectorAll('#tutorial-language-selection [data-lang]');
-        buttons.forEach(btn => {
-            btn.addEventListener('click', async () => {
-                this.selectedLanguage = btn.dataset.lang;
+        return new Promise(resolve => {
+            let selectionHandled = false;
+            const buttons = document.querySelectorAll('#tutorial-language-selection [data-lang]');
+            if (buttons.length === 0) {
+                resolve();
+                return;
+            }
 
-                if (typeof DQ_CONFIG !== 'undefined') {
-                    DQ_CONFIG.userSettings.language = this.selectedLanguage;
-                }
-                if (typeof DQ_UI !== 'undefined' && typeof DQ_UI.applyTranslations === 'function') {
-                    DQ_UI.applyTranslations();
-                }
+            buttons.forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (selectionHandled) return;
+                    selectionHandled = true;
 
-                const selection = document.getElementById('tutorial-language-selection');
-                if (selection) {
-                    selection.classList.add('fade-out');
-                    await this.delay(500);
-                }
+                    buttons.forEach(button => button.disabled = true);
 
-                await this.hideText();
-                await this.delay(250);
+                    this.selectedLanguage = btn.dataset.lang;
+
+                    if (typeof DQ_CONFIG !== 'undefined') {
+                        if (!DQ_CONFIG.userSettings) DQ_CONFIG.userSettings = {};
+                        DQ_CONFIG.userSettings.language = this.selectedLanguage;
+                    }
+                    if (typeof DQ_UI !== 'undefined' && typeof DQ_UI.applyTranslations === 'function') {
+                        DQ_UI.applyTranslations();
+                    }
+
+                    const selection = document.getElementById('tutorial-language-selection');
+                    if (selection) {
+                        selection.classList.add('fade-out');
+                        await this.delay(500);
+                    }
+
+                    await this.hideText();
+                    await this.delay(250);
+                    resolve();
+                });
             });
         });
     },
@@ -89,9 +104,23 @@
             await self.delay(250);
         }
 
-        document.querySelectorAll('#tutorial-install-selection [data-install]').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                if (btn.dataset.install === 'browser') {
+        return new Promise(resolve => {
+            let selectionHandled = false;
+            const buttons = document.querySelectorAll('#tutorial-install-selection [data-install]');
+            const skipButton = document.getElementById('tutorial-install-skip');
+            if (buttons.length === 0 && !skipButton) {
+                resolve();
+                return;
+            }
+
+            const finish = async (action) => {
+                if (selectionHandled) return;
+                selectionHandled = true;
+
+                buttons.forEach(button => button.disabled = true);
+                if (skipButton) skipButton.disabled = true;
+
+                if (action === 'browser' || action === 'skip') {
                     await proceedToNextStep();
                 } else {
                     self.choseAppInstall = true;
@@ -102,11 +131,21 @@
                     await self.hideText();
                     await self.showInstallInstructions();
                 }
-            });
-        });
 
-        document.getElementById('tutorial-install-skip').addEventListener('click', async () => {
-            await proceedToNextStep();
+                resolve();
+            };
+
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    finish(btn.dataset.install);
+                });
+            });
+
+            if (skipButton) {
+                skipButton.addEventListener('click', () => {
+                    finish('skip');
+                });
+            }
         });
     },
 
@@ -568,7 +607,7 @@
                             goal: finalGoal,
                             difficulty: 2,
                             restDays: 1,
-                            language: 'de',
+                            language: this.selectedLanguage || 'de',
                             theme: 'dark',
                             weightTrackingEnabled: true,
                             hasEquipment: this.hasEquipment,
@@ -580,6 +619,7 @@
                         settings.goal = finalGoal;
                         settings.hasEquipment = this.hasEquipment;
                         settings.age = this.age;
+                        settings.language = this.selectedLanguage || settings.language || 'de';
                         if (typeof settings.weightTrackingEnabled !== 'boolean') {
                             settings.weightTrackingEnabled = true;
                         }
@@ -688,5 +728,3 @@
         }
     },
 });
-
-

@@ -32,11 +32,18 @@ const DQ_EXERCISES = {
         if (target.classList.contains('filter-button')) {
             if (target.id === 'search-exercise-button') return;
 
-            DQ_UI.elements.freeExerciseFilters.querySelector('.active').classList.remove('active');
-            target.classList.add('active');
-            this.currentFreeExerciseFilter = target.dataset.filter;
-            this.renderFreeExercisesPage();
+            this.setFreeExerciseFilter(target.dataset.filter);
         }
+    },
+
+    setFreeExerciseFilter(filter) {
+        const next = filter || 'all';
+        const active = DQ_UI.elements.freeExerciseFilters.querySelector('.active');
+        if (active) active.classList.remove('active');
+        const button = DQ_UI.elements.freeExerciseFilters.querySelector(`[data-filter="${next}"]`);
+        if (button) button.classList.add('active');
+        this.currentFreeExerciseFilter = next;
+        this.renderFreeExercisesPage();
     },
 
     async handleExerciseClick(event) {
@@ -55,7 +62,7 @@ const DQ_EXERCISES = {
             } else if (action === 'start-timer') {
                 const quest = await new Promise(res => DQ_DB.db.transaction('daily_quests').objectStore('daily_quests').get(questId).onsuccess = e => res(e.target.result));
                 if (quest) {
-                    const exerciseTemplate = Object.values(DQ_DATA.exercisePool).flat().find(ex => ex.nameKey === quest.nameKey);
+                    const exerciseTemplate = await DQ_TRAINING_SYSTEM.getTemplateByNameKey(quest.nameKey);
                     if (exerciseTemplate && exerciseTemplate.type === 'time') {
                         // quest.target ist bereits die skalierte Zeit
                         const questExercise = { ...exerciseTemplate, baseValue: quest.target, target: quest.target };
@@ -67,7 +74,7 @@ const DQ_EXERCISES = {
             } else if (action === 'start-focus') {
                 const quest = await new Promise(res => DQ_DB.db.transaction('daily_quests').objectStore('daily_quests').get(questId).onsuccess = e => res(e.target.result));
                 if (quest) {
-                    const exerciseTemplate = Object.values(DQ_DATA.exercisePool).flat().find(ex => ex.nameKey === quest.nameKey);
+                    const exerciseTemplate = await DQ_TRAINING_SYSTEM.getTemplateByNameKey(quest.nameKey);
                     if (exerciseTemplate && exerciseTemplate.timerDuration) {
                         const labelKey = this.getLabelKeyForExercise(exerciseTemplate.nameKey);
                         DQ_FOKUS_TIMER.prepareSession(exerciseTemplate.timerDuration, { type: 'quest', id: questId, labelKey: labelKey });
@@ -77,30 +84,27 @@ const DQ_EXERCISES = {
                 }
             }
         } else {
-            const exerciseId = parseInt(card.dataset.exerciseId, 10);
+            const exerciseId = card.dataset.exerciseId;
             if (action === 'info') {
                 this.showFreeExerciseInfo(exerciseId);
             } else if (action === 'complete') {
                 this.completeFreeExercise(exerciseId);
             } else if (action === 'start-timer') {
-                const exercise = await new Promise(res => DQ_DB.db.transaction('exercises').objectStore('exercises').get(exerciseId).onsuccess = e => res(e.target.result));
+                const exercise = await DQ_WGER.getById(exerciseId);
                 if (exercise && exercise.type === 'time') {
-                    const exerciseTemplate = Object.values(DQ_DATA.exercisePool).flat().find(ex => ex.id === exercise.id);
-                    if (exerciseTemplate && exercise.baseValue <= 180) {
-                        // Zeit fuer freies Training skalieren
+                    if (exercise.baseValue <= 180) {
                         const difficulty = DQ_CONFIG.userSettings?.difficulty || 3;
-                        const scaledTime = Math.ceil(exerciseTemplate.baseValue * (1 + 0.4 * (difficulty - 1)));
-                        const scaledExercise = { ...exerciseTemplate, baseValue: scaledTime };
+                        const scaledTime = Math.ceil(exercise.baseValue * (1 + 0.4 * (difficulty - 1)));
+                        const scaledExercise = { ...exercise, baseValue: scaledTime };
                         this.showTimerPopup(scaledExercise, exerciseId);
                     }
                 }
             } else if (action === 'start-focus') {
-                const exercise = await new Promise(res => DQ_DB.db.transaction('exercises').objectStore('exercises').get(exerciseId).onsuccess = e => res(e.target.result));
+                const exercise = await DQ_WGER.getById(exerciseId);
                 if (exercise) {
-                     const exerciseTemplate = Object.values(DQ_DATA.exercisePool).flat().find(ex => ex.id === exercise.id);
-                     if (exerciseTemplate && exerciseTemplate.timerDuration) {
-                        const labelKey = this.getLabelKeyForExercise(exerciseTemplate.nameKey);
-                        DQ_FOKUS_TIMER.prepareSession(exerciseTemplate.timerDuration, { type: 'free', id: exerciseId, labelKey: labelKey });
+                     if (exercise.timerDuration) {
+                        const labelKey = this.getLabelKeyForExercise(exercise.nameKey);
+                        DQ_FOKUS_TIMER.prepareSession(exercise.timerDuration, { type: 'free', id: exerciseId, labelKey: labelKey });
                         const focusNavButton = document.querySelector('.nav-button[data-page="page-fokus"]');
                         if (focusNavButton) DQ_UI.handleNavClick(focusNavButton);
                      }
@@ -152,29 +156,17 @@ const DQ_EXERCISES = {
         }
 
         try {
-            const allExercises = await new Promise((resolve, reject) => {
-                const tx = DQ_DB.db.transaction('exercises', 'readonly');
-                const store = tx.objectStore('exercises');
-                const request = store.getAll();
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
-            });
-
             const lang = DQ_CONFIG.userSettings.language || 'de';
-            const foundExercise = allExercises.find(ex => {
-                const translatedName = (DQ_DATA.translations[lang].exercise_names[ex.nameKey] || ex.nameKey).toLowerCase();
-                return translatedName.includes(searchTerm);
-            });
+            if (typeof DQ_WGER !== 'undefined') DQ_WGER.searchTerm = searchTerm;
+            this.setFreeExerciseFilter('all');
+            const result = typeof DQ_WGER !== 'undefined'
+                ? await DQ_WGER.queryExercises({ category: 'all', search: searchTerm, limit: 1 })
+                : { items: [] };
+            const foundExercise = result.items[0] || null;
 
             if (foundExercise) {
-                DQ_UI.elements.freeExerciseFilters.querySelector('.active').classList.remove('active');
-                DQ_UI.elements.freeExerciseFilters.querySelector('[data-filter="all"]').classList.add('active');
-                this.currentFreeExerciseFilter = 'all';
-                
-                this.renderFreeExercisesPage();
-                
                 setTimeout(() => {
-                    const cardToHighlight = document.querySelector(`#exercise-list .exercise-card[data-exercise-id="${foundExercise.id}"]`);
+                    const cardToHighlight = document.querySelector(`#exercise-list .exercise-card[data-exercise-id="${CSS.escape(String(foundExercise.id))}"]`);
                     if (cardToHighlight) {
                         cardToHighlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         cardToHighlight.classList.add('highlight');
@@ -216,7 +208,9 @@ const DQ_EXERCISES = {
         if (!popup) return;
 
         const lang = DQ_CONFIG.userSettings?.language || 'de';
-        const translatedName = DQ_DATA.translations[lang]?.exercise_names?.[exercise.nameKey] || exercise.nameKey;
+        const translatedName = typeof DQ_WGER !== 'undefined'
+            ? DQ_WGER.getDisplayName(exercise, lang)
+            : (DQ_DATA.translations[lang]?.exercise_names?.[exercise.nameKey] || exercise.nameKey);
         document.getElementById('timer-exercise-name').textContent = translatedName;
         document.getElementById('timer-display').textContent = this.formatTargetDisplay(exercise.type, exercise.baseValue);
         document.getElementById('timer-progress-fill').style.width = '100%';
@@ -331,4 +325,3 @@ const DQ_EXERCISES = {
         DQ_UI.showPopup(popup);
     },
 };
-

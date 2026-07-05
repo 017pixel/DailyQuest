@@ -21,6 +21,20 @@ const DQ_TRAINING_SYSTEM = {
         return DQ_DATA.trainingPlans[normalized] || DQ_DATA.trainingPlans.muscle;
     },
 
+    isWgerSportGoal(goal) {
+        const normalized = this.normalizeGoal(goal);
+        return ['muscle', 'kraft_abnehmen', 'endurance', 'fatloss', 'calisthenics'].includes(normalized);
+    },
+
+    async getTemplateByNameKey(nameKey) {
+        const local = Object.values(DQ_DATA.exercisePool || {}).flat().find(ex => ex.nameKey === nameKey);
+        if (local) return local;
+        if (typeof DQ_WGER !== 'undefined') {
+            return await DQ_WGER.getByNameKey(nameKey);
+        }
+        return null;
+    },
+
     getAgeBand(age) {
         if (typeof age !== 'number' || Number.isNaN(age)) return 'unknown';
         if (age < 18) return 'u18';
@@ -36,7 +50,7 @@ const DQ_TRAINING_SYSTEM = {
 
     getStageSummary(goal, stage, completionMode, difficulty = 3) {
         if (!stage) return '';
-        if (completionMode === 'log') {
+        if (goal === 'endurance' || completionMode === 'log') {
             const distance = typeof stage.distance === 'number' ? stage.distance.toFixed(1) : '0.0';
             return `${distance} km · ${stage.duration || 0} min`;
         }
@@ -59,7 +73,7 @@ const DQ_TRAINING_SYSTEM = {
 
     getQuestActionLabel(quest) {
         if (!quest || quest.completed) return 'check';
-        if (quest.completionMode === 'log') return this.t('endurance_entry_button', 'Eintragen');
+        if (quest.completionMode === 'log') return 'OK';
         if (quest.completionMode === 'timer') return this.t('timer_start_button', 'Los');
         if (quest.completionMode === 'sets') {
             const totalSets = Math.max(1, quest.setPlan?.sets || quest.setProgress?.length || 1);
@@ -186,6 +200,26 @@ const DQ_TRAINING_SYSTEM = {
         return best[Math.floor(Math.random() * best.length)].ex;
     },
 
+    async pickWgerCandidate(slot, recentExerciseKeys, hasEquipment, pickedToday = [], goal = null) {
+        if (typeof DQ_WGER === 'undefined') return null;
+        const pool = await DQ_WGER.getTrainingPool(goal || 'muscle', slot?.key || 'general', hasEquipment);
+        const blocked = new Set(this.blockedQuestNameKeys || []);
+        const available = pool.filter(ex => !blocked.has(ex.nameKey) && !pickedToday.includes(ex.nameKey));
+        const finalPool = available.length > 0 ? available : pool.filter(ex => !blocked.has(ex.nameKey));
+        if (finalPool.length === 0) return null;
+
+        const scored = finalPool.map(ex => {
+            let score = 1;
+            if (recentExerciseKeys.includes(ex.nameKey)) score -= 0.7;
+            if (ex.hasImage) score += 0.08;
+            if (ex.descriptionDe || ex.descriptionEn) score += 0.04;
+            return { ex, score };
+        }).sort((a, b) => b.score - a.score);
+
+        const top = scored.slice(0, Math.max(1, Math.min(12, Math.ceil(scored.length * 0.2))));
+        return top[Math.floor(Math.random() * top.length)].ex;
+    },
+
     getTargetValue(template, stage) {
         if (stage?.targetDuration) return stage.targetDuration;
         if (template.type === 'time') {
@@ -257,7 +291,7 @@ const DQ_TRAINING_SYSTEM = {
             if (template.type === 'time' && template.baseValue <= 180) return 'timer';
             if (template.type === 'check') return 'tap';
             if (template.nameKey === 'walking_lunges') return 'tap';
-            return 'log';
+            return 'tap';
         }
         if (plan?.completionMode && goal !== 'endurance') return plan.completionMode;
         if (template.type === 'focus') return 'tap';
@@ -298,14 +332,26 @@ const DQ_TRAINING_SYSTEM = {
         const label = this.getStageLabel(stageContext.stage);
         const header = this.getPhaseHeaderText(stageContext);
 
+        let targetLabel = enduranceTarget?.label || null;
+        if (goal === 'endurance') {
+            const stage = stageContext.stage || {};
+            const distance = typeof stage.distance === 'number' ? stage.distance.toFixed(1) : null;
+            const duration = stage.duration || null;
+            if (slot.key === 'distance' && distance) {
+                targetLabel = `${distance} km`;
+            } else if ((slot.key === 'warmup' || slot.key === 'tempo' || slot.key === 'cooldown') && duration) {
+                targetLabel = `${duration} min`;
+            }
+        }
+
         const quest = {
             date: todayStr,
             goal,
             slotKey: slot.key,
             nameKey: template.nameKey,
-            type: completionMode === 'log' ? 'log' : template.type,
+            type: template.type,
             target: enduranceTarget?.value || targetValue,
-            targetLabel: enduranceTarget?.label || null,
+            targetLabel,
             setPlan: completionMode === 'sets' ? { sets, reps } : null,
             setProgress,
             phaseIndex: stageContext.stageIndex,
@@ -314,12 +360,34 @@ const DQ_TRAINING_SYSTEM = {
             phaseSummary: this.getStageSummary(goal, stageContext.stage, completionMode, difficulty),
             completionMode,
             loadFactor: rewardScale,
-            manaReward: Math.max(1, Math.round(template.mana * rewardScale)),
-            goldReward: Math.max(1, Math.round(template.gold * (rewardScale * 0.9 + 0.1))),
+            manaReward: Math.max(1, Math.round((template.mana ?? template.manaReward ?? 1) * rewardScale)),
+            goldReward: Math.max(1, Math.round((template.gold ?? template.goldReward ?? 1) * (rewardScale * 0.9 + 0.1))),
             completed: false,
             canComplete: completionMode === 'tap',
             bonusInfoSynced: true,
             equipmentHint: !!template.needsEquipment && hasEquipment !== false,
+            source: template.source || (template.wgerId ? 'wger' : 'local'),
+            wgerId: template.wgerId || null,
+            nameDe: template.nameDe || null,
+            nameEn: template.nameEn || null,
+            descriptionDe: template.descriptionDe || null,
+            descriptionEn: template.descriptionEn || null,
+            customDisplayName: template.source === 'wger' ? (DQ_WGER.getDisplayName(template, this.getLang())) : null,
+            customDescription: template.source === 'wger' ? DQ_WGER.getDescription(template, this.getLang()) : null,
+            needsEquipment: !!template.needsEquipment,
+            muscles: template.muscles || [],
+            musclesSecondary: template.musclesSecondary || [],
+            equipment: template.equipment || [],
+            statPoints: template.statPoints || null,
+            imageUrl: template.imageUrl || '',
+            imageThumbSm: template.imageThumbSm || '',
+            imageThumbMd: template.imageThumbMd || '',
+            category: template.category || null,
+            license: template.license || null,
+            licenseUrl: template.licenseUrl || null,
+            licenseAuthor: template.licenseAuthor || null,
+            hasImage: template.hasImage || false,
+            videos: template.videos || [],
             analytics: {
                 ageBand: this.getAgeBand(DQ_CONFIG.userSettings?.age ?? null),
                 stageIndex: stageContext.stageIndex,
@@ -376,7 +444,13 @@ const DQ_TRAINING_SYSTEM = {
 
         for (let i = 0; i < 6; i++) {
             const slot = plan.slots[i] || plan.slots[plan.slots.length - 1];
-            const template = this.pickCandidate(slot, recent, hasEquipment, questIds, goal) || this.pickCandidate({ candidates: ['walk_30min', 'stretch_10min'] }, recent, hasEquipment, questIds, goal);
+            let template = null;
+            if (this.isWgerSportGoal(goal)) {
+                template = await this.pickWgerCandidate(slot, recent, hasEquipment, questIds, goal);
+            }
+            if (!template) {
+                template = this.pickCandidate(slot, recent, hasEquipment, questIds, goal) || this.pickCandidate({ candidates: ['walk_30min', 'stretch_10min'] }, recent, hasEquipment, questIds, goal);
+            }
             if (!template) continue;
             const quest = this.buildQuest(goal, plan, state, stageContext, slot, template, todayStr, i, difficulty, hasEquipment);
             questIds.push(quest.nameKey);
@@ -412,11 +486,10 @@ const DQ_TRAINING_SYSTEM = {
             }
         }
 
-        const allTemplates = Object.values(DQ_DATA.exercisePool).flat();
         const updated = [];
 
         for (const quest of openQuests) {
-            const template = allTemplates.find(ex => ex.nameKey === quest.nameKey);
+            const template = await this.getTemplateByNameKey(quest.nameKey);
             if (!template) { updated.push(quest); continue; }
 
             const goal = quest.goal || this.normalizeGoal(settings.goal || 'muscle');
@@ -487,12 +560,11 @@ const DQ_TRAINING_SYSTEM = {
         const hasEquipment = settings.hasEquipment !== false;
         const difficulty = settings.difficulty || 3;
         const exclude = new Set(excludeNameKeys || []);
-        const allTemplates = Object.values(DQ_DATA.exercisePool).flat();
         const newQuests = [];
 
         if (goal === 'restday' || goal === 'sick') {
             const blockedSet = new Set(this.blockedQuestNameKeys || []);
-            let pool = [...(DQ_DATA.exercisePool[goal] || DQ_DATA.exercisePool.muscle)]
+            let pool = [...(DQ_DATA.exercisePool[goal] || DQ_DATA.exercisePool.restday || [])]
                 .filter(ex => !blockedSet.has(ex.nameKey) && !exclude.has(ex.nameKey));
             if (!hasEquipment) pool = pool.filter(ex => !ex.needsEquipment);
             for (let i = pool.length - 1; i > 0; i--) {
@@ -522,7 +594,13 @@ const DQ_TRAINING_SYSTEM = {
             const picked = [];
             for (const oldQuest of questsToReplace) {
                 const slot = plan.slots.find(s => s.key === oldQuest.slotKey) || plan.slots[0];
-                const template = this.pickCandidate(slot, state.recentExercises || [], hasEquipment, picked.concat([...exclude]), goal);
+                let template = null;
+                if (this.isWgerSportGoal(goal)) {
+                    template = await this.pickWgerCandidate(slot, state.recentExercises || [], hasEquipment, picked.concat([...exclude]), goal);
+                }
+                if (!template) {
+                    template = this.pickCandidate(slot, state.recentExercises || [], hasEquipment, picked.concat([...exclude]), goal);
+                }
                 if (!template) { newQuests.push(oldQuest); continue; }
                 const rebuilt = this.buildQuest(goal, plan, state, stageContext, slot, template, todayStr, 0, difficulty, hasEquipment);
                 rebuilt.questId = oldQuest.questId;
@@ -547,7 +625,7 @@ const DQ_TRAINING_SYSTEM = {
     },
 
     formatQuestTarget(quest) {
-        if (quest.completionMode === 'log') {
+        if (quest.completionMode === 'log' || quest.goal === 'endurance' || quest.targetSummary) {
             if (quest.targetLabel) return quest.targetLabel;
             const summary = quest.targetSummary || {};
             const duration = summary.duration || quest.target || 20;
@@ -735,4 +813,3 @@ try {
 } catch (e) {
     console.error('Fehler beim Exportieren von DQ_TRAINING_SYSTEM:', e);
 }
-

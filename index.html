@@ -366,20 +366,21 @@
                     <button id="search-exercise-button" class="filter-button"
                         data-lang-key="search_button">Suchen</button>
                     <button class="filter-button active" data-filter="all" data-lang-key="filter_all">Alle</button>
-                    <button class="filter-button" data-filter="muscle" data-lang-key="filter_muscle">Kraft</button>
-                    <button class="filter-button" data-filter="endurance"
-                        data-lang-key="filter_endurance">Ausdauer</button>
-                    <button class="filter-button" data-filter="fatloss"
-                        data-lang-key="filter_fatloss">Fettverbrennung</button>
-                    <button class="filter-button" data-filter="kraft_abnehmen"
-                        data-lang-key="filter_bodyweight">Körpergewicht</button>
+                    <button class="filter-button" data-filter="Abs">Abs</button>
+                    <button class="filter-button" data-filter="Arms">Arms</button>
+                    <button class="filter-button" data-filter="Back">Back</button>
+                    <button class="filter-button" data-filter="Calves">Calves</button>
+                    <button class="filter-button" data-filter="Cardio">Cardio</button>
+                    <button class="filter-button" data-filter="Chest">Chest</button>
+                    <button class="filter-button" data-filter="Legs">Legs</button>
+                    <button class="filter-button" data-filter="Shoulders">Shoulders</button>
                     <button class="filter-button" data-filter="learning" data-lang-key="filter_learning">Lernen</button>
+                    <button class="filter-button" data-filter="focus">Fokus</button>
                     <button class="filter-button" data-filter="restday" data-lang-key="filter_restday">Erholung</button>
-                    <button class="filter-button" data-filter="general_workout"
-                        data-lang-key="filter_general_workout">Allgemeines Workout</button>
                 </div>
-                <div id="exercise-list" class="content-container">
-                    <!-- Das bisherige Übungs-Layout wird hier beibehalten -->
+                <div id="exercise-list" class="content-container"></div>
+                <div id="lazy-load-sentinel" class="loading-sentinel" hidden>
+                    <span class="material-symbols-rounded">more_horiz</span>
                 </div>
             </div>
 
@@ -733,20 +734,40 @@
             </div>
             <div class="manual-plan-tabs" id="manual-plan-tabs">
                 <button class="manual-plan-tab active" data-cat="all" data-lang-key="filter_all">Alle</button>
-                <button class="manual-plan-tab" data-cat="user_created" data-lang-key="self_created_exercises">Eigene Übungen</button>
-                <button class="manual-plan-tab" data-cat="muscle" data-lang-key="filter_muscle">Kraft</button>
-                <button class="manual-plan-tab" data-cat="endurance" data-lang-key="filter_endurance">Ausdauer</button>
-                <button class="manual-plan-tab" data-cat="fatloss" data-lang-key="filter_fatloss">Fettverbrennung</button>
-                <button class="manual-plan-tab" data-cat="calisthenics" data-lang-key="filter_bodyweight">Koerpergewicht</button>
+                <button class="manual-plan-tab" data-cat="Abs">Abs</button>
+                <button class="manual-plan-tab" data-cat="Arms">Arms</button>
+                <button class="manual-plan-tab" data-cat="Back">Back</button>
+                <button class="manual-plan-tab" data-cat="Calves">Calves</button>
+                <button class="manual-plan-tab" data-cat="Cardio">Cardio</button>
+                <button class="manual-plan-tab" data-cat="Chest">Chest</button>
+                <button class="manual-plan-tab" data-cat="Legs">Legs</button>
+                <button class="manual-plan-tab" data-cat="Shoulders">Shoulders</button>
                 <button class="manual-plan-tab" data-cat="learning" data-lang-key="filter_learning">Lernen</button>
                 <button class="manual-plan-tab" data-cat="restday" data-lang-key="filter_restday">Erholung</button>
             </div>
+            <div class="manual-plan-filter-row">
+                <input id="manual-plan-search" type="search" placeholder="Suche..." autocomplete="off">
+                <select id="manual-plan-equipment-filter">
+                    <option value="all">Equipment</option>
+                    <option value="7">Bodyweight</option>
+                    <option value="3">Dumbbell</option>
+                    <option value="1">Barbell</option>
+                    <option value="10">Kettlebell</option>
+                    <option value="8">Bench</option>
+                </select>
+                <select id="manual-plan-muscle-filter">
+                    <option value="all">Muskel</option>
+                    <option value="4">Brust</option>
+                    <option value="12">Ruecken</option>
+                    <option value="10">Quadrizeps</option>
+                    <option value="6">Bauch</option>
+                    <option value="2">Schultern</option>
+                    <option value="1">Bizeps</option>
+                    <option value="5">Trizeps</option>
+                </select>
+            </div>
             <div id="manual-plan-list" class="manual-plan-list"></div>
             <div class="manual-plan-footer">
-                <button id="manual-plan-create-exercise" class="manual-plan-create-btn">
-                    <span class="material-symbols-rounded">add</span>
-                    <span data-lang-key="custom_exercise_create">Eigene Uebung erstellen</span>
-                </button>
                 <div class="manual-plan-save-row">
                     <span id="manual-plan-counter" class="manual-plan-counter">0/30</span>
                     <button id="manual-plan-save-btn" class="training-primary-action" disabled>
@@ -754,59 +775,6 @@
                         <span data-lang-key="manual_plan_save">Plan speichern</span>
                     </button>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Popup: Custom Exercise erstellen -->
-    <div id="custom-exercise-popup" class="popup popup-large">
-        <div class="popup-drag-handle"></div>
-        <div class="popup-content">
-            <h3 data-lang-key="custom_exercise_create">Eigene Uebung erstellen</h3>
-            <div class="setting-item">
-                <label for="custom-ex-name" data-lang-key="custom_exercise_name">Name</label>
-                <input type="text" id="custom-ex-name" placeholder="z.B. Meine Spezialuebung" maxlength="60" autocomplete="off">
-            </div>
-            <div class="setting-item">
-                <label for="custom-ex-desc" data-lang-key="custom_exercise_desc">Beschreibung</label>
-                <input type="text" id="custom-ex-desc" placeholder="Kurze Anleitung" maxlength="200" autocomplete="off">
-            </div>
-            <div class="setting-item">
-                <label for="custom-ex-type" data-lang-key="custom_exercise_type">Typ</label>
-                <select id="custom-ex-type">
-                    <option value="reps">Wiederholungen</option>
-                    <option value="time">Zeit</option>
-                    <option value="check">Check (abhaken)</option>
-                </select>
-            </div>
-            <div class="setting-item">
-                <label for="custom-ex-value" data-lang-key="custom_exercise_value">Basiswert</label>
-                <input type="number" id="custom-ex-value" min="1" max="999" step="1" value="10">
-            </div>
-            <div class="setting-item">
-                <label for="custom-ex-equipment" data-lang-key="custom_exercise_equipment">Equipment noetig</label>
-                <select id="custom-ex-equipment">
-                    <option value="false">Nein</option>
-                    <option value="true">Ja</option>
-                </select>
-            </div>
-            <div class="setting-item">
-                <label for="custom-ex-muscle" data-lang-key="custom_exercise_muscle">Muskelgruppe</label>
-                <select id="custom-ex-muscle">
-                    <option value="general">Allgemein</option>
-                    <option value="chest">Brust</option>
-                    <option value="back">Ruecken</option>
-                    <option value="legs">Beine</option>
-                    <option value="abs">Bauch</option>
-                    <option value="shoulders">Schultern</option>
-                    <option value="arms">Arme</option>
-                    <option value="full_body">Ganzkoerper</option>
-                    <option value="mind">Geist & Mental</option>
-                </select>
-            </div>
-            <div class="popup-actions">
-                <button id="custom-ex-cancel" class="card-button secondary-button" data-lang-key="cancel">Abbrechen</button>
-                <button id="custom-ex-save" class="card-button" data-lang-key="save_button">Speichern</button>
             </div>
         </div>
     </div>
@@ -876,6 +844,10 @@
                             <input type="checkbox" id="confetti-toggle" checked>
                             <label for="confetti-toggle" class="slider"></label>
                         </div>
+                    </div>
+                    <div class="settings-info-box">
+                        Uebungsdaten von <a href="https://wger.de" target="_blank" rel="noopener">wger.de</a>
+                        (<a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC-BY-SA 4.0</a>)
                     </div>
                 </div>
             </div>
@@ -988,7 +960,7 @@
                         <div class="qr-code-wrapper"><div id="qr-code-canvas"></div></div>
                         <button class="settings-action-btn share-copy-btn" id="copy-url-btn" data-lang-key="share_copy">Link kopieren</button>
                         <a href="https://github.com/017pixel/DailyQuest" target="_blank" class="share-github-link"><span class="material-symbols-rounded">code</span><span data-lang-key="share_github">Zum Code</span></a>
-                        <div class="share-version">v2.14.0</div>
+                        <div class="share-version">v2.15.0</div>
                     </div>
                 </div>
             </div>
@@ -1132,10 +1104,10 @@
     <div id="endurance-entry-popup" class="popup">
         <div class="popup-drag-handle"></div>
         <div class="popup-content">
-            <h3 data-lang-key="endurance_entry_title">Ausdauer eintragen</h3>
+            <h3 data-lang-key="endurance_entry_title">Ausdauer abschließen</h3>
             <div class="settings-warning-box">
                 <span class="warning-icon"><span class="material-symbols-rounded" style="font-size:20px;">directions_run</span></span>
-                <p data-lang-key="endurance_entry_hint">Trage Strecke und Zeit ein.</p>
+                <p data-lang-key="endurance_entry_hint">Aufgaben mit Strecke werden direkt per OK abgeschlossen.</p>
             </div>
             <div class="setting-item">
                 <label for="endurance-distance-input" data-lang-key="distance">Strecke (km)</label>
@@ -1151,7 +1123,7 @@
             </div>
             <div class="popup-actions">
                 <button id="endurance-entry-cancel-button" class="card-button secondary-button" data-lang-key="cancel">Abbrechen</button>
-                <button id="endurance-entry-save-button" class="card-button" data-lang-key="endurance_entry_button">Eintragen</button>
+                <button id="endurance-entry-save-button" class="card-button" data-lang-key="endurance_entry_button">OK</button>
             </div>
         </div>
     </div>
@@ -1248,11 +1220,13 @@
     <script src="tutorial/js/tutorial_triggers.js"></script>
     <script src="data/translations.js"></script>
     <script src="data/exercises.js"></script>
+    <script src="data/wger-defaults.js"></script>
     <script src="data/training_plans.js"></script>
     <script src="data/achievements.js"></script>
     <script src="data/dungeons.js"></script>
     <script src="js/dungeons/dungeon_combat.js"></script>
     <script src="js/database.js"></script>
+    <script src="js/wger-import.js"></script>
     <script src="js/analytics.js"></script>
     <script src="js/training_system.js"></script>
     <script src="js/ui.js"></script>
