@@ -34,6 +34,10 @@ function openTimerPopup(exercise, questId = null) {
 
 function getExerciseName(nameKey) {
     const lang = DQ_CONFIG.userSettings?.language || 'de';
+    if (currentExercise && typeof DQ_WGER !== 'undefined') {
+        const displayName = DQ_WGER.getDisplayName(currentExercise, lang);
+        if (displayName && displayName !== 'Training') return displayName;
+    }
     const nameTranslations = DQ_DATA.translations[lang]?.exercise_names;
     if (nameTranslations && nameTranslations[nameKey]) {
         return nameTranslations[nameKey];
@@ -50,6 +54,8 @@ function resetTimerUI() {
     isCompleting = false;
     remainingTime = totalTime;
     document.getElementById('timer-display').textContent = formatTime(remainingTime);
+    const progressFill = document.getElementById('timer-progress-fill');
+    if (progressFill) progressFill.style.width = '100%';
     const circleProgress = document.getElementById('timer-circle-progress');
     if (circleProgress) circleProgress.style.strokeDashoffset = '0';
 
@@ -134,6 +140,8 @@ function onTimerFinished() {
     document.getElementById('timer-done-button').classList.remove('hidden');
 
     document.getElementById('timer-display').textContent = '00:00';
+    const progressFill = document.getElementById('timer-progress-fill');
+    if (progressFill) progressFill.style.width = '0%';
     const circleProgress = document.getElementById('timer-circle-progress');
     if (circleProgress) {
         const circumference = 2 * Math.PI * 120;
@@ -147,6 +155,8 @@ function updateTimerDisplay(seconds) {
 
 function updateProgressBar(seconds) {
     const remainingRatio = seconds / totalTime;
+    const progressFill = document.getElementById('timer-progress-fill');
+    if (progressFill) progressFill.style.width = (remainingRatio * 100) + '%';
     const circleProgress = document.getElementById('timer-circle-progress');
     if (circleProgress) {
         const circumference = 2 * Math.PI * 120;

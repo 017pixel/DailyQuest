@@ -231,8 +231,8 @@ Object.assign(DQ_EXERCISES, {
 
                 const translatedName = this.resolveExerciseName(quest, lang);
                 const isFocusQuest = quest.type === 'focus';
-                const isTimeQuest = quest.type === 'time' && quest.target <= 180;
-                const buttonAction = isFocusQuest ? 'start-focus' : (isTimeQuest ? 'start-timer' : 'complete');
+                const isTimerQuest = quest.completionMode === 'timer' || (quest.type === 'time' && quest.target <= 180);
+                const buttonAction = isFocusQuest ? 'start-focus' : (isTimerQuest ? 'start-timer' : 'complete');
                 const isSetQuest = quest.completionMode === 'sets' && Array.isArray(quest.setProgress) && quest.setPlan;
                 const totalSets = Math.max(1, quest.setPlan?.sets || quest.setProgress?.length || 1);
                 const doneSets = isSetQuest ? quest.setProgress.filter(Boolean).length : 0;
@@ -241,7 +241,7 @@ Object.assign(DQ_EXERCISES, {
                 const fallbackActionLabel = typeof DQ_TRAINING_SYSTEM !== 'undefined' ? DQ_TRAINING_SYSTEM.getQuestActionLabel(quest) : 'OK';
                 const buttonText = isFocusQuest
                     ? (DQ_DATA.translations[lang].start_task_button || 'Los')
-                    : (isTimeQuest
+                    : (isTimerQuest
                         ? (DQ_DATA.translations[lang].timer_start_button || 'Los')
                         : (isSetQuest ? progressText : fallbackActionLabel));
                 const buttonDisabled = quest.completed;

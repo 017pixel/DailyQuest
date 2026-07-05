@@ -4,6 +4,22 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## [2.15.1] - 2026-07-05
+
+### Erstellt
+- Timer-Balken-Synchronisierung für Reset, Lauf und Ende hinzugefügt
+- Fallback auf Wger-Anzeigenamen für Timer-Übungsnamen hinzugefügt
+
+### Verändert
+- Timer-Popup auf globale Implementierung vereinheitlicht, doppelte Timer-Logik entfernt
+- Daily-Quest-Karten erkennen Timer jetzt auch über completionMode
+- Freies Training übergibt keine Exercise-ID mehr als Quest-ID an Timer-Abschluss
+
+### Gelöscht
+- Doppelte lokale Timer-Implementierung in page_exercises.js entfernt
+
+---
+
 ## [2.15.0] - 2026-07-05
 
 ### Erstellt

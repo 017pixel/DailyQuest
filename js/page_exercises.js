@@ -63,9 +63,10 @@ const DQ_EXERCISES = {
                 const quest = await new Promise(res => DQ_DB.db.transaction('daily_quests').objectStore('daily_quests').get(questId).onsuccess = e => res(e.target.result));
                 if (quest) {
                     const exerciseTemplate = await DQ_TRAINING_SYSTEM.getTemplateByNameKey(quest.nameKey);
-                    if (exerciseTemplate && exerciseTemplate.type === 'time') {
+                    const timerSource = exerciseTemplate || quest;
+                    if (quest.completionMode === 'timer' || timerSource.type === 'time') {
                         // quest.target ist bereits die skalierte Zeit
-                        const questExercise = { ...exerciseTemplate, baseValue: quest.target, target: quest.target };
+                        const questExercise = { ...timerSource, type: 'time', baseValue: quest.target, target: quest.target };
                         this.showTimerPopup(questExercise, questId);
                     }
                 }
@@ -93,10 +94,7 @@ const DQ_EXERCISES = {
                 const exercise = await DQ_WGER.getById(exerciseId);
                 if (exercise && exercise.type === 'time') {
                     if (exercise.baseValue <= 180) {
-                        const difficulty = DQ_CONFIG.userSettings?.difficulty || 3;
-                        const scaledTime = Math.ceil(exercise.baseValue * (1 + 0.4 * (difficulty - 1)));
-                        const scaledExercise = { ...exercise, baseValue: scaledTime };
-                        this.showTimerPopup(scaledExercise, exerciseId);
+                        this.showTimerPopup(exercise);
                     }
                 }
             } else if (action === 'start-focus') {
@@ -202,126 +200,9 @@ const DQ_EXERCISES = {
         return '';
     },
 
-    // DIRECT TIMER POPUP - keine externe Abhaengigkeit!
     showTimerPopup(exercise, questId) {
-        const popup = document.getElementById('timer-popup');
-        if (!popup) return;
-
-        const lang = DQ_CONFIG.userSettings?.language || 'de';
-        const translatedName = typeof DQ_WGER !== 'undefined'
-            ? DQ_WGER.getDisplayName(exercise, lang)
-            : (DQ_DATA.translations[lang]?.exercise_names?.[exercise.nameKey] || exercise.nameKey);
-        document.getElementById('timer-exercise-name').textContent = translatedName;
-        document.getElementById('timer-display').textContent = this.formatTargetDisplay(exercise.type, exercise.baseValue);
-        document.getElementById('timer-progress-fill').style.width = '100%';
-        document.getElementById('timer-circle-progress').style.strokeDashoffset = '0';
-
-        document.getElementById('timer-start-button').classList.remove('hidden');
-        document.getElementById('timer-pause-button').classList.add('hidden');
-        document.getElementById('timer-resume-button').classList.add('hidden');
-        document.getElementById('timer-done-button').classList.add('hidden');
-        document.getElementById('timer-countdown-overlay').classList.add('hidden');
-
-        // Timer state
-        let timerInterval = null;
-        let totalTime = exercise.baseValue;
-        let remainingTime = totalTime;
-        let isPaused = false;
-        const circleCircumference = 2 * Math.PI * 120; // radius = 120
-
-        function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+        if (typeof openTimerPopup === 'function') {
+            openTimerPopup(exercise, questId || null);
         }
-
-        function updateTimerUI() {
-            const remainingRatio = remainingTime / totalTime;
-            document.getElementById('timer-display').textContent = formatTime(remainingTime);
-            document.getElementById('timer-progress-fill').style.width = (remainingRatio * 100) + '%';
-            document.getElementById('timer-circle-progress').style.strokeDashoffset = (circleCircumference * (1 - remainingRatio));
-        }
-
-        // Button handlers
-        document.getElementById('timer-start-button').onclick = function() {
-            let count = 5;
-            const overlay = document.getElementById('timer-countdown-overlay');
-            const num = document.getElementById('timer-countdown-number');
-            overlay.classList.remove('hidden');
-            num.textContent = count;
-
-            const countdown = setInterval(function() {
-                count--;
-                if (count > 0) {
-                    num.textContent = count;
-                } else if (count === 0) {
-                    num.textContent = 'GO!';
-                } else {
-                    clearInterval(countdown);
-                    overlay.classList.add('hidden');
-                    // Start timer
-                    isPaused = false;
-                    timerInterval = setInterval(function() {
-                        if (!isPaused && remainingTime > 0) {
-                            remainingTime--;
-                            updateTimerUI();
-                            if (remainingTime <= 0) {
-                                clearInterval(timerInterval);
-                                timerInterval = null;
-                                document.getElementById('timer-pause-button').classList.add('hidden');
-                                document.getElementById('timer-resume-button').classList.add('hidden');
-                                document.getElementById('timer-done-button').classList.remove('hidden');
-                                document.getElementById('timer-display').textContent = '00:00';
-                                document.getElementById('timer-progress-fill').style.width = '0%';
-                                document.getElementById('timer-circle-progress').style.strokeDashoffset = circleCircumference;
-                            }
-                        }
-                    }, 1000);
-                    document.getElementById('timer-start-button').classList.add('hidden');
-                    document.getElementById('timer-pause-button').classList.remove('hidden');
-                }
-            }, 1000);
-        };
-
-        document.getElementById('timer-pause-button').onclick = function() {
-            isPaused = true;
-            document.getElementById('timer-pause-button').classList.add('hidden');
-            document.getElementById('timer-resume-button').classList.remove('hidden');
-        };
-
-        document.getElementById('timer-resume-button').onclick = function() {
-            isPaused = false;
-            document.getElementById('timer-resume-button').classList.add('hidden');
-            document.getElementById('timer-pause-button').classList.remove('hidden');
-        };
-
-        let isCompleting = false;
-        document.getElementById('timer-done-button').onclick = function() {
-            if (isCompleting) return;
-            isCompleting = true;
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
-            if (questId) {
-                this.completeQuest(questId);
-            } else {
-                this.completeFreeExercise(exercise.id);
-            }
-            DQ_UI.hideAllPopups();
-        }.bind(this);
-
-        document.getElementById('timer-warning-cancel').onclick = function() {
-            DQ_UI.hideAllPopups();
-        };
-        document.getElementById('timer-warning-confirm').onclick = function() {
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
-            DQ_UI.hideAllPopups();
-        };
-
-        DQ_UI.showPopup(popup);
     },
 };
