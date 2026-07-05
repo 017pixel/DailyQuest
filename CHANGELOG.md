@@ -4,6 +4,31 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## [2.15.3] - 2026-07-05
+
+### Erstellt
+- Sauberes GitHub-Pages-Verzeichnis fuer Deployments hinzugefuegt
+- Git-Ignorierregeln fuer lokale Build- und Systemdateien hinzugefuegt
+- Neue Hotfix-Version fuer die Deployment-Stabilitaet vorbereitet
+- Aktualisierte App-Versionsanzeige fuer Nutzer hinzugefuegt
+- Neuer Offline-Cache fuer die aktuelle Version vorbereitet
+
+### Verändert
+- GitHub Pages laedt nur noch echte App-Dateien hoch
+- Pages-Actions nutzen wieder aktuelle Major-Versionen
+- Deployment-Artifact enthaelt keine Entwicklungsabhängigkeiten mehr
+- App-Version von 2.15.2 auf 2.15.3 aktualisiert
+- Test-Erwartungen an die neue Version angepasst
+
+### Gelöscht
+- Getrackte Entwicklungsabhängigkeiten aus dem Pages-Artifact entfernt
+- Node-Modules-Inhalte aus der Git-Versionierung entfernt
+- Lokale Build-Ausgaben aus zukuenftigen Commits ausgeschlossen
+- macOS-Systemdateien aus zukuenftigen Commits ausgeschlossen
+- Fehlerquelle fuer Pages-Deployment-Abbrueche entfernt
+
+---
+
 ## [2.15.2] - 2026-07-05
 
 ### Erstellt
