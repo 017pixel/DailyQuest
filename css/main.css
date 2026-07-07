@@ -16,6 +16,7 @@
     --mana-bar-color: #5b97d4;
     --mana-bar-background: #2c2f33;
     --penalty-color: #cf6679;
+    --success-color: #4f9d69;
     --popup-bg-dark: #23232a;
     /* Helleres Dunkelgrau für Popups im Dark Mode */
     --popup-glow-dark: 0 12px 65px 18px rgba(95, 133, 117, 0.55), 0 2px 64px 0 rgba(0, 0, 0, 0.65);
@@ -39,6 +40,7 @@ html[data-theme='light'] {
     --mana-bar-color: #0061a4;
     --mana-bar-background: #dbe3eb;
     --penalty-color: #b3261e;
+    --success-color: #2e7d52;
     --popup-bg-light: #fffafd;
     /* Helles Popup im Light Mode */
     --popup-glow-light: 0 12px 65px 18px rgba(74, 101, 89, 0.35), 0 2px 64px 0 rgba(0, 0, 0, 0.22);
@@ -62,6 +64,7 @@ html[data-theme='oled'] {
     --mana-bar-color: #5b97d4;
     --mana-bar-background: #111111;
     --penalty-color: #cf6679;
+    --success-color: #5fbd7a;
     --popup-bg-dark: #0d0d0d;
     --popup-glow-dark: 0 12px 65px 18px rgba(95, 133, 117, 0.45), 0 2px 64px 0 rgba(0, 0, 0, 0.9);
     --popup-glow-penalty-dark: 0 12px 65px 18px rgba(207, 102, 121, 0.5), 0 2px 64px 0 rgba(0, 0, 0, 0.9);

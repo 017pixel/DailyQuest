@@ -569,7 +569,7 @@ const DQ_STATS = {
     async saveWeightEntry(weight) {
         const now = new Date();
         const entry = {
-            date: now.toISOString().split('T')[0],
+            date: DQ_CONFIG.getLocalDateString(now),
             time: now.toISOString(),
             weight: Math.min(weight, 200)
         };

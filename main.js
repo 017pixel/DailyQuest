@@ -2,11 +2,14 @@ const DQ_CONFIG = {
     userSettings: {},
     dailyCheckInterval: null,
 
-    getTodayString() { return new Date().toISOString().split('T')[0]; },
+    getLocalDateString(date = new Date()) {
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    },
+    getTodayString() { return this.getLocalDateString(); },
     getYesterdayString() {
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
-        return yesterday.toISOString().split('T')[0];
+        return this.getLocalDateString(yesterday);
     },
 
     getCharacter() {
@@ -267,15 +270,14 @@ const DQ_CONFIG = {
         };
 
         if (navigator.locks && typeof navigator.locks.request === 'function') {
-            await navigator.locks.request('quest-completion-lock', runCompletion);
-            return;
+            return await navigator.locks.request('quest-completion-lock', runCompletion);
         }
 
-        await runCompletion();
+        return await runCompletion();
     }
 };
 
-const APP_VERSION = '2.15.3';
+const APP_VERSION = '2.15.4';
 const APP_UPDATE_FLAG_KEY = 'dq_seen_app_version';
 
 async function initializeApp() {
@@ -324,7 +326,6 @@ async function initializeApp() {
             restdaysSelect: document.getElementById('restdays-select'),
             characterNameInput: document.getElementById('character-name-input'),
             characterAgeInput: document.getElementById('character-age-input'),
-            equipmentToggle: document.getElementById('equipment-toggle'),
             dailyQuestRegenerateButton: document.getElementById('daily-quest-regenerate-button'),
             phaseRepeatButton: document.getElementById('phase-repeat-button'),
             phaseSkipButton: document.getElementById('phase-skip-button'),
@@ -830,29 +831,27 @@ async function applyTrainingSettingChange(changeType) {
         });
         console.log(`${changeType}-Änderung: offene Quests re-skaliert.`);
     } else if (changeType === 'equipment') {
-        const hasEquipment = DQ_CONFIG.userSettings.hasEquipment !== false;
-        if (!hasEquipment && open.length === questsToday.length) {
+        const questAvailable = q => {
+            if (typeof DQ_TRAINING_SYSTEM !== 'undefined' && typeof DQ_TRAINING_SYSTEM.isExerciseAllowedByEquipment === 'function') {
+                return DQ_TRAINING_SYSTEM.isExerciseAllowedByEquipment(q, DQ_CONFIG.userSettings || {});
+            }
+            return DQ_CONFIG.userSettings.hasEquipment !== false || q.needsEquipment !== true;
+        };
+        const unbrauchbar = open.filter(q => !questAvailable(q));
+        if (unbrauchbar.length > 0 && open.length === questsToday.length) {
             if (DQ_CONFIG.userSettings.planType === 'custom') {
                 await generateDailyQuestsIfNeeded(true);
-                console.log('Equipment-Off: Custom-Plan Quests wurden ohne Equipment neu generiert.');
+                console.log('Equipment-Aenderung: Custom-Plan Quests wurden passend zum Equipment neu generiert.');
                 localStorage.setItem('dq_last_local_update', String(Date.now()));
                 if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
                 DQ_EXERCISES.renderQuests();
                 return;
             }
-            const questNeedsEquipment = q => {
-                return q.needsEquipment === true;
-            };
-            const unbrauchbar = open.filter(questNeedsEquipment);
-            if (unbrauchbar.length > 0) {
-                const exclude = completed.map(q => q.nameKey).concat(open.filter(q => !questNeedsEquipment(q)).map(q => q.nameKey));
-                await DQ_TRAINING_SYSTEM.regenerateSpecificQuests(unbrauchbar, exclude, todayStr);
-                console.log(`Equipment-Off: ${unbrauchbar.length} unbrauchbare Quest(s) ersetzt.`);
-            } else {
-                console.log('Equipment-Off: keine unbrauchbaren Quests — Änderung gilt ab morgen.');
-            }
+            const exclude = completed.map(q => q.nameKey).concat(open.filter(questAvailable).map(q => q.nameKey));
+            await DQ_TRAINING_SYSTEM.regenerateSpecificQuests(unbrauchbar, exclude, todayStr);
+            console.log(`Equipment-Aenderung: ${unbrauchbar.length} unbrauchbare Quest(s) ersetzt.`);
         } else {
-            console.log('Equipment-Änderung: gilt ab morgen (oder Quests teilweise erledigt).');
+            console.log('Equipment-Aenderung: keine unbrauchbaren Quests oder heutige Quests bereits gestartet.');
         }
     } else {
         console.log(`${changeType}-Änderung: gilt ab morgen.`);
@@ -988,9 +987,11 @@ function addSettingsListeners(elements) {
         handleRestDaysChange(parseInt(e.target.value, 10));
     });
 
-    elements.equipmentToggle.addEventListener('change', async (e) => {
-        await saveSetting('hasEquipment', e.target.checked);
-        await applyTrainingSettingChange('equipment');
+    document.querySelectorAll('[data-training-equipment]').forEach(input => {
+        input.addEventListener('change', async () => {
+            await saveTrainingEquipmentSelection();
+            await applyTrainingSettingChange('equipment');
+        });
     });
 
     if (elements.dailyQuestRegenerateButton) {
@@ -1195,22 +1196,22 @@ function getUpdateNoticePages(trans) {
     return [
         {
             title: trans.update_notice_title || 'DailyQuest wurde aktualisiert',
-            body: trans.update_notice_intro || 'Das ist neu in Version 2.15:',
+            body: trans.update_notice_intro || 'Das ist neu in dieser Version:',
             points: [
-                trans.update_point_1 || 'Neue wger-Uebungsdatenbank fuer deutlich mehr Trainingsauswahl',
-                trans.update_point_2 || 'Bestehende Trainingsplaene laufen ohne wger-Zwang weiter',
-                trans.update_point_3 || 'Neue Plaene lassen sich mit Suche, Muskel- und Equipment-Filtern konfigurieren',
-                trans.update_point_4 || 'Daily-Quest-Intro wartet jetzt korrekt auf deine Auswahl',
+                trans.update_point_1 || 'Daily Quests behalten wieder alle Trainingskategorien',
+                trans.update_point_2 || 'Equipment-Aufgaben werden nur mit passender Ausruestung erstellt',
+                trans.update_point_3 || 'Fallback-Quests bleiben auch ohne Equipment abschliessbar',
+                trans.update_point_4 || 'Englische Statistik-Karten zeigen keine deutschen Texte mehr',
             ]
         },
         {
             title: trans.update_notice_title || 'DailyQuest wurde aktualisiert',
-            body: trans.update_notice_intro || 'Das ist neu in Version 2.15:',
+            body: trans.update_notice_intro || 'Das ist neu in dieser Version:',
             points: [
-                trans.update_point_5 || 'Ausdauer-Aufgaben werden direkt mit OK abgeschlossen',
-                trans.update_point_6 || 'Dein Tagesfortschritt, Streak und deine Phase bleiben erhalten',
-                trans.update_point_7 || 'Bilder und Infos fuer neue Uebungen werden im Hintergrund geladen',
-                trans.update_point_8 || 'Du kannst sofort weitertrainieren oder spaeter neue Plaene bauen',
+                trans.update_point_5 || 'Doppelte Uebungsnamen wurden aufgeraeumt',
+                trans.update_point_6 || 'Der Extra-Quest-Bereich zeigt wieder eine saubere Ueberschrift',
+                trans.update_point_7 || 'Erfolgsanzeigen nutzen jetzt die passende Theme-Farbe',
+                trans.update_point_8 || 'Neue Tests schuetzen diese Fehler dauerhaft',
             ]
         }
     ];
@@ -1232,7 +1233,7 @@ async function showUpdateNotice() {
                     ${page.points.map(point => `<li>${point}</li>`).join('')}
                 </ul>
                 <div class="popup-actions">
-                    <button type="button" id="update-notice-next-button" class="card-button">${trans.update_notice_finish || 'Los geht\'s!'}</button>
+                    <button type="button" id="update-notice-next-button" class="card-button">${pageIndex < pages.length - 1 ? (trans.update_notice_next || 'Weiter') : (trans.update_notice_finish || 'Los geht\'s!')}</button>
                 </div>
             </div>
         `;
@@ -1242,6 +1243,11 @@ async function showUpdateNotice() {
         const nextButton = document.getElementById('update-notice-next-button');
         if (nextButton) {
             nextButton.addEventListener('click', () => {
+                if (pageIndex < pages.length - 1) {
+                    pageIndex += 1;
+                    render();
+                    return;
+                }
                 DQ_UI.hideAllPopups();
             }, { once: true });
         }
@@ -1249,6 +1255,48 @@ async function showUpdateNotice() {
 
     render();
 }
+function normalizeTrainingEquipmentSettings(settings) {
+    if (!settings) return settings;
+    const types = DQ_DATA.trainingEquipmentTypes || {};
+    const normalized = {};
+    Object.keys(types).forEach(key => { normalized[key] = false; });
+
+    if (settings.trainingEquipment && typeof settings.trainingEquipment === 'object') {
+        Object.keys(normalized).forEach(key => { normalized[key] = settings.trainingEquipment[key] === true; });
+    } else if (settings.hasEquipment !== false) {
+        normalized.dumbbell = true;
+        normalized.barbell = true;
+    }
+
+    settings.trainingEquipment = normalized;
+    settings.hasEquipment = Object.values(normalized).some(Boolean);
+    return settings;
+}
+
+function getTrainingEquipmentSelectionFromInputs() {
+    const profile = {};
+    Object.keys(DQ_DATA.trainingEquipmentTypes || {}).forEach(key => { profile[key] = false; });
+    document.querySelectorAll('[data-training-equipment]').forEach(input => {
+        profile[input.dataset.trainingEquipment] = input.checked === true;
+    });
+    return profile;
+}
+
+function updateTrainingEquipmentInputs() {
+    const profile = typeof DQ_TRAINING_SYSTEM !== 'undefined'
+        ? DQ_TRAINING_SYSTEM.getEquipmentProfile(DQ_CONFIG.userSettings || {})
+        : normalizeTrainingEquipmentSettings(DQ_CONFIG.userSettings || {})?.trainingEquipment || {};
+    document.querySelectorAll('[data-training-equipment]').forEach(input => {
+        input.checked = profile[input.dataset.trainingEquipment] === true;
+    });
+}
+
+async function saveTrainingEquipmentSelection() {
+    const profile = getTrainingEquipmentSelectionFromInputs();
+    await saveSetting('trainingEquipment', profile);
+    await saveSetting('hasEquipment', Object.values(profile).some(Boolean));
+}
+
 function saveSetting(key, value) {
     return new Promise(resolve => {
         const characterSettings = ['name', 'age', 'weightTrackingEnabled', 'targetWeight', 'weightDirection'];
@@ -1312,8 +1360,8 @@ function saveSetting(key, value) {
                     setTimeout(() => updateDifficultySliderStyle(difficultySlider), 50);
                 }
             }
-            if (key === 'difficulty' || key === 'hasEquipment') DQ_EXERCISES.renderFreeExercisesPage();
-            if (key === 'goal' || key === 'difficulty' || key === 'hasEquipment' || key === 'restDays') {
+            if (key === 'difficulty' || key === 'hasEquipment' || key === 'trainingEquipment') DQ_EXERCISES.renderFreeExercisesPage();
+            if (key === 'goal' || key === 'difficulty' || key === 'hasEquipment' || key === 'trainingEquipment' || key === 'restDays') {
                 updateSettingsUI();
                 DQ_EXERCISES.renderTrainingPhaseBanner();
             }
@@ -1338,9 +1386,10 @@ function loadSettings() {
             if (e.target.result) {
                 DQ_CONFIG.userSettings = e.target.result;
             } else {
-                DQ_CONFIG.userSettings = { id: 1, language: 'de', theme: 'dark', difficulty: 3, goal: 'muscle', restDays: 2, hasEquipment: true, weightTrackingEnabled: true, age: null, extraQuestEnabled: true, confettiEnabled: true, planType: 'predefined', customPlanId: null };
+                DQ_CONFIG.userSettings = { id: 1, language: 'de', theme: 'dark', difficulty: 3, goal: 'muscle', restDays: 2, hasEquipment: true, trainingEquipment: { dumbbell: true, barbell: true, pullupBar: false, bench: false, kettlebell: false }, weightTrackingEnabled: true, age: null, extraQuestEnabled: true, confettiEnabled: true, planType: 'predefined', customPlanId: null };
                 tx.objectStore('settings').add(DQ_CONFIG.userSettings);
             }
+            normalizeTrainingEquipmentSettings(DQ_CONFIG.userSettings);
             if (typeof DQ_TRAINING_SYSTEM !== 'undefined') {
                 DQ_CONFIG.userSettings.goal = DQ_TRAINING_SYSTEM.normalizeGoal(DQ_CONFIG.userSettings.goal || 'muscle');
             }
@@ -1348,7 +1397,7 @@ function loadSettings() {
             DQ_CONFIG.userSettings.theme = DQ_CONFIG.userSettings.theme || 'dark';
             DQ_CONFIG.userSettings.difficulty = Math.max(1, Math.min(5, Number(DQ_CONFIG.userSettings.difficulty) || 3));
             DQ_CONFIG.userSettings.restDays = [0, 1, 2, 3].includes(Number(DQ_CONFIG.userSettings.restDays)) ? Number(DQ_CONFIG.userSettings.restDays) : 2;
-            DQ_CONFIG.userSettings.hasEquipment = DQ_CONFIG.userSettings.hasEquipment !== false;
+            normalizeTrainingEquipmentSettings(DQ_CONFIG.userSettings);
             if (typeof DQ_CONFIG.userSettings.age !== 'number') {
                 DQ_CONFIG.userSettings.age = null;
             }
@@ -1392,8 +1441,7 @@ function updateSettingsUI() {
     // Bug H Fix: goalSelect.value-Zuweisung entfernt (HTML-Element existiert nicht mehr).
     elements.restdaysSelect.value = String(DQ_CONFIG.userSettings.restDays ?? 2);
 
-    // Default zu true, wenn nicht gesetzt
-    elements.equipmentToggle.checked = DQ_CONFIG.userSettings.hasEquipment !== false;
+    updateTrainingEquipmentInputs();
 
     const extraQuestToggle = document.getElementById('extra-quest-toggle');
     if (extraQuestToggle) extraQuestToggle.checked = DQ_CONFIG.userSettings.extraQuestEnabled !== false;
@@ -1784,13 +1832,13 @@ async function ensureMinimumTrainingQuestCount(todayStr, goal, questsToday) {
     if (!Array.isArray(questsToday) || questsToday.length === 0) return false;
     if (isRestOrRecoveryDayForQuestTopUp(goal, questsToday)) return false;
 
-    const hasEquipment = DQ_CONFIG.userSettings.hasEquipment !== false;
-    const questNeedsEquipment = quest => {
-        return quest.needsEquipment === true;
+    const questAvailable = quest => {
+        if (typeof DQ_TRAINING_SYSTEM !== 'undefined' && typeof DQ_TRAINING_SYSTEM.isExerciseAllowedByEquipment === 'function') {
+            return DQ_TRAINING_SYSTEM.isExerciseAllowedByEquipment(quest, DQ_CONFIG.userSettings || {});
+        }
+        return DQ_CONFIG.userSettings.hasEquipment !== false || quest.needsEquipment !== true;
     };
-    const hiddenUnavailable = hasEquipment
-        ? []
-        : questsToday.filter(q => !q.completed && questNeedsEquipment(q));
+    const hiddenUnavailable = questsToday.filter(q => !q.completed && !questAvailable(q));
     const eligibleQuests = questsToday.filter(q => !hiddenUnavailable.includes(q));
     if (eligibleQuests.length >= MIN_TRAINING_QUESTS && hiddenUnavailable.length === 0) return false;
 
@@ -1962,10 +2010,13 @@ async function generateDailyQuestsIfNeeded(forceRegenerate = false) {
     const hasCompletedToday = questsToday.some(q => q.completed);
 
     const questNeedsEquipment = quest => {
+        if (typeof DQ_TRAINING_SYSTEM !== 'undefined' && typeof DQ_TRAINING_SYSTEM.isExerciseAllowedByEquipment === 'function') {
+            return !DQ_TRAINING_SYSTEM.isExerciseAllowedByEquipment(quest, DQ_CONFIG.userSettings || {});
+        }
         return quest.needsEquipment === true;
     };
 
-    if (!hasCompletedToday && !hasEquipment && questsToday.some(questNeedsEquipment)) {
+    if (!hasCompletedToday && questsToday.some(questNeedsEquipment)) {
         forceRegenerate = true;
     }
     const hasDuplicateQuests = new Set(questsToday.map(q => q.nameKey)).size !== questsToday.length;
@@ -2167,49 +2218,50 @@ async function checkForPenaltyAndReset() {
         DQ_CONFIG.forceQuestRefresh = false;
         return;
     }
-    localStorage.setItem('lastPenaltyCheck', todayStr);
     console.log("Starte tägliche Prüfung für Strafen und Resets...");
 
-    return new Promise(async (resolve) => {
-        const tx = DQ_DB.db.transaction(['extra_quest', 'character', 'daily_quests'], 'readwrite');
+    try {
+        const yesterdayStr = DQ_CONFIG.getYesterdayString();
+        const { char: storedChar, yesterdaysQuests, extraQuest } = await new Promise((resolve, reject) => {
+            const tx = DQ_DB.db.transaction(['extra_quest', 'character', 'daily_quests'], 'readonly');
+            const result = { char: null, yesterdaysQuests: [], extraQuest: null };
 
-        tx.onerror = () => {
-            console.error("Fehler bei der täglichen Prüfungs-Transaktion.");
-            resolve();
-        };
-
-        const extraQuestStore = tx.objectStore('extra_quest');
-        const charStore = tx.objectStore('character');
-        const questStore = tx.objectStore('daily_quests');
-        let char = await new Promise(res => charStore.get(1).onsuccess = e => res(e.target.result));
+            tx.objectStore('character').get(1).onsuccess = e => { result.char = e.target.result || null; };
+            tx.objectStore('daily_quests').index('date').getAll(yesterdayStr).onsuccess = e => { result.yesterdaysQuests = e.target.result || []; };
+            tx.objectStore('extra_quest').get(1).onsuccess = e => { result.extraQuest = e.target.result || null; };
+            tx.oncomplete = () => resolve(result);
+            tx.onerror = event => reject(event.target.error);
+        });
 
         const twoDaysAgo = new Date();
         twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-        const oldDateStr = twoDaysAgo.toISOString().split('T')[0];
-        const keyRange = IDBKeyRange.upperBound(oldDateStr);
-        questStore.index('date').openKeyCursor(keyRange).onsuccess = event => {
-            const cursor = event.target.result;
-            if (cursor) {
-                questStore.delete(cursor.primaryKey);
-                cursor.continue();
-            }
-        };
+        const oldDateStr = DQ_CONFIG.getLocalDateString(twoDaysAgo);
+        await new Promise((resolve, reject) => {
+            const tx = DQ_DB.db.transaction(['daily_quests'], 'readwrite');
+            const questStore = tx.objectStore('daily_quests');
+            const keyRange = IDBKeyRange.upperBound(oldDateStr);
+            questStore.index('date').openKeyCursor(keyRange).onsuccess = event => {
+                const cursor = event.target.result;
+                if (cursor) {
+                    questStore.delete(cursor.primaryKey);
+                    cursor.continue();
+                }
+            };
+            tx.oncomplete = resolve;
+            tx.onerror = event => reject(event.target.error);
+        });
 
-
-        if (!char) {
-            tx.oncomplete = async () => {
-                await generateDailyQuestsIfNeeded();
-                resolve();
-            }
+        if (!storedChar) {
+            await generateDailyQuestsIfNeeded();
+            localStorage.setItem('lastPenaltyCheck', todayStr);
             return;
         }
 
         const getManaForLevel = (level) => Math.floor(100 * Math.pow(1.5, level - 1));
+        const char = storedChar;
         let charModified = false;
+        let shouldDeleteExtraQuest = false;
         let penaltyReason = null;
-
-        const yesterdayStr = DQ_CONFIG.getYesterdayString();
-        const yesterdaysQuests = await new Promise(res => questStore.index('date').getAll(yesterdayStr).onsuccess = e => res(e.target.result));
 
         if (yesterdaysQuests.length > 0 && !yesterdaysQuests.every(q => q.completed)) {
             const freezeIndex = Array.isArray(char.inventory)
@@ -2236,44 +2288,49 @@ async function checkForPenaltyAndReset() {
             }
         }
 
-        const extraQuest = await new Promise(res => extraQuestStore.get(1).onsuccess = e => res(e.target.result));
         if (extraQuest && new Date(extraQuest.deadline) < new Date() && !extraQuest.completed) {
             if (char.level > 1) char.level -= 1;
             char.manaToNextLevel = getManaForLevel(char.level);
             char.gold = Math.max(0, char.gold - 150);
             Object.keys(char.stats).forEach(key => char.stats[key] = Math.max(1, char.stats[key] - (key === 'willenskraft' ? 3 : 1)));
             charModified = true;
+            shouldDeleteExtraQuest = true;
             penaltyReason = 'extra';
-            await new Promise(res => extraQuestStore.delete(1).onsuccess = res);
         }
 
-        if (charModified) {
-            await new Promise(res => charStore.put(char).onsuccess = res);
+        if (charModified || shouldDeleteExtraQuest) {
+            await new Promise((resolve, reject) => {
+                const tx = DQ_DB.db.transaction(['extra_quest', 'character'], 'readwrite');
+                if (charModified) tx.objectStore('character').put(char);
+                if (shouldDeleteExtraQuest) tx.objectStore('extra_quest').delete(1);
+                tx.oncomplete = resolve;
+                tx.onerror = event => reject(event.target.error);
+            });
         }
 
-        tx.oncomplete = async () => {
-            if (penaltyReason) {
-                const lang = DQ_CONFIG.userSettings.language || 'de';
-                if (penaltyReason === 'daily') {
-                    DQ_UI.showCustomPopup(`<h3>${DQ_DATA.translations[lang].penalty_title}</h3><p>${DQ_DATA.translations[lang].penalty_text}</p>`, 'penalty');
-                } else if (penaltyReason === 'freeze') {
-                    const title = DQ_DATA.translations[lang].streak_freeze_saved_title || 'Streak gerettet';
-                    const text = DQ_DATA.translations[lang].streak_freeze_saved_text || 'Ein Streak Freeze hat deine Streak vor dem Verlust bewahrt.';
-                    DQ_UI.showCustomPopup(`<h3>${title}</h3><p><span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 6px;">ac_unit</span>${text}</p>`);
-                } else if (penaltyReason === 'extra') {
-                    DQ_UI.showCustomPopup(`<h3>${DQ_DATA.translations[lang].extra_penalty_title}</h3><p>${DQ_DATA.translations[lang].extra_penalty_text}</p>`, 'penalty');
-                }
+        if (penaltyReason) {
+            const lang = DQ_CONFIG.userSettings.language || 'de';
+            if (penaltyReason === 'daily') {
+                DQ_UI.showCustomPopup(`<h3>${DQ_DATA.translations[lang].penalty_title}</h3><p>${DQ_DATA.translations[lang].penalty_text}</p>`, 'penalty');
+            } else if (penaltyReason === 'freeze') {
+                const title = DQ_DATA.translations[lang].streak_freeze_saved_title || 'Streak gerettet';
+                const text = DQ_DATA.translations[lang].streak_freeze_saved_text || 'Ein Streak Freeze hat deine Streak vor dem Verlust bewahrt.';
+                DQ_UI.showCustomPopup(`<h3>${title}</h3><p><span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 6px;">ac_unit</span>${text}</p>`);
+            } else if (penaltyReason === 'extra') {
+                DQ_UI.showCustomPopup(`<h3>${DQ_DATA.translations[lang].extra_penalty_title}</h3><p>${DQ_DATA.translations[lang].extra_penalty_text}</p>`, 'penalty');
             }
+        }
 
-            await generateDailyQuestsIfNeeded(true);
-            DQ_CONFIG.forceQuestRefresh = false;
-            DQ_CHARACTER_MAIN.renderPage();
-            DQ_EXTRA.renderExtraQuestPage();
-            DQ_CONFIG.updateStreakDisplay();
-            if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
-            resolve();
-        };
-    });
+        await generateDailyQuestsIfNeeded(true);
+        localStorage.setItem('lastPenaltyCheck', todayStr);
+        DQ_CONFIG.forceQuestRefresh = false;
+        DQ_CHARACTER_MAIN.renderPage();
+        DQ_EXTRA.renderExtraQuestPage();
+        DQ_CONFIG.updateStreakDisplay();
+        if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+    } catch (error) {
+        console.error("Fehler bei der täglichen Prüfung.", error);
+    }
 }
 
 async function exportData() {

@@ -21,6 +21,7 @@ function loadData() {
         'data/translations.js',
         'data/exercises.js',
         'data/wger-defaults.js',
+        'data/daily-quest-catalog.js',
         'data/training_plans.js',
         'data/achievements.js',
         'data/dungeons.js',

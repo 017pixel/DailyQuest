@@ -509,7 +509,7 @@ const DQ_SUPABASE = {
         // Nur App-relevante localStorage Keys loeschen (NICHT Supabase-Auth-Keys!)
         const keysToRemove = [
             'streakData', 'dq_seen_app_version', 'lastPenaltyCheck', 'dq_last_local_update',
-            'dq_has_equipment', 'dq_training_goal', 'dq_character_age', 'tutorial_reset_pending',
+            'dq_has_equipment', 'dq_training_equipment', 'dq_training_goal', 'dq_character_age', 'tutorial_reset_pending',
             'dq_wger_custom_plans_preserved', 'dq_wger_custom_plans_migrated'
         ];
         keysToRemove.forEach(key => localStorage.removeItem(key));
@@ -554,9 +554,15 @@ const DQ_SUPABASE = {
     // ==========================================
     // DATA SYNC: LOCAL -> SUPABASE
     // ==========================================
-    async syncToSupabase() {
+    async syncToSupabase(options = {}) {
         if (!this.client || !this.currentUser) return;
         if (this.isSyncing) return;
+
+        if (localStorage.getItem('dq_sync_conflict') === 'true' && !options.forceLocal) {
+            console.warn('Sync pausiert: Cloud-Konflikt aktiv. Bitte Cloud laden oder lokal hochladen waehlen.');
+            this.updateAccountUI();
+            return;
+        }
 
         if (!navigator.onLine) {
             console.log('Offline. Sync wird uebersprungen.');
@@ -709,7 +715,8 @@ const DQ_SUPABASE = {
                     console.log('Cloud-Daten sind neuer als lokale Daten. Setze Konflikt-Flag, behalte lokale Daten.');
                     localStorage.setItem('dq_sync_conflict', 'true');
                     localStorage.setItem('dq_cloud_updated_at', data.updated_at);
-                    await this.syncToSupabase();
+                    this.updateAccountUI();
+                    return;
                 } else {
                     console.log('Lokale Daten sind aktueller. Lade hoch...');
                     localStorage.removeItem('dq_sync_conflict');
@@ -932,6 +939,11 @@ const DQ_SUPABASE = {
 
         if (syncNowBtn) {
             syncNowBtn.addEventListener('click', async () => {
+                if (localStorage.getItem('dq_sync_conflict') === 'true') {
+                    DQ_UI.showCustomPopup('<h3>Sync-Konflikt</h3><p>Die Cloud-Daten sind neuer. Bitte waehle zuerst „Cloud laden“ oder „Lokal hochladen“.</p>', 'info');
+                    this.updateAccountUI();
+                    return;
+                }
                 DQ_UI.showCustomPopup('<h3>Sync...</h3><p>Daten werden synchronisiert...</p>', 'info');
                 await this.syncToSupabase();
                 localStorage.removeItem('dq_sync_conflict');
@@ -957,7 +969,7 @@ const DQ_SUPABASE = {
             localPushBtn.addEventListener('click', async () => {
                 if (!confirm('Lokale Daten in die Cloud hochladen? Die Cloud-Daten werden ueberschrieben.')) return;
                 DQ_UI.showCustomPopup('<h3>Lade lokale Daten hoch...</h3><p>Bitte warten...</p>', 'info');
-                await this.syncToSupabase();
+                await this.syncToSupabase({ forceLocal: true });
                 localStorage.removeItem('dq_sync_conflict');
                 localStorage.removeItem('dq_cloud_updated_at');
                 this.updateAccountUI();

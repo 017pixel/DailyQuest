@@ -219,6 +219,7 @@ const DQ_TUTORIAL_STATE = {
                 // Auch LocalStorage-Backups bereinigen
                 try {
                     localStorage.removeItem('dq_has_equipment');
+                    localStorage.removeItem('dq_training_equipment');
                     localStorage.removeItem('dq_training_goal');
                     localStorage.removeItem('dq_character_age');
                     localStorage.removeItem('tutorial_reset_pending');

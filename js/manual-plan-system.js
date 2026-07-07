@@ -181,6 +181,13 @@ const DQ_MANUAL_PLAN = {
         return { kraft: 0.5, durchhaltevermoegen: 0.5 };
     },
 
+    isExerciseAvailable(exercise, settings = DQ_CONFIG.userSettings || {}) {
+        if (typeof DQ_TRAINING_SYSTEM !== 'undefined' && typeof DQ_TRAINING_SYSTEM.isExerciseAllowedByEquipment === 'function') {
+            return DQ_TRAINING_SYSTEM.isExerciseAllowedByEquipment(exercise, settings);
+        }
+        return settings.hasEquipment !== false || !exercise?.needsEquipment;
+    },
+
     async savePlan(name, exerciseIds) {
         return new Promise((resolve, reject) => {
             const tx = DQ_DB.db.transaction([this.STORE_NAME], 'readwrite');
@@ -372,11 +379,11 @@ const DQ_MANUAL_PLAN = {
             .map(id => this.resolveExerciseById(id, customExercises))))
             .filter(ex => !!ex);
 
-        pool = hasEquipment ? pool : pool.filter(ex => !ex.needsEquipment);
+        pool = pool.filter(ex => this.isExerciseAvailable(ex, settings));
 
         if (pool.length === 0) {
             console.warn('Manual Plan: Keine Übungen im Pool, nutze Fallback');
-            pool = this.getAllExercises().filter(ex => !ex.needsEquipment).slice(0, 10);
+            pool = this.getAllExercises().filter(ex => this.isExerciseAvailable(ex, settings)).slice(0, 10);
         }
 
         const exercises = this.pickVarietyQuests(pool, this.DAILY_QUEST_COUNT, recent);
@@ -500,6 +507,7 @@ const DQ_MANUAL_PLAN = {
             bonusInfoSynced: true,
             equipmentHint: !!template.needsEquipment && hasEquipment,
             needsEquipment: !!template.needsEquipment,
+            requiredEquipment: template.requiredEquipment || [],
             statPoints: template.statPoints || null,
             directStatGain: template.directStatGain || null,
             timerDuration: template.timerDuration || null,

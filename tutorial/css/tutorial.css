@@ -405,6 +405,29 @@
     box-shadow: 0 4px 15px rgba(95, 133, 117, 0.2), 0 2px 5px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
+.tutorial-equipment-chip {
+    min-height: 82px;
+    padding: 16px 18px;
+    position: relative;
+}
+
+.tutorial-equipment-chip input {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    accent-color: #5f8575;
+}
+
+.tutorial-equipment-chip:has(input:checked) {
+    border-color: rgba(95, 133, 117, 0.95);
+    background: rgba(95, 133, 117, 0.18);
+}
+
+.tutorial-equipment-continue {
+    min-height: 64px;
+    border-color: rgba(95, 133, 117, 0.7);
+}
+
 .tutorial-plan-selection {
     gap: 12px;
 }

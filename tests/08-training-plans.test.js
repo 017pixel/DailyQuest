@@ -9,7 +9,10 @@ function run() {
     const { DQ_DATA, sharedStages, enduranceStages, seniorStages } = loadData();
 
     const plans = DQ_DATA.trainingPlans;
+    const catalog = DQ_DATA.dailyQuestExerciseCatalog || [];
+    const catalogKeys = new Set(catalog.map(ex => ex.nameKey));
     t.ok(!!plans, 'trainingPlans existiert');
+    t.ok(catalog.length >= 20, `Daily-Quest-Katalog existiert (${catalog.length})`);
     if (!plans) return t;
 
     const planKeys = Object.keys(plans);
@@ -42,6 +45,9 @@ function run() {
                     t.ok(slot.candidates.length >= 1, `Slot "${slot.key}" hat >= 1 Candidate`);
                     for (const cand of slot.candidates) {
                         t.ok(typeof cand === 'string', `Candidate "${cand}" ist string`);
+                        if (['muscle', 'calisthenics', 'fatloss', 'kraft_abnehmen', 'endurance'].includes(key)) {
+                            t.ok(catalogKeys.has(cand), `Candidate "${cand}" ist im Daily-Quest-Katalog erlaubt`);
+                        }
                     }
                 }
             }

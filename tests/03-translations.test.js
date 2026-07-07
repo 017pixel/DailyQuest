@@ -3,6 +3,9 @@
  * Prueft, dass alle DE-Keys auch in EN existieren und umgekehrt.
  */
 const { loadData, TestRunner } = require('./helpers');
+const fs = require('fs');
+const path = require('path');
+const { BASE } = require('./helpers');
 
 function run() {
     const t = new TestRunner('Uebersetzungen (DE/EN)');
@@ -49,6 +52,23 @@ function run() {
         }
     }
     if (emptyValues === 0) t.ok(true, 'Keine leeren Uebersetzungswerte');
+
+    const translationSource = fs.readFileSync(path.join(BASE, 'data/translations.js'), 'utf8');
+    const shortWalkMatches = translationSource.match(/short_walk\s*:/g) || [];
+    t.equal(shortWalkMatches.length, 2, 'short_walk ist genau einmal pro Sprache definiert');
+
+    const expectedEnglishStatsLabels = {
+        profile_type_title: 'Profile Type',
+        consistency_title: 'Consistency',
+        time_patterns_title: 'Time Patterns',
+        endurance_progress_title: 'Endurance Progress',
+        mana_gold_title: 'Mana & Gold',
+        achievement_stats_title: 'Achievements',
+        extra_shop_title: 'Extra Quests & Shop'
+    };
+    for (const [key, expected] of Object.entries(expectedEnglishStatsLabels)) {
+        t.equal(trans.en[key], expected, `EN ${key} ist englisch`);
+    }
 
     // Platzhalter-Konsistenz (%s, %d)
     for (const key of deKeys) {

@@ -3,7 +3,7 @@
  * Sichert ab, dass Auswahl-Schritte wirklich auf User-Klick warten
  * und Quest-Generatoren hasEquipment=false respektieren.
  */
-const { TestRunner, BASE } = require('./helpers');
+const { TestRunner, BASE, loadData } = require('./helpers');
 const fs = require('fs');
 const path = require('path');
 
@@ -39,11 +39,35 @@ function run() {
     t.ok(onboarding.includes("settings.language = this.selectedLanguage || settings.language || 'de';"), 'Bestehende Intro-Settings aktualisieren gewaehlte Sprache');
 
     t.ok(onboarding.includes('settings.hasEquipment = this.hasEquipment;'), 'Intro speichert hasEquipment in Settings');
-    t.ok(trainingSystem.includes('candidates.filter(ex => hasEquipment !== false || !ex.needsEquipment)'), 'Predefined-Generator filtert Equipment-Kandidaten');
-    t.ok(trainingSystem.includes("goalExercises.filter(ex => !ex.needsEquipment"), 'Predefined-Generator nutzt No-Equipment-Fallback');
-    t.ok(wgerImport.includes('if (hasEquipment === false && ex.needsEquipment) return false;'), 'WGER-Trainingspool filtert Equipment-Uebungen');
-    t.ok(manualPlan.includes('pool = hasEquipment ? pool : pool.filter(ex => !ex.needsEquipment);'), 'Custom-Plan-Generator filtert Equipment-Uebungen');
-    t.ok(main.includes('!hasEquipment && questsToday.some(questNeedsEquipment)'), 'DailyQuest-Regeneration erkennt unpassende Equipment-Quests');
+    t.ok(onboarding.includes('settings.trainingEquipment = this.trainingEquipment;'), 'Intro speichert granulare trainingEquipment-Auswahl');
+    t.ok(onboarding.includes('data-tutorial-equipment="pullupBar"'), 'Intro bietet Klimmzugstange als Equipment-Auswahl');
+    t.ok(main.includes('normalizeTrainingEquipmentSettings'), 'Settings migrieren altes hasEquipment in trainingEquipment');
+    t.ok(trainingSystem.includes('isExerciseAllowedByEquipment'), 'Predefined-Generator nutzt granulare Equipment-Pruefung');
+    t.ok(trainingSystem.includes('pickDailyQuestCandidate'), 'Predefined-Generator nutzt Daily-Quest-Allowlist');
+    t.ok(wgerImport.includes('isAllowedByUserEquipment'), 'WGER-Listen respektieren granulare Equipment-Auswahl');
+    t.ok(manualPlan.includes('isExerciseAvailable'), 'Custom-Plan-Generator filtert Equipment-Uebungen granular');
+    t.ok(main.includes('questsToday.some(questNeedsEquipment)'), 'DailyQuest-Regeneration erkennt unpassende Equipment-Quests');
+
+    const { DQ_DATA } = loadData();
+    global.window = global;
+    global.DQ_DATA = DQ_DATA;
+    global.DQ_CONFIG = {
+        userSettings: {
+            hasEquipment: false,
+            trainingEquipment: { dumbbell: false, barbell: false, pullupBar: false, bench: false, kettlebell: false }
+        }
+    };
+    new Function(trainingSystem.replace(/^const\s+DQ_TRAINING_SYSTEM\s*=/m, 'global.DQ_TRAINING_SYSTEM ='))();
+
+    const noEquipmentSettings = global.DQ_CONFIG.userSettings;
+    const dumbbellSettings = {
+        hasEquipment: true,
+        trainingEquipment: { dumbbell: true, barbell: false, pullupBar: false, bench: false, kettlebell: false }
+    };
+    t.ok(DQ_TRAINING_SYSTEM.isExerciseAllowedByEquipment({ nameKey: 'push_ups_normal', requiredEquipment: [] }, noEquipmentSettings), 'Bodyweight-Quest bleibt ohne Equipment erlaubt');
+    t.ok(!DQ_TRAINING_SYSTEM.isExerciseAllowedByEquipment({ nameKey: 'legacy_unknown_equipment', needsEquipment: true, requiredEquipment: [], equipment: [] }, noEquipmentSettings), 'Legacy needsEquipment ohne konkrete Equipment-Liste ist nicht erlaubt');
+    t.ok(!DQ_TRAINING_SYSTEM.isExerciseAllowedByEquipment({ nameKey: 'bicep_curls', requiredEquipment: ['dumbbell'] }, noEquipmentSettings), 'Dumbbell-Quest ohne Dumbbell nicht erlaubt');
+    t.ok(DQ_TRAINING_SYSTEM.isExerciseAllowedByEquipment({ nameKey: 'bicep_curls', requiredEquipment: ['dumbbell'] }, dumbbellSettings), 'Dumbbell-Quest mit Dumbbell erlaubt');
 
     return t;
 }

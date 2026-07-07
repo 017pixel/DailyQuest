@@ -145,31 +145,33 @@ DQ_DATA.translations = {
 
         update_notice_intro: "Das ist neu in dieser Version:",
 
-        update_notice_page1_point1: "Neue wger-Uebungsdatenbank mit mehr Trainingsauswahl",
+        update_notice_page1_point1: "Daily Quests bleiben auch im Fallback stabil",
 
-        update_notice_page1_point2: "Bestehende Trainingsplaene bleiben erhalten und laufen weiter",
+        update_notice_page1_point2: "Equipment-Auswahl erkennt unpassende Aufgaben genauer",
 
-        update_notice_page2_point1: "Neue Plaene mit Suche, Muskel- und Equipment-Filtern konfigurierbar",
+        update_notice_page2_point1: "Englische Texte und Extra-Quest-Titel wurden bereinigt",
 
-        update_notice_page2_point2: "Ausdauer-Aufgaben werden direkt mit OK abgeschlossen",
+        update_notice_page2_point2: "Offline-Cache und Tests wurden fuer dieses Update erneuert",
 
-        update_point_1: "Neue wger-Uebungsdatenbank fuer deutlich mehr Trainingsauswahl",
+        update_point_1: "Daily Quests behalten wieder alle Trainingskategorien",
 
-        update_point_2: "Bestehende Trainingsplaene laufen ohne wger-Zwang weiter",
+        update_point_2: "Equipment-Aufgaben werden nur mit passender Ausruestung erstellt",
 
-        update_point_3: "Neue Plaene lassen sich mit Suche, Muskel- und Equipment-Filtern konfigurieren",
+        update_point_3: "Fallback-Quests bleiben auch ohne Equipment abschliessbar",
 
-        update_point_4: "Daily-Quest-Intro wartet jetzt korrekt auf deine Auswahl",
+        update_point_4: "Englische Statistik-Karten zeigen keine deutschen Texte mehr",
 
-        update_point_5: "Ausdauer-Aufgaben werden direkt mit OK abgeschlossen",
+        update_point_5: "Doppelte Uebungsnamen wurden aufgeraeumt",
 
-        update_point_6: "Dein Tagesfortschritt, Streak und deine Phase bleiben erhalten",
+        update_point_6: "Der Extra-Quest-Bereich zeigt wieder eine saubere Ueberschrift",
 
-        update_point_7: "Bilder und Infos fuer neue Uebungen werden im Hintergrund geladen",
+        update_point_7: "Erfolgsanzeigen nutzen jetzt die passende Theme-Farbe",
 
-        update_point_8: "Du kannst sofort weitertrainieren oder spaeter neue Plaene bauen",
+        update_point_8: "Neue Tests schuetzen diese Fehler dauerhaft",
 
         update_notice_step_label: "Seite",
+
+        update_notice_next: "Weiter",
 
         update_notice_finish: "Los geht's!",
 
@@ -223,6 +225,13 @@ DQ_DATA.translations = {
         complete_extra_quest: "Quest abschließen",
         extra_quest_cooldown: "Du machst aber schnelle Extra Quests! Warte bitte noch {time} Minuten, um eine neue Extra Quest anzunehmen!",
         has_equipment: "Equipment vorhanden (Hanteln/Langhantel)",
+        training_equipment_title: "Trainingsgeraete",
+        training_equipment_hint: "Daily Quests nutzen nur Uebungen, die zu deiner Auswahl passen.",
+        equipment_dumbbell: "Kurzhanteln",
+        equipment_barbell: "Langhantel",
+        equipment_pullup_bar: "Klimmzugstange",
+        equipment_bench: "Bank",
+        equipment_kettlebell: "Kettlebell",
         start_task_button: "Los",
         timer_start_button: "Los",
         timer_warning_title: "Timer läuft noch",
@@ -335,11 +344,14 @@ DQ_DATA.translations = {
             lunges: "Ausfallschritte", sumo_squats: "Sumo Squats", glute_bridges: "Brücke",
             tricep_extensions: "Trizepsheben", side_plank: "Seitliche Plank",
             pilates_5_exercises: "Pilates",
-            drink_tea: "Tee trinken", short_walk: "Spaziergang", stretch_5min: "Dehnen",
+            drink_tea: "Tee trinken", stretch_5min: "Dehnen",
             take_nap: "Mittagsschlaf", take_medicine: "Medizin",
             learn_new_skill: "Lerne eine neue Fähigkeit", read_for_school: "Schule lesen", learn_language: "Sprache lernen",
             learn_math: "Mathe lernen", learn_science: "Naturwissenschaften",
             push_ups_normal: "Liegestütze", push_ups_wide: "Breite Liegestütze", squats: "Squats",
+            superman_hold: "Superman", barbell_squats: "Langhantel-Kniebeugen", front_squats: "Frontkniebeugen",
+            bench_press: "Bankdruecken", pull_ups: "Klimmzuege", close_grip_pull_ups: "Enge Klimmzuege",
+            wide_grip_pull_ups: "Weitgriff-Klimmzuege", negative_pull_ups: "Negative Klimmzuege",
             hula_hoop: "Hula Hoop Reifen", stair_climbing: "Treppen Rennen", jogging: "Joggen", running: "Rennen",
             chair_sit_to_stand: "Vom Stuhl aufstehen", seated_marching: "Sitzendes Marschieren", wall_push_ups: "Wand-Liegestütze",
             heel_raises: "Fersenheben", standing_balance: "Balance-Halten", seated_chest_opening: "Brustöffner im Sitzen",
@@ -516,31 +528,33 @@ DQ_DATA.translations = {
 
         update_notice_intro: "What's new in this version:",
 
-        update_notice_page1_point1: "New wger exercise database with more training options",
+        update_notice_page1_point1: "Daily Quests stay stable in fallback mode",
 
-        update_notice_page1_point2: "Existing training plans stay available and keep working",
+        update_notice_page1_point2: "Equipment selection detects unavailable tasks more reliably",
 
-        update_notice_page2_point1: "Configure new plans with search, muscle and equipment filters",
+        update_notice_page2_point1: "English labels and the Extra Quest title were cleaned up",
 
-        update_notice_page2_point2: "Endurance tasks now complete directly with OK",
+        update_notice_page2_point2: "Offline cache and tests were refreshed for this update",
 
-        update_point_1: "New wger exercise database for much more training variety",
+        update_point_1: "Daily Quests keep all training categories again",
 
-        update_point_2: "Existing training plans keep working without requiring wger",
+        update_point_2: "Equipment tasks are only created with matching equipment",
 
-        update_point_3: "New plans can be configured with search, muscle and equipment filters",
+        update_point_3: "Fallback quests stay completable without equipment",
 
-        update_point_4: "DailyQuest intro now waits correctly for your choice",
+        update_point_4: "English stats cards no longer show German text",
 
-        update_point_5: "Endurance tasks now complete directly with OK",
+        update_point_5: "Duplicate exercise names were cleaned up",
 
-        update_point_6: "Your daily progress, streak and phase stay preserved",
+        update_point_6: "The Extra Quest area shows a clean heading again",
 
-        update_point_7: "Images and details for new exercises load in the background",
+        update_point_7: "Success states now use the right theme color",
 
-        update_point_8: "You can keep training now or build new plans later",
+        update_point_8: "New tests protect these fixes permanently",
 
         update_notice_step_label: "Page",
+
+        update_notice_next: "Next",
 
         update_notice_finish: "Let's go!",
 
@@ -610,6 +624,13 @@ DQ_DATA.translations = {
         complete_extra_quest: "Complete Quest",
         extra_quest_cooldown: "You're doing extra quests fast! Please wait {time} minutes to accept a new Extra Quest!",
         has_equipment: "Equipment available (Dumbbells/Barbell)",
+        training_equipment_title: "Training equipment",
+        training_equipment_hint: "Daily Quests only use exercises that match your selected equipment.",
+        equipment_dumbbell: "Dumbbells",
+        equipment_barbell: "Barbell",
+        equipment_pullup_bar: "Pull-up bar",
+        equipment_bench: "Bench",
+        equipment_kettlebell: "Kettlebell",
         start_task_button: "Start",
         timer_start_button: "Start",
         timer_warning_title: "Timer still running",
@@ -705,11 +726,14 @@ DQ_DATA.translations = {
             lunges: "Lunges", sumo_squats: "Sumo Squats", glute_bridges: "Glute Bridges",
             tricep_extensions: "Tricep Extensions", side_plank: "Side Plank",
             pilates_5_exercises: "Pilates",
-            drink_tea: "Drink Tea", short_walk: "Short Walk", stretch_5min: "Stretching",
+            drink_tea: "Drink Tea", stretch_5min: "Stretching",
             take_nap: "Nap", take_medicine: "Medicine",
             learn_new_skill: "New Skill", read_for_school: "School Reading", learn_language: "Language Learning",
             learn_math: "Math Learning", learn_science: "Science Learning",
             push_ups_normal: "Push-ups", push_ups_wide: "Wide Push-ups", squats: "Squats",
+            superman_hold: "Superman", barbell_squats: "Barbell Squats", front_squats: "Front Squats",
+            bench_press: "Bench Press", pull_ups: "Pull-ups", close_grip_pull_ups: "Close-grip Pull-ups",
+            wide_grip_pull_ups: "Wide-grip Pull-ups", negative_pull_ups: "Negative Pull-ups",
             hula_hoop: "Hula Hoop", stair_climbing: "Stair Climbing", jogging: "Jogging", running: "Running",
             chair_sit_to_stand: "Sit to Stand", seated_marching: "Seated Marching", wall_push_ups: "Wall Push-ups",
             heel_raises: "Heel Raises", standing_balance: "Balance Hold", seated_chest_opening: "Seated Chest Opener",
@@ -741,13 +765,13 @@ DQ_DATA.translations = {
         reset_success: "Reset complete. Restarting...",
         restday_info_box: "Rest day today. Recover first.",
 
-        // --- NEUE STATS KARTEN ---
-        profile_type_title: "Profil-Typ",
-        consistency_title: "Durchhaltevermoegen",
-        time_patterns_title: "Zeitmuster",
-        endurance_progress_title: "Ausdauer-Entwicklung",
+        // --- NEW STATS CARDS ---
+        profile_type_title: "Profile Type",
+        consistency_title: "Consistency",
+        time_patterns_title: "Time Patterns",
+        endurance_progress_title: "Endurance Progress",
         mana_gold_title: "Mana & Gold",
         achievement_stats_title: "Achievements",
-        extra_shop_title: "Extra-Quests & Shop"
+        extra_shop_title: "Extra Quests & Shop"
     }
 };

@@ -12,6 +12,13 @@ function run() {
     const pool = DQ_DATA.exercisePool || {};
     const categories = Object.keys(pool);
     t.ok(categories.length >= 5, `Lokale Exercise-Kategorien (${categories.length})`);
+    const requiredExerciseCategories = [
+        'muscle', 'endurance', 'fatloss', 'kraft_abnehmen', 'calisthenics',
+        'restday', 'learning', 'sick', 'senior', 'general_workout'
+    ];
+    for (const category of requiredExerciseCategories) {
+        t.ok(Array.isArray(pool[category]) && pool[category].length > 0, `exercisePool.${category} ist vorhanden und nicht leer`);
+    }
     t.ok(DQ_DATA.wgerDefaults && DQ_DATA.wgerDefaults.WGER_CATEGORIES.length === 8, 'wger-Sportkategorien definiert');
 
     const requiredFields = ['id', 'nameKey', 'type', 'baseValue', 'mana', 'gold'];

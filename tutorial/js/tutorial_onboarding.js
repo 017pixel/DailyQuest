@@ -220,6 +220,7 @@
                     playerName: this.playerName,
                     age: this.age,
                     hasEquipment: this.hasEquipment,
+                    trainingEquipment: this.trainingEquipment,
                     trainingGoal: this.trainingGoal,
                     trainingPlanType: this.trainingPlanType || 'predefined',
                     customPlanId: (typeof this.customPlanId === 'number') ? this.customPlanId : null,
@@ -400,38 +401,62 @@
         const textContainer = document.getElementById('tutorial-text-container');
         if (!textContainer) return;
 
-        this.showText('Welches Trainings-Equipment hast du zur Verfügung?');
+        this.showText('Welche Trainingsgeraete hast du zur Verfuegung?');
         await this.delay(600);
 
         textContainer.insertAdjacentHTML('beforeend', `
             <div id="tutorial-equipment-selection" class="tutorial-selection-container">
-                <button class="tutorial-choice-btn" data-equipment="true">
-                    <span class="material-symbols-rounded">fitness_center</span>
-                    <span>Hanteln & Langhantel</span>
-                    <span class="choice-description">Ich habe Zugang zu Gewichten</span>
-                </button>
-                <button class="tutorial-choice-btn" data-equipment="false">
-                    <span class="material-symbols-rounded">self_improvement</span>
-                    <span>Kein Equipment</span>
-                    <span class="choice-description">Nur Körpergewichtsübungen</span>
+                <label class="tutorial-choice-btn tutorial-equipment-chip">
+                    <input type="checkbox" data-tutorial-equipment="dumbbell">
+                    <span>Kurzhanteln</span>
+                    <span class="choice-description">Curls, Rudern, Druecken</span>
+                </label>
+                <label class="tutorial-choice-btn tutorial-equipment-chip">
+                    <input type="checkbox" data-tutorial-equipment="barbell">
+                    <span>Langhantel</span>
+                    <span class="choice-description">Squats, Rudern, Kreuzheben</span>
+                </label>
+                <label class="tutorial-choice-btn tutorial-equipment-chip">
+                    <input type="checkbox" data-tutorial-equipment="pullupBar">
+                    <span>Klimmzugstange</span>
+                    <span class="choice-description">Klimmzuege und Varianten</span>
+                </label>
+                <label class="tutorial-choice-btn tutorial-equipment-chip">
+                    <input type="checkbox" data-tutorial-equipment="bench">
+                    <span>Bank</span>
+                    <span class="choice-description">Bankdruecken und Ablage</span>
+                </label>
+                <label class="tutorial-choice-btn tutorial-equipment-chip">
+                    <input type="checkbox" data-tutorial-equipment="kettlebell">
+                    <span>Kettlebell</span>
+                    <span class="choice-description">Optional fuer Zusatzvarianten</span>
+                </label>
+                <button class="tutorial-choice-btn tutorial-equipment-continue" data-equipment-continue="true">
+                    <span>Weiter</span>
+                    <span class="choice-description">Ohne Auswahl nutzt DailyQuest nur Koerpergewicht</span>
                 </button>
             </div>
         `);
 
-        const buttons = document.querySelectorAll('[data-equipment]');
-        buttons.forEach(btn => {
-            btn.addEventListener('click', async () => {
-                this.hasEquipment = btn.dataset.equipment === 'true';
-                const selection = document.getElementById('tutorial-equipment-selection');
-                if (selection) {
-                    selection.classList.add('fade-out');
-                    await this.delay(500);
-                }
-
-                await this.hideText();
-                await this.delay(250);
-                await this.showTrainingPlanSelection();
+        const continueButton = document.querySelector('[data-equipment-continue]');
+        if (!continueButton) return;
+        continueButton.addEventListener('click', async () => {
+            const profile = { dumbbell: false, barbell: false, pullupBar: false, bench: false, kettlebell: false };
+            document.querySelectorAll('[data-tutorial-equipment]').forEach(input => {
+                profile[input.dataset.tutorialEquipment] = input.checked === true;
             });
+            this.trainingEquipment = profile;
+            this.hasEquipment = Object.values(profile).some(Boolean);
+
+            const selection = document.getElementById('tutorial-equipment-selection');
+            if (selection) {
+                selection.classList.add('fade-out');
+                await this.delay(500);
+            }
+
+            await this.hideText();
+            await this.delay(250);
+            await this.showTrainingPlanSelection();
         });
     },
 
@@ -519,6 +544,7 @@
                 if (this.seniorMode) {
                     finalGoal = 'senior';
                     this.hasEquipment = false;
+                    this.trainingEquipment = { dumbbell: false, barbell: false, pullupBar: false, bench: false, kettlebell: false };
                 } else if (this.trainingGoal === 'senior') {
                     finalGoal = 'senior';
                 } else if (this.trainingGoal === 'muscle') {
@@ -611,6 +637,7 @@
                             theme: 'dark',
                             weightTrackingEnabled: true,
                             hasEquipment: this.hasEquipment,
+                            trainingEquipment: this.trainingEquipment,
                             age: this.age,
                             planType: this.trainingPlanType || 'predefined',
                             customPlanId: this.customPlanId || null
@@ -618,6 +645,7 @@
                     } else {
                         settings.goal = finalGoal;
                         settings.hasEquipment = this.hasEquipment;
+                        settings.trainingEquipment = this.trainingEquipment;
                         settings.age = this.age;
                         settings.language = this.selectedLanguage || settings.language || 'de';
                         if (typeof settings.weightTrackingEnabled !== 'boolean') {
@@ -637,6 +665,7 @@
                 tx.oncomplete = async () => {
                     try {
                         localStorage.setItem('dq_has_equipment', this.hasEquipment ? '1' : '0');
+                        localStorage.setItem('dq_training_equipment', JSON.stringify(this.trainingEquipment || {}));
                         localStorage.setItem('dq_training_goal', this.trainingGoal || finalGoal);
                         localStorage.setItem('dq_character_age', String(this.age || ''));
                     } catch (e) {

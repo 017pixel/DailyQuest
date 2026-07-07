@@ -80,7 +80,8 @@ function run() {
 
     const today = getTodayString();
     t.ok(/^\d{4}-\d{2}-\d{2}$/.test(today), `getTodayString Format YYYY-MM-DD (${today})`);
-    const expected = new Date().toISOString().split('T')[0];
+    const d = new Date();
+    const expected = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     t.equal(today, expected, `getTodayString ist heute (${today})`);
 
     // ── normalizeGoal ────────────────────────────────────────

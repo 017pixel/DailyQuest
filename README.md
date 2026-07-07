@@ -94,7 +94,7 @@ Detaillierte Informationen zur Architektur, zum Design und zur Theorie hinter Da
 
 ## Tests
 
-Das Projekt enthaelt eine Test-Suite mit 10 spezialisierten Modultests. Alle Tests werden mit Node.js ausgefuehrt:
+Das Projekt enthaelt eine Test-Suite mit 14 spezialisierten Modultests. Alle Tests werden mit Node.js ausgefuehrt:
 
 ```bash
 node tests/run.js

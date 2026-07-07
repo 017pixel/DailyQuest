@@ -1196,6 +1196,10 @@ html[data-theme='light'] .settings-overlay.show .settings-sheet {
 .settings-subpage-item:last-child {
     border-bottom: none;
 }
+.settings-subpage-item-stack {
+    align-items: flex-start;
+    flex-direction: column;
+}
 .settings-subpage-item label {
     font-size: 14px;
     color: var(--on-surface-color);
@@ -1262,6 +1266,48 @@ html[data-theme='light'] .settings-overlay.show .settings-sheet {
 .settings-action-btn:active {
     transform: scale(0.97);
     background: var(--surface-color);
+}
+
+.training-equipment-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+}
+
+.training-equipment-chip {
+    min-height: 44px;
+    border: 1px solid var(--outline-color);
+    border-radius: 14px;
+    background: var(--surface-container-high);
+    color: var(--on-surface-color);
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.training-equipment-chip:has(input:checked) {
+    border-color: var(--primary-color);
+    background: color-mix(in srgb, var(--primary-color) 16%, var(--surface-container-high));
+}
+
+.training-equipment-chip:active {
+    transform: scale(0.98);
+}
+
+.training-equipment-chip input {
+    accent-color: var(--primary-color);
+}
+
+.training-equipment-chip span {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+@media (max-width: 380px) {
+    .training-equipment-grid {
+        grid-template-columns: 1fr;
+    }
 }
 .settings-action-btn:disabled {
     opacity: 0.55;

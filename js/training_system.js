@@ -26,6 +26,87 @@ const DQ_TRAINING_SYSTEM = {
         return ['muscle', 'kraft_abnehmen', 'endurance', 'fatloss', 'calisthenics'].includes(normalized);
     },
 
+    getEquipmentProfile(settings = DQ_CONFIG.userSettings || {}) {
+        const profile = settings.trainingEquipment;
+        const known = DQ_DATA.trainingEquipmentTypes || {};
+        const result = {};
+        Object.keys(known).forEach(key => { result[key] = false; });
+
+        if (profile && typeof profile === 'object') {
+            Object.keys(result).forEach(key => { result[key] = profile[key] === true; });
+            return result;
+        }
+
+        // Legacy migration fallback: old true meant weights, not every device.
+        if (settings.hasEquipment !== false) {
+            result.dumbbell = true;
+            result.barbell = true;
+        }
+        return result;
+    },
+
+    hasAnyTrainingEquipment(settings = DQ_CONFIG.userSettings || {}) {
+        return Object.values(this.getEquipmentProfile(settings)).some(Boolean);
+    },
+
+    isExerciseAllowedByEquipment(exercise, settings = DQ_CONFIG.userSettings || {}) {
+        if (!exercise) return false;
+        const required = Array.isArray(exercise.requiredEquipment) ? exercise.requiredEquipment : [];
+        if (required.length > 0) {
+            const profile = this.getEquipmentProfile(settings);
+            return required.every(key => profile[key] === true);
+        }
+
+        const equipment = Array.isArray(exercise.equipment) ? exercise.equipment.map(Number) : [];
+        const bodyweightIds = new Set([7, 11]);
+        const nonBodyweight = equipment.filter(id => Number.isFinite(id) && !bodyweightIds.has(id));
+        if (nonBodyweight.length === 0) {
+            return exercise.needsEquipment !== true;
+        }
+
+        const types = DQ_DATA.trainingEquipmentTypes || {};
+        const profile = this.getEquipmentProfile(settings);
+        return nonBodyweight.every(id => Object.entries(types).some(([key, info]) => profile[key] === true && (info.wgerIds || []).includes(id)));
+    },
+
+    getDailyQuestCatalog() {
+        return Array.isArray(DQ_DATA.dailyQuestExerciseCatalog) ? DQ_DATA.dailyQuestExerciseCatalog : [];
+    },
+
+    async enrichDailyQuestTemplate(template) {
+        if (!template) return null;
+        const base = {
+            ...template,
+            source: 'daily_catalog',
+            needsEquipment: Array.isArray(template.requiredEquipment) && template.requiredEquipment.length > 0,
+            manaReward: template.manaReward ?? template.mana,
+            goldReward: template.goldReward ?? template.gold
+        };
+
+        if (typeof DQ_WGER === 'undefined' || typeof DQ_WGER.findDailyQuestMatch !== 'function') return base;
+        const match = await DQ_WGER.findDailyQuestMatch(base);
+        if (!match) return base;
+
+        return {
+            ...base,
+            wgerId: match.wgerId || null,
+            wgerSourceId: match.id || null,
+            descriptionDe: match.descriptionDe || base.descriptionDe || null,
+            descriptionEn: match.descriptionEn || base.descriptionEn || null,
+            imageUrl: match.imageUrl || base.imageUrl || '',
+            imageThumbSm: match.imageThumbSm || base.imageThumbSm || '',
+            imageThumbMd: match.imageThumbMd || base.imageThumbMd || '',
+            hasImage: match.hasImage || base.hasImage || false,
+            videos: match.videos || base.videos || [],
+            license: match.license || base.license || null,
+            licenseUrl: match.licenseUrl || base.licenseUrl || null,
+            licenseAuthor: match.licenseAuthor || base.licenseAuthor || null,
+            muscles: match.muscles?.length ? match.muscles : (base.muscles || []),
+            musclesSecondary: match.musclesSecondary || base.musclesSecondary || [],
+            equipment: match.equipment?.length ? match.equipment : (base.equipment || [])
+        };
+    },
+
     async getTemplateByNameKey(nameKey) {
         const local = Object.values(DQ_DATA.exercisePool || {}).flat().find(ex => ex.nameKey === nameKey);
         if (local) return local;
@@ -180,10 +261,12 @@ const DQ_TRAINING_SYSTEM = {
         const candidates = (slot.candidates || [])
             .map(nameKey => goalExercises.find(ex => ex.nameKey === nameKey))
             .filter(ex => !!ex && !blocked.has(ex.nameKey));
-        const filtered = candidates.filter(ex => hasEquipment !== false || !ex.needsEquipment);
-        const pool = hasEquipment === false
-            ? (filtered.length > 0 ? filtered : goalExercises.filter(ex => !ex.needsEquipment && !blocked.has(ex.nameKey)))
-            : (filtered.length > 0 ? filtered : candidates);
+        const settings = DQ_CONFIG.userSettings || {};
+        const allowed = ex => this.isExerciseAllowedByEquipment(ex, settings);
+        const filtered = candidates.filter(allowed);
+        const pool = filtered.length > 0
+            ? filtered
+            : goalExercises.filter(ex => allowed(ex) && !blocked.has(ex.nameKey));
         const available = pool.filter(ex => !pickedToday.includes(ex.nameKey));
         const finalPool = available.length > 0 ? available : [];
         if (finalPool.length === 0) return null;
@@ -200,24 +283,43 @@ const DQ_TRAINING_SYSTEM = {
         return best[Math.floor(Math.random() * best.length)].ex;
     },
 
-    async pickWgerCandidate(slot, recentExerciseKeys, hasEquipment, pickedToday = [], goal = null) {
-        if (typeof DQ_WGER === 'undefined') return null;
-        const pool = await DQ_WGER.getTrainingPool(goal || 'muscle', slot?.key || 'general', hasEquipment);
+    async pickDailyQuestCandidate(slot, recentExerciseKeys, pickedToday = [], goal = null) {
+        const normalized = this.normalizeGoal(goal || 'muscle');
+        const allowedKeys = new Set(slot?.candidates || []);
         const blocked = new Set(this.blockedQuestNameKeys || []);
-        const available = pool.filter(ex => !blocked.has(ex.nameKey) && !pickedToday.includes(ex.nameKey));
-        const finalPool = available.length > 0 ? available : pool.filter(ex => !blocked.has(ex.nameKey));
+        const catalog = this.getDailyQuestCatalog();
+        const settings = DQ_CONFIG.userSettings || {};
+
+        let candidates = catalog.filter(ex =>
+            allowedKeys.has(ex.nameKey) &&
+            !blocked.has(ex.nameKey) &&
+            (!Array.isArray(ex.goalTags) || ex.goalTags.includes(normalized)) &&
+            this.isExerciseAllowedByEquipment(ex, settings)
+        );
+
+        if (candidates.length === 0) {
+            candidates = catalog.filter(ex =>
+                !blocked.has(ex.nameKey) &&
+                (!Array.isArray(ex.goalTags) || ex.goalTags.includes(normalized)) &&
+                this.isExerciseAllowedByEquipment(ex, settings)
+            );
+        }
+
+        const available = candidates.filter(ex => !pickedToday.includes(ex.nameKey));
+        const finalPool = available.length > 0 ? available : candidates;
         if (finalPool.length === 0) return null;
 
+        const recent = recentExerciseKeys || [];
         const scored = finalPool.map(ex => {
             let score = 1;
-            if (recentExerciseKeys.includes(ex.nameKey)) score -= 0.7;
-            if (ex.hasImage) score += 0.08;
-            if (ex.descriptionDe || ex.descriptionEn) score += 0.04;
+            if (recent.includes(ex.nameKey)) score -= 0.7;
+            if (Array.isArray(ex.slotTags) && ex.slotTags.includes(slot?.key)) score += 0.15;
             return { ex, score };
         }).sort((a, b) => b.score - a.score);
 
-        const top = scored.slice(0, Math.max(1, Math.min(12, Math.ceil(scored.length * 0.2))));
-        return top[Math.floor(Math.random() * top.length)].ex;
+        const topScore = scored[0].score;
+        const best = scored.filter(item => item.score === topScore);
+        return await this.enrichDailyQuestTemplate(best[Math.floor(Math.random() * best.length)].ex);
     },
 
     getTargetValue(template, stage) {
@@ -373,8 +475,9 @@ const DQ_TRAINING_SYSTEM = {
             descriptionDe: template.descriptionDe || null,
             descriptionEn: template.descriptionEn || null,
             customDisplayName: template.source === 'wger' ? (DQ_WGER.getDisplayName(template, this.getLang())) : null,
-            customDescription: template.source === 'wger' ? DQ_WGER.getDescription(template, this.getLang()) : null,
+            customDescription: template.customDescription || template.description || (template.descriptionDe || template.descriptionEn || null),
             needsEquipment: !!template.needsEquipment,
+            requiredEquipment: template.requiredEquipment || [],
             muscles: template.muscles || [],
             musclesSecondary: template.musclesSecondary || [],
             equipment: template.equipment || [],
@@ -446,7 +549,7 @@ const DQ_TRAINING_SYSTEM = {
             const slot = plan.slots[i] || plan.slots[plan.slots.length - 1];
             let template = null;
             if (this.isWgerSportGoal(goal)) {
-                template = await this.pickWgerCandidate(slot, recent, hasEquipment, questIds, goal);
+                template = await this.pickDailyQuestCandidate(slot, recent, questIds, goal);
             }
             if (!template) {
                 template = this.pickCandidate(slot, recent, hasEquipment, questIds, goal) || this.pickCandidate({ candidates: ['walk_30min', 'stretch_10min'] }, recent, hasEquipment, questIds, goal);
@@ -596,7 +699,7 @@ const DQ_TRAINING_SYSTEM = {
                 const slot = plan.slots.find(s => s.key === oldQuest.slotKey) || plan.slots[0];
                 let template = null;
                 if (this.isWgerSportGoal(goal)) {
-                    template = await this.pickWgerCandidate(slot, state.recentExercises || [], hasEquipment, picked.concat([...exclude]), goal);
+                    template = await this.pickDailyQuestCandidate(slot, state.recentExercises || [], picked.concat([...exclude]), goal);
                 }
                 if (!template) {
                     template = this.pickCandidate(slot, state.recentExercises || [], hasEquipment, picked.concat([...exclude]), goal);

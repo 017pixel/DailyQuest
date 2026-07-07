@@ -15,6 +15,7 @@ function run() {
         goal: 'muscle',
         restDays: 2,
         hasEquipment: true,
+        trainingEquipment: { dumbbell: true, barbell: true, pullupBar: false, bench: false, kettlebell: false },
         weightTrackingEnabled: true,
         age: null,
     };
@@ -27,6 +28,9 @@ function run() {
         'goal in gueltiger Liste');
     t.ok([0, 1, 2, 3].includes(defaults.restDays), 'restDays in [0,1,2,3]');
     t.equal(defaults.hasEquipment, true, 'hasEquipment default = true');
+    t.equal(defaults.trainingEquipment.dumbbell, true, 'Legacy-Equipment migriert Kurzhanteln = true');
+    t.equal(defaults.trainingEquipment.barbell, true, 'Legacy-Equipment migriert Langhantel = true');
+    t.equal(defaults.trainingEquipment.pullupBar, false, 'Klimmzugstange default = false');
     t.equal(defaults.weightTrackingEnabled, true, 'weightTracking default = true');
 
     // ── Typ-Checks ──
@@ -36,6 +40,7 @@ function run() {
     t.ok(typeof defaults.language === 'string', 'language ist string');
     t.ok(typeof defaults.theme === 'string', 'theme ist string');
     t.ok(typeof defaults.hasEquipment === 'boolean', 'hasEquipment ist boolean');
+    t.ok(typeof defaults.trainingEquipment === 'object', 'trainingEquipment ist object');
     t.ok(typeof defaults.weightTrackingEnabled === 'boolean', 'weightTracking ist boolean');
 
     // ── Valid Goals ──

@@ -36,7 +36,7 @@ function run() {
     // Pruefe, dass zentrale Variablen in allen Themes definiert sind
     const criticalVars = [
         '--background-color', '--surface-color', '--primary-color',
-        '--on-surface-color', '--outline-color', '--penalty-color',
+        '--on-surface-color', '--outline-color', '--penalty-color', '--success-color',
     ];
 
     for (const v of criticalVars) {

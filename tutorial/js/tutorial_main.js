@@ -8,6 +8,7 @@ const DQ_TUTORIAL_MAIN = {
     playerName: '',
     age: 34,
     hasEquipment: false,
+    trainingEquipment: { dumbbell: false, barbell: false, pullupBar: false, bench: false, kettlebell: false },
     trainingGoal: '',
     trainingPlanType: 'predefined',
     customPlanId: null,
@@ -22,6 +23,7 @@ const DQ_TUTORIAL_MAIN = {
         this.playerName = '';
         this.age = 34;
         this.hasEquipment = false;
+        this.trainingEquipment = { dumbbell: false, barbell: false, pullupBar: false, bench: false, kettlebell: false };
         this.trainingGoal = '';
         this.trainingPlanType = 'predefined';
         this.customPlanId = null;
@@ -64,6 +66,7 @@ const DQ_TUTORIAL_MAIN = {
             this.playerName = savedState.playerName || '';
             this.age = savedState.age || 34;
             this.hasEquipment = savedState.hasEquipment || false;
+            this.trainingEquipment = savedState.trainingEquipment || (this.hasEquipment ? { dumbbell: true, barbell: true, pullupBar: false, bench: false, kettlebell: false } : { dumbbell: false, barbell: false, pullupBar: false, bench: false, kettlebell: false });
             this.trainingGoal = savedState.trainingGoal || '';
             this.trainingPlanType = savedState.trainingPlanType || 'predefined';
             this.customPlanId = (typeof savedState.customPlanId === 'number') ? savedState.customPlanId : null;

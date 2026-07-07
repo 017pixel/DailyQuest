@@ -1,13 +1,17 @@
+if (typeof window.DQ_DATA === 'undefined') {
+    window.DQ_DATA = {};
+}
+
 DQ_DATA.exercisePool = {
     muscle: [
-        { id: 101, nameKey: 'bicep_curls', type: 'reps', baseValue: 10, mana: 20, gold: 6, statPoints: { kraft: 1 }, needsEquipment: true, muscles: ['biceps'] },
-        { id: 102, nameKey: 'dumbbell_rows', type: 'reps', baseValue: 8, mana: 22, gold: 7, statPoints: { kraft: 1 }, needsEquipment: true, muscles: ['back', 'biceps'] },
+        { id: 101, nameKey: 'bicep_curls', type: 'reps', baseValue: 10, mana: 20, gold: 6, statPoints: { kraft: 1 }, needsEquipment: true, requiredEquipment: ['dumbbell'], muscles: ['biceps'] },
+        { id: 102, nameKey: 'dumbbell_rows', type: 'reps', baseValue: 8, mana: 22, gold: 7, statPoints: { kraft: 1 }, needsEquipment: true, requiredEquipment: ['dumbbell'], muscles: ['back', 'biceps'] },
         { id: 103, nameKey: 'push_ups_narrow', type: 'reps', baseValue: 8, mana: 25, gold: 8, statPoints: { kraft: 1, durchhaltevermoegen: 0.5 }, muscles: ['triceps', 'chest'] },
-        { id: 104, nameKey: 'weighted_squats', type: 'reps', baseValue: 10, mana: 25, gold: 7, statPoints: { kraft: 1 }, needsEquipment: true, muscles: ['legs', 'glutes'] },
-        { id: 105, nameKey: 'barbell_rows', type: 'reps', baseValue: 8, mana: 30, gold: 10, statPoints: { kraft: 1.5 }, needsEquipment: true, muscles: ['back', 'biceps'] },
-        { id: 106, nameKey: 'dumbbell_press', type: 'reps', baseValue: 8, mana: 30, gold: 10, statPoints: { kraft: 1.5 }, needsEquipment: true, muscles: ['chest', 'triceps', 'shoulders'] },
-        { id: 107, nameKey: 'shoulder_press', type: 'reps', baseValue: 8, mana: 25, gold: 8, statPoints: { kraft: 1 }, needsEquipment: true, muscles: ['shoulders', 'triceps'] },
-        { id: 108, nameKey: 'deadlifts', type: 'reps', baseValue: 5, mana: 40, gold: 15, statPoints: { kraft: 2 }, needsEquipment: true, muscles: ['back', 'legs', 'glutes', 'full_body'] },
+        { id: 104, nameKey: 'weighted_squats', type: 'reps', baseValue: 10, mana: 25, gold: 7, statPoints: { kraft: 1 }, needsEquipment: true, requiredEquipment: ['dumbbell'], muscles: ['legs', 'glutes'] },
+        { id: 105, nameKey: 'barbell_rows', type: 'reps', baseValue: 8, mana: 30, gold: 10, statPoints: { kraft: 1.5 }, needsEquipment: true, requiredEquipment: ['barbell'], muscles: ['back', 'biceps'] },
+        { id: 106, nameKey: 'dumbbell_press', type: 'reps', baseValue: 8, mana: 30, gold: 10, statPoints: { kraft: 1.5 }, needsEquipment: true, requiredEquipment: ['dumbbell', 'bench'], muscles: ['chest', 'triceps', 'shoulders'] },
+        { id: 107, nameKey: 'shoulder_press', type: 'reps', baseValue: 8, mana: 25, gold: 8, statPoints: { kraft: 1 }, needsEquipment: true, requiredEquipment: ['dumbbell'], muscles: ['shoulders', 'triceps'] },
+        { id: 108, nameKey: 'deadlifts', type: 'reps', baseValue: 5, mana: 40, gold: 15, statPoints: { kraft: 2 }, needsEquipment: true, requiredEquipment: ['barbell'], muscles: ['back', 'legs', 'glutes', 'full_body'] },
         { id: 109, nameKey: 'pistol_squats', type: 'reps', baseValue: 5, mana: 28, gold: 40, statPoints: { kraft: 1.5, beweglichkeit: 1 }, muscles: ['legs', 'glutes'] },
         { id: 110, nameKey: 'pike_push_ups', type: 'reps', baseValue: 8, mana: 25, gold: 35, statPoints: { kraft: 1, beweglichkeit: 1 }, muscles: ['shoulders', 'triceps'] },
         { id: 111, nameKey: 'diamond_push_ups', type: 'reps', baseValue: 6, mana: 28, gold: 40, statPoints: { kraft: 1.5, durchhaltevermoegen: 1 }, muscles: ['triceps', 'chest'] },
@@ -46,11 +50,11 @@ DQ_DATA.exercisePool = {
         { id: 505, nameKey: 'lunges', type: 'reps', baseValue: 16, mana: 20, gold: 6, statPoints: { kraft: 0.5, beweglichkeit: 0.5 }, muscles: ['legs', 'glutes'] },
         { id: 506, nameKey: 'sumo_squats', type: 'reps', baseValue: 12, mana: 25, gold: 8, statPoints: { kraft: 1 }, muscles: ['legs', 'glutes'] },
         { id: 507, nameKey: 'glute_bridges', type: 'reps', baseValue: 15, mana: 18, gold: 5, statPoints: { kraft: 0.5 }, muscles: ['glutes', 'back'] },
-        { id: 508, nameKey: 'tricep_extensions', type: 'reps', baseValue: 12, mana: 20, gold: 7, statPoints: { kraft: 1 }, needsEquipment: true, muscles: ['triceps'] },
+        { id: 508, nameKey: 'tricep_extensions', type: 'reps', baseValue: 12, mana: 20, gold: 7, statPoints: { kraft: 1 }, needsEquipment: true, requiredEquipment: ['dumbbell'], muscles: ['triceps'] },
         { id: 509, nameKey: 'side_plank', type: 'time', baseValue: 20, mana: 22, gold: 7, statPoints: { durchhaltevermoegen: 1 }, muscles: ['abs'] },
         { id: 512, nameKey: 'wall_sit', type: 'time', baseValue: 45, mana: 20, gold: 7, statPoints: { durchhaltevermoegen: 1 }, muscles: ['legs', 'glutes'] },
         { id: 513, nameKey: 'bicycle_crunch', type: 'reps', baseValue: 20, mana: 18, gold: 7, statPoints: { kraft: 0.5, durchhaltevermoegen: 0.5 }, muscles: ['abs'] },
-        { id: 514, nameKey: 'reverse_flys', type: 'reps', baseValue: 12, mana: 17, gold: 21, statPoints: { kraft: 0.5 }, needsEquipment: true, muscles: ['back', 'shoulders'] }
+        { id: 514, nameKey: 'reverse_flys', type: 'reps', baseValue: 12, mana: 17, gold: 21, statPoints: { kraft: 0.5 }, needsEquipment: true, requiredEquipment: ['dumbbell'], muscles: ['back', 'shoulders'] }
     ],
     restday: [
         { id: 401, nameKey: 'walk_30min', type: 'check', baseValue: 1, mana: 15, gold: 5, directStatGain: { durchhaltevermoegen: 1 }, muscles: ['legs'] },
@@ -113,14 +117,6 @@ senior: [
         { id: 1019, nameKey: 'side_stretch', type: 'check', baseValue: 1, mana: 10, gold: 3, statPoints: { beweglichkeit: 0.5 }, muscles: ['core', 'side'] },
         { id: 1020, nameKey: 'short_walk', type: 'check', baseValue: 1, mana: 15, gold: 5, statPoints: { ausdauer: 0.5, durchhaltevermoegen: 0.5 }, muscles: ['legs'] }
     ]
-};
-
-DQ_DATA.exercisePool = {
-    restday: DQ_DATA.exercisePool.restday || [],
-    learning: DQ_DATA.exercisePool.learning || [],
-    sick: DQ_DATA.exercisePool.sick || [],
-    senior: DQ_DATA.exercisePool.senior || [],
-    general_workout: DQ_DATA.exercisePool.general_workout || []
 };
 
 DQ_DATA.extraQuestPool = [
@@ -195,6 +191,14 @@ DQ_DATA.exerciseExplanations = {
         leg_raises: "Lege dich auf den Rücken und halte deine Hände unter deinem Gesäß. Hebe deine Beine langsam und kontrolliert an, bis sie senkrecht zum Boden stehen. Senke sie langsam wieder ab, ohne den Boden zu berühren. Diese Übung trainiert die unteren Bauchmuskeln.",
         reverse_flys: "Halte leichte Hanteln in beiden Händen und beuge dich mit geradem Rücken nach vorne. Hebe die Hanteln seitlich an, bis deine Arme parallel zum Boden sind. Senke sie langsam wieder ab. Diese Übung trainiert die hintere Schultermuskulatur und verbessert die Haltung.",
         single_leg_glute_bridge: "Lege dich auf den Rücken und stelle ein Bein auf, das andere strecke aus. Hebe deine Hüfte an, bis dein Körper eine gerade Linie bildet. Halte die Spannung und senke langsam wieder ab. Diese Übung trainiert intensiv die Gesäßmuskulatur und die hintere Oberschenkelmuskulatur.",
+        superman_hold: "Lege dich auf den Bauch und strecke Arme und Beine lang aus. Hebe Arme, Brust und Beine leicht vom Boden ab, halte den Blick nach unten und spanne Rücken und Gesäß an. Halte die Position kontrolliert, ohne ins Hohlkreuz zu fallen.",
+        barbell_squats: "Lege die Langhantel stabil auf den oberen Rücken, stelle dich etwa schulterbreit hin und gehe kontrolliert in die Kniebeuge. Halte Brust und Rücken stabil und drücke dich aus den Fersen wieder nach oben.",
+        front_squats: "Halte die Langhantel vorne auf den Schultern, die Ellenbogen zeigen nach vorn. Gehe mit aufrechtem Oberkörper in die Kniebeuge und drücke dich kontrolliert wieder hoch.",
+        bench_press: "Lege dich auf eine Bank, greife die Langhantel etwas breiter als schulterbreit und senke sie kontrolliert zur Brust. Drücke sie kraftvoll wieder nach oben, während Schulterblätter und Füße stabil bleiben.",
+        pull_ups: "Hänge dich an eine Klimmzugstange, ziehe die Schulterblätter aktiv nach unten und ziehe dich hoch, bis dein Kinn über der Stange ist. Senke dich kontrolliert wieder ab.",
+        close_grip_pull_ups: "Greife die Klimmzugstange enger als schulterbreit. Ziehe dich kontrolliert nach oben und konzentriere dich auf Rücken und Bizeps. Senke dich langsam wieder ab.",
+        wide_grip_pull_ups: "Greife die Klimmzugstange weiter als schulterbreit. Ziehe dich mit aktivem Rücken nach oben, ohne Schwung zu holen, und senke dich kontrolliert wieder ab.",
+        negative_pull_ups: "Springe oder steige in die obere Klimmzugposition und senke dich dann so langsam wie möglich ab. Diese Variante baut Kraft für volle Klimmzüge auf.",
         chair_sit_to_stand: "Setz dich auf einen stabilen Stuhl, die Füße hüftbreit auf dem Boden. Lehne den Oberkörper leicht nach vorn und stehe kontrolliert auf. Setz dich langsam wieder ab. Nutze die Hände nur, wenn du sie wirklich brauchst.",
         seated_marching: "Sitz aufrecht auf einem stabilen Stuhl. Hebe abwechselnd die Knie an, als würdest du auf der Stelle marschieren. Halte den Oberkörper ruhig und atme gleichmäßig.",
         wall_push_ups: "Stell dich an eine Wand, die Hände schulterbreit auf Brusthöhe. Geh mit den Füßen etwas nach hinten und beuge die Arme langsam, bis die Brust zur Wand kommt. Drück dich kontrolliert zurück.",
@@ -274,6 +278,14 @@ seated_spinal_twist: "Sitz aufrecht auf dem Stuhl, die Füße am Boden. Drehe de
         leg_raises: "Lie on your back and place your hands under your buttocks. Slowly and controlled lift your legs up until they are perpendicular to the floor. Lower them slowly without touching the ground. This exercise trains the lower abdominal muscles.",
         reverse_flys: "Hold light dumbbells in both hands and bend forward with a straight back. Lift the dumbbells sideways until your arms are parallel to the floor. Lower them slowly. This exercise trains the rear shoulder muscles and improves posture.",
         single_leg_glute_bridge: "Lie on your back and place one foot on the ground, extend the other leg. Lift your hips up until your body forms a straight line. Hold the tension and slowly lower back down. This exercise intensely trains the glutes and posterior thigh muscles.",
+        superman_hold: "Lie on your stomach with arms and legs extended. Lift your arms, chest, and legs slightly off the floor while looking down. Squeeze your back and glutes and hold the position without over-arching.",
+        barbell_squats: "Place the barbell securely on your upper back, stand about shoulder-width apart, and squat down under control. Keep your chest and back stable, then drive back up through your heels.",
+        front_squats: "Hold the barbell on the front of your shoulders with elbows pointing forward. Squat with an upright torso and stand back up under control.",
+        bench_press: "Lie on a bench, grip the bar slightly wider than shoulder-width, and lower it under control to your chest. Press it back up while keeping your shoulder blades and feet stable.",
+        pull_ups: "Hang from a pull-up bar, pull your shoulder blades down, and pull yourself up until your chin is above the bar. Lower yourself with control.",
+        close_grip_pull_ups: "Grip the pull-up bar narrower than shoulder-width. Pull yourself up under control, focusing on your back and biceps, then lower slowly.",
+        wide_grip_pull_ups: "Grip the pull-up bar wider than shoulder-width. Pull yourself up with your back active and no swinging, then lower yourself with control.",
+        negative_pull_ups: "Jump or step into the top pull-up position, then lower yourself as slowly as possible. This variation builds strength for full pull-ups.",
         chair_sit_to_stand: "Sit on a stable chair with your feet hip-width apart on the floor. Lean your torso slightly forward and stand up in a controlled way. Sit back down slowly. Use your hands only if you really need them.",
         seated_marching: "Sit upright on a stable chair. Alternate lifting your knees as if you were marching in place. Keep your torso quiet and breathe evenly.",
         wall_push_ups: "Stand facing a wall with your hands shoulder-width apart at chest height. Step your feet slightly back and bend your arms slowly until your chest comes close to the wall. Push back in a controlled way.",

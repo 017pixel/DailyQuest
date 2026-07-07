@@ -198,11 +198,15 @@ Object.assign(DQ_EXERCISES, {
 
         store.index('date').getAll(DQ_CONFIG.getTodayString()).onsuccess = e => {
             const questsToday = e.target.result || [];
-            const hasEquipment = DQ_CONFIG.userSettings.hasEquipment !== false;
+            const questAvailable = quest => {
+                if (typeof DQ_TRAINING_SYSTEM !== 'undefined' && typeof DQ_TRAINING_SYSTEM.isExerciseAllowedByEquipment === 'function') {
+                    return DQ_TRAINING_SYSTEM.isExerciseAllowedByEquipment(quest, DQ_CONFIG.userSettings || {});
+                }
+                return DQ_CONFIG.userSettings.hasEquipment !== false || quest.needsEquipment !== true;
+            };
             const isPlaceholderQuest = quest => /^custom_ai_(rest_)?fill_\d+$/i.test(String(quest?.nameKey || ''));
-            const visibleQuests = (hasEquipment
-                ? questsToday
-                : questsToday.filter(quest => !quest.needsEquipment))
+            const visibleQuests = questsToday
+                .filter(questAvailable)
                 .filter(quest => !isPlaceholderQuest(quest));
 
             if (questsToday.length === 0) {
@@ -815,17 +819,18 @@ Object.assign(DQ_EXERCISES, {
         this._freeTrainingCompletions.push(now);
 
         try {
-            const db = DQ_DB.db;
-            const tx = db.transaction(['character'], 'readwrite');
-            const charStore = tx.objectStore('character');
-
             const exercise = await DQ_WGER.getById(exerciseId);
             if (!exercise) throw new Error('Exercise not found');
             if (exercise.type === 'link') {
                 window.open(exercise.url, '_blank');
             }
-            
-            let char = await new Promise(res => charStore.get(1).onsuccess = e => res(e.target.result));
+
+            let char = await new Promise((resolve, reject) => {
+                const tx = DQ_DB.db.transaction(['character'], 'readonly');
+                tx.objectStore('character').get(1).onsuccess = e => resolve(e.target.result);
+                tx.onerror = event => reject(event.target.error);
+            });
+            if (!char) throw new Error('Character not found');
 
             const difficulty = DQ_CONFIG.userSettings.difficulty || 3;
             const baseMana = exercise.manaReward ?? exercise.mana ?? 1;
@@ -845,6 +850,8 @@ Object.assign(DQ_EXERCISES, {
                 DQ_ANALYTICS.logFreeTraining(exerciseTemplate.nameKey, scaledMana, scaledGold);
             }
 
+            const tx = DQ_DB.db.transaction(['character'], 'readwrite');
+            const charStore = tx.objectStore('character');
             charStore.put(char);
 
             await new Promise((resolve, reject) => {

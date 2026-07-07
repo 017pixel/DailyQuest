@@ -4,6 +4,31 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## [2.15.4] - 2026-07-07
+
+### Erstellt
+- Neue Absicherung fuer Daily-Quest-Kategorien hinzugefuegt
+- Neue Tests fuer Equipment-Filter hinzugefuegt
+- Neue Tests fuer Sprach- und UI-Aufraeumarbeiten hinzugefuegt
+- Neuer Offline-Cache fuer die aktuelle Version vorbereitet
+- Aktualisierte App-Versionsanzeige fuer Nutzer hinzugefuegt
+
+### Verändert
+- Daily Quests behalten wieder alle Trainingskategorien
+- Equipment-Aufgaben werden genauer passend zur Ausruestung gefiltert
+- Fallback-Quests bleiben ohne passende Ausruestung abschliessbar
+- Englische Statistik-Texte wurden bereinigt
+- App-Version von 2.15.3 auf 2.15.4 aktualisiert
+
+### Gelöscht
+- Fehlerquelle durch ueberschriebene Trainingskategorien entfernt
+- Doppelte Uebungsnamen aus den Sprachdaten entfernt
+- Leere Extra-Quest-Ueberschrift entfernt
+- Tote Trainingsauswahl-Logik entfernt
+- Veraltete Update-Hinweise der vorherigen Version ersetzt
+
+---
+
 ## [2.15.3] - 2026-07-05
 
 ### Erstellt

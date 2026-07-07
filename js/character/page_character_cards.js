@@ -97,7 +97,7 @@ const DQ_CARDS = {
         const heatmapDays = [];
         for (let i = 29; i >= 0; i--) {
             const d = new Date(); d.setDate(d.getDate() - i);
-            const dateStr = d.toISOString().split('T')[0];
+            const dateStr = DQ_CONFIG.getLocalDateString(d);
             const count = questCountPerDay[dateStr] || 0;
             const opacity = count === 0 ? 0.08 : Math.min(0.2 + (count / maxQuestsInDay) * 0.8, 1);
             heatmapDays.push({ date: dateStr, count, opacity });

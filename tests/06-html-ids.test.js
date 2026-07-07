@@ -67,6 +67,7 @@ function run() {
     }
 
     t.ok(htmlIds.size >= 80, `Mindestens 80 eindeutige IDs in HTML (${htmlIds.size})`);
+    t.ok(!html.includes('data-lang-key=""'), 'Keine leeren data-lang-key Attribute');
 
     // Alle getElementById-Aufrufe aus JS-Dateien extrahieren
     const jsFiles = [

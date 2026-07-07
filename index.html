@@ -526,7 +526,7 @@
         </section>
 
         <section id="page-extra-quest" class="page">
-            <h2 data-lang-key=""></h2>
+            <h2 data-lang-key="extra_quest_page_title">Extra-Quest</h2>
             <div id="extra-quest-container" class="content-container">
                 <div id="extra-quest-inactive">
                     <div class="extra-quest-prompt">
@@ -911,12 +911,31 @@
                             <option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option>
                         </select>
                     </div>
-                    <div class="settings-subpage-item">
-                        <label data-lang-key="has_equipment">Equipment vorhanden (Hanteln/Langhantel)</label>
-                        <div class="toggle-switch">
-                            <input type="checkbox" id="equipment-toggle">
-                            <label for="equipment-toggle" class="slider"></label>
+                    <div class="settings-subpage-item settings-subpage-item-stack">
+                        <label data-lang-key="training_equipment_title">Trainingsgeraete</label>
+                        <div class="training-equipment-grid" id="training-equipment-grid">
+                            <label class="training-equipment-chip">
+                                <input type="checkbox" data-training-equipment="dumbbell">
+                                <span data-lang-key="equipment_dumbbell">Kurzhanteln</span>
+                            </label>
+                            <label class="training-equipment-chip">
+                                <input type="checkbox" data-training-equipment="barbell">
+                                <span data-lang-key="equipment_barbell">Langhantel</span>
+                            </label>
+                            <label class="training-equipment-chip">
+                                <input type="checkbox" data-training-equipment="pullupBar">
+                                <span data-lang-key="equipment_pullup_bar">Klimmzugstange</span>
+                            </label>
+                            <label class="training-equipment-chip">
+                                <input type="checkbox" data-training-equipment="bench">
+                                <span data-lang-key="equipment_bench">Bank</span>
+                            </label>
+                            <label class="training-equipment-chip">
+                                <input type="checkbox" data-training-equipment="kettlebell">
+                                <span data-lang-key="equipment_kettlebell">Kettlebell</span>
+                            </label>
                         </div>
+                        <p class="settings-subpage-hint" data-lang-key="training_equipment_hint">Daily Quests nutzen nur Uebungen, die zu deiner Auswahl passen.</p>
                     </div>
                     <div class="settings-subpage-section-title" data-lang-key="daily_quest_repair_title">Heute</div>
                     <p class="settings-subpage-hint" data-lang-key="daily_quest_repair_hint">Erstellt die heutigen Daily Quests neu, falls sie nicht korrekt geladen wurden.</p>
@@ -960,7 +979,7 @@
                         <div class="qr-code-wrapper"><div id="qr-code-canvas"></div></div>
                         <button class="settings-action-btn share-copy-btn" id="copy-url-btn" data-lang-key="share_copy">Link kopieren</button>
                         <a href="https://github.com/017pixel/DailyQuest" target="_blank" class="share-github-link"><span class="material-symbols-rounded">code</span><span data-lang-key="share_github">Zum Code</span></a>
-                        <div class="share-version">v2.15.3</div>
+                        <div class="share-version">v2.15.4</div>
                     </div>
                 </div>
             </div>
@@ -1221,6 +1240,7 @@
     <script src="data/translations.js"></script>
     <script src="data/exercises.js"></script>
     <script src="data/wger-defaults.js"></script>
+    <script src="data/daily-quest-catalog.js"></script>
     <script src="data/training_plans.js"></script>
     <script src="data/achievements.js"></script>
     <script src="data/dungeons.js"></script>

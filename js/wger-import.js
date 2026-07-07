@@ -370,6 +370,55 @@ const DQ_WGER = {
         return this.defaults().EQUIPMENT_NAMES?.[id] || String(id);
     },
 
+    normalizeSearchText(value) {
+        return String(value || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim();
+    },
+
+    isAllowedByUserEquipment(exercise, hasEquipment) {
+        if (hasEquipment === false) return !exercise.needsEquipment;
+        if (typeof DQ_TRAINING_SYSTEM !== 'undefined' && typeof DQ_TRAINING_SYSTEM.isExerciseAllowedByEquipment === 'function') {
+            return DQ_TRAINING_SYSTEM.isExerciseAllowedByEquipment(exercise, DQ_CONFIG.userSettings || {});
+        }
+        return true;
+    },
+
+    async findDailyQuestMatch(definition) {
+        const aliases = [definition.nameDe, definition.nameEn, definition.nameKey]
+            .concat(definition.wgerAliases || [])
+            .map(value => this.normalizeSearchText(value))
+            .filter(Boolean);
+        if (aliases.length === 0) return null;
+
+        const all = await this.getAllStoredExercises();
+        const required = Array.isArray(definition.requiredEquipment) ? definition.requiredEquipment : [];
+        const types = DQ_DATA.trainingEquipmentTypes || {};
+        const requiredIds = required.flatMap(key => types[key]?.wgerIds || []);
+
+        const matches = all.filter(ex => {
+            const names = [ex.nameDe, ex.nameEn, ex.displayName, ex.nameKey].map(value => this.normalizeSearchText(value));
+            const nameMatches = names.some(name => aliases.includes(name));
+            if (!nameMatches) return false;
+            if (requiredIds.length === 0) return true;
+            const equipment = (ex.equipment || []).map(Number);
+            return requiredIds.some(id => equipment.includes(id));
+        });
+
+        if (matches.length === 0) return null;
+        return matches.sort((a, b) => {
+            const aMedia = a.hasMedia ? 0 : 1;
+            const bMedia = b.hasMedia ? 0 : 1;
+            if (aMedia !== bMedia) return aMedia - bMedia;
+            const aDesc = a.hasUsefulDescription ? 0 : 1;
+            const bDesc = b.hasUsefulDescription ? 0 : 1;
+            return aDesc - bDesc;
+        })[0];
+    },
+
     async queryExercises(filters = {}) {
         const lang = this.getLang();
         const category = filters.category || 'all';
@@ -391,7 +440,7 @@ const DQ_WGER = {
         list = list.filter(ex => {
             if (category === 'focus' && ex.type !== 'focus') return false;
             if (category !== 'all' && category !== 'focus' && ex.category !== category) return false;
-            if (!hasEquipment && ex.needsEquipment) return false;
+            if (!this.isAllowedByUserEquipment(ex, hasEquipment)) return false;
             if (equipment !== 'all' && !(ex.equipment || []).includes(Number(equipment))) return false;
             if (muscle !== 'all') {
                 const id = Number(muscle);
@@ -440,7 +489,7 @@ const DQ_WGER = {
         return all.filter(ex => {
             if (!categories.includes(ex.category)) return false;
             if (ex.deprecated) return false;
-            if (hasEquipment === false && ex.needsEquipment) return false;
+            if (!this.isAllowedByUserEquipment(ex, hasEquipment)) return false;
             if (normalized === 'calisthenics' && !(ex.equipment || []).includes(bodyweightId)) return false;
             return true;
         });
