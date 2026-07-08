@@ -277,7 +277,7 @@ const DQ_CONFIG = {
     }
 };
 
-const APP_VERSION = '2.18.0';
+const APP_VERSION = '2.18.1';
 const APP_UPDATE_FLAG_KEY = 'dq_seen_app_version';
 
 async function initializeApp() {
@@ -1246,20 +1246,20 @@ function getUpdateNoticePages(trans) {
             title: trans.update_notice_title || 'DailyQuest wurde aktualisiert',
             body: trans.update_notice_intro || 'Das ist neu in dieser Version:',
             points: [
-                trans.update_point_1 || 'KI-Prompt-Import fuer eigene Trainingsplaene ist bereit',
-                trans.update_point_2 || 'Der kopierte Prompt wird in ChatGPT, Gemini oder Claude genutzt',
-                trans.update_point_3 || 'Die externe KI stellt zuerst Rueckfragen zu Ziel, Fokus und Restdays',
-                trans.update_point_4 || 'Das finale JSON wird direkt in DailyQuest eingefuegt und geprueft',
+                trans.update_point_1 || 'DailyQuest 2 wird als neue Version vorbereitet',
+                trans.update_point_2 || 'In den Einstellungen findest du jetzt den direkten Link',
+                trans.update_point_3 || 'DailyQuest 1 bleibt weiterhin voll nutzbar',
+                trans.update_point_4 || 'Supabase Sync bleibt fuer bestehende Nutzer aktiv',
             ]
         },
         {
             title: trans.update_notice_title || 'DailyQuest wurde aktualisiert',
             body: trans.update_notice_intro || 'Das ist neu in dieser Version:',
             points: [
-                trans.update_point_5 || 'Restdays werden im JSON geplant und von DailyQuest erkannt',
-                trans.update_point_6 || 'Timer-, Abhak- und Wiederholungsuebungen funktionieren im KI-Plan',
-                trans.update_point_7 || 'Phasen koennen Wiederholungen, Zeiten, Sets und Belohnungen steigern',
-                trans.update_point_8 || 'Follow-up Prompts helfen beim Korrigieren ungueltiger JSON-Plaene',
+                trans.update_point_5 || 'Das Open-Source-Repo wurde fuer den Abschluss aufgeraeumt',
+                trans.update_point_6 || 'Unnoetige lokale Supabase-Dateien wurden entfernt',
+                trans.update_point_7 || 'Dokumentation und Versionshinweise wurden aktualisiert',
+                trans.update_point_8 || 'Der Wechsel zu DailyQuest 2 wird spaeter per Export begleitet',
             ]
         }
     ];

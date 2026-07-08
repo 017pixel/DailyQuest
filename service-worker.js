@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dailyquest-cache-v39';
+const CACHE_NAME = 'dailyquest-cache-v40';
 const WGER_IMAGE_CACHE = 'dailyquest-wger-images-v1';
 const WGER_IMAGE_LIMIT = 200;
 

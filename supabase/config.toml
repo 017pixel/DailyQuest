@@ -1,3 +1,2 @@
 # DailyQuest Supabase Configuration
-# KI-Edge-Function (mistral-proxy) wurde entfernt.
-# Das manuelle Trainingsplan-System benoetigt keine Edge Functions.
+# Supabase Sync bleibt fuer die Open-Source-Version aktiv.

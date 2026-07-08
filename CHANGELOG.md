@@ -4,6 +4,31 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## [2.18.1] - 2026-07-08
+
+### Erstellt
+- DailyQuest-2-Hinweis in den Einstellungen hinzugefuegt
+- Direkten Link zur neuen DailyQuest-Version vorbereitet
+- Neue deutsche Texte fuer den V2-Wechsel erstellt
+- Neue englische Texte fuer den V2-Wechsel erstellt
+- Aktualisierte Nutzerhinweise fuer diese Version erstellt
+
+### Verändert
+- App-Version von 2.18.0 auf 2.18.1 aktualisiert
+- Offline-Cache fuer die neue PWA-Version erneuert
+- README mit Hinweis auf DailyQuest 2 erweitert
+- Supabase-Konfiguration auf den verbleibenden Sync-Fokus bereinigt
+- Migrationsplan auf den abgeschlossenen Phase-1-Stand gebracht
+
+### Gelöscht
+- Lokale Supabase-Temporaerdateien aus der Versionierung entfernt
+- Leeren Supabase-Functions-Pfad aus der Editor-Konfiguration entfernt
+- Windows-Systemdatei aus den README-Screenshots entfernt
+- Veraltete Edge-Function-Hinweise aus der Supabase-Konfiguration entfernt
+- Build-Ausgabe und lokale Maschinenreste aus dem Repo-Cleanup entfernt
+
+---
+
 ## [2.18.0] - 2026-07-08
 
 ### Erstellt

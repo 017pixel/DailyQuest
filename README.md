@@ -14,6 +14,13 @@ DailyQuest ist eine Progressive Web App (PWA), die darauf abzielt, die Motivatio
 
 Die Kernidee basiert auf dem "System"-Konzept aus dem Webtoon Solo Leveling: Alltägliche Aufgaben werden in Quests verwandelt, die Erfahrungspunkte (Mana), Gold und Charakterfortschritt bringen.
 
+### DailyQuest V2
+
+DailyQuest 2 wird als neue Version mit modernisiertem Dashboard, Admin-Bereich und Convex-Datenbank vorbereitet. Die bestehende Open-Source-Version bleibt weiterhin nutzbar und behaelt Supabase-Sync fuer bestehende Nutzer bei.
+
+- Neue Version: [dailyquest-next.vercel.app](https://dailyquest-next.vercel.app)
+- Migrationspfad: Export aus DailyQuest 1 und Import in DailyQuest 2
+
 ---
 
 ## Kernfunktionen

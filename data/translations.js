@@ -39,6 +39,10 @@ DQ_DATA.translations = {
         settings_share: "Teilen",
         settings_weight: "Gewicht",
         settings_tutorial: "Tutorial",
+        dailyquest_v2_badge: "Neu",
+        dailyquest_v2_title: "DailyQuest V2 ist verfuegbar",
+        dailyquest_v2_description: "DailyQuest 2 bringt ein verbessertes Dashboard, Admin-Bereich, moderne Datenbank und mehr.",
+        dailyquest_v2_button: "Zur neuen Version",
         share_title: "Teile DailyQuest!",
         share_description: "Scanne den QR-Code oder teile den Link!",
         share_copy: "Kopieren",
@@ -175,29 +179,29 @@ DQ_DATA.translations = {
 
         update_notice_intro: "Das ist neu in dieser Version:",
 
-        update_notice_page1_point1: "KI-Prompt-Import fuer eigene Trainingsplaene ist bereit",
+        update_notice_page1_point1: "DailyQuest 2 wird als neue Version vorbereitet",
 
-        update_notice_page1_point2: "Der Prompt wird in ChatGPT, Gemini oder Claude genutzt",
+        update_notice_page1_point2: "In den Einstellungen findest du jetzt den direkten Link",
 
-        update_notice_page2_point1: "JSON-Restdays, Timer, Abhaken und Wiederholungen werden erkannt",
+        update_notice_page2_point1: "DailyQuest 1 bleibt weiterhin voll nutzbar",
 
-        update_notice_page2_point2: "Follow-up Prompts helfen beim Korrigieren ungueltiger Plaene",
+        update_notice_page2_point2: "Supabase Sync bleibt fuer bestehende Nutzer aktiv",
 
-        update_point_1: "KI-Prompt-Import fuer eigene Trainingsplaene ist bereit",
+        update_point_1: "DailyQuest 2 wird als neue Version vorbereitet",
 
-        update_point_2: "Der kopierte Prompt wird in ChatGPT, Gemini oder Claude genutzt",
+        update_point_2: "In den Einstellungen findest du jetzt den direkten Link",
 
-        update_point_3: "Die externe KI stellt zuerst Rueckfragen zu Ziel, Fokus und Restdays",
+        update_point_3: "DailyQuest 1 bleibt weiterhin voll nutzbar",
 
-        update_point_4: "Das finale JSON wird direkt in DailyQuest eingefuegt und geprueft",
+        update_point_4: "Supabase Sync bleibt fuer bestehende Nutzer aktiv",
 
-        update_point_5: "Restdays werden im JSON geplant und von DailyQuest erkannt",
+        update_point_5: "Das Open-Source-Repo wurde fuer den Abschluss aufgeraeumt",
 
-        update_point_6: "Timer-, Abhak- und Wiederholungsuebungen funktionieren im KI-Plan",
+        update_point_6: "Unnoetige lokale Supabase-Dateien wurden entfernt",
 
-        update_point_7: "Phasen koennen Wiederholungen, Zeiten, Sets und Belohnungen steigern",
+        update_point_7: "Dokumentation und Versionshinweise wurden aktualisiert",
 
-        update_point_8: "Follow-up Prompts helfen beim Korrigieren ungueltiger JSON-Plaene",
+        update_point_8: "Der Wechsel zu DailyQuest 2 wird spaeter per Export begleitet",
 
         update_notice_step_label: "Seite",
 
@@ -452,6 +456,10 @@ DQ_DATA.translations = {
         settings_share: "Share",
         settings_weight: "Weight",
         settings_tutorial: "Tutorial",
+        dailyquest_v2_badge: "New",
+        dailyquest_v2_title: "DailyQuest V2 is available",
+        dailyquest_v2_description: "DailyQuest 2 adds an improved dashboard, admin area, modern database, and more.",
+        dailyquest_v2_button: "Open the new version",
         share_title: "Share DailyQuest!",
         share_description: "Scan the QR code or share the link!",
         share_copy: "Copy",
@@ -588,29 +596,29 @@ DQ_DATA.translations = {
 
         update_notice_intro: "What's new in this version:",
 
-        update_notice_page1_point1: "AI prompt import for custom training plans is ready",
+        update_notice_page1_point1: "DailyQuest 2 is being prepared as the new version",
 
-        update_notice_page1_point2: "The prompt is used in ChatGPT, Gemini, or Claude",
+        update_notice_page1_point2: "Settings now include the direct link",
 
-        update_notice_page2_point1: "JSON rest days, timers, taps, and reps are recognized",
+        update_notice_page2_point1: "DailyQuest 1 remains fully usable",
 
-        update_notice_page2_point2: "Follow-up prompts help fix invalid plans",
+        update_notice_page2_point2: "Supabase Sync remains active for existing users",
 
-        update_point_1: "AI prompt import for custom training plans is ready",
+        update_point_1: "DailyQuest 2 is being prepared as the new version",
 
-        update_point_2: "The copied prompt is used in ChatGPT, Gemini, or Claude",
+        update_point_2: "Settings now include the direct link",
 
-        update_point_3: "The external AI first asks about goals, focus, and rest days",
+        update_point_3: "DailyQuest 1 remains fully usable",
 
-        update_point_4: "The final JSON is pasted into DailyQuest and checked",
+        update_point_4: "Supabase Sync remains active for existing users",
 
-        update_point_5: "Rest days are planned in JSON and recognized by DailyQuest",
+        update_point_5: "The open-source repo was cleaned up for finalization",
 
-        update_point_6: "Timer, tap, and repetition exercises work in AI plans",
+        update_point_6: "Unneeded local Supabase files were removed",
 
-        update_point_7: "Phases can increase reps, time, sets, and rewards",
+        update_point_7: "Documentation and version notes were updated",
 
-        update_point_8: "Follow-up prompts help fix invalid JSON plans",
+        update_point_8: "The move to DailyQuest 2 will later be guided by export",
 
         update_notice_step_label: "Page",
 
