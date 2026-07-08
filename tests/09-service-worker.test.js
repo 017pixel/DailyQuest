@@ -17,7 +17,7 @@ function run() {
     // Cache-Name
     const cacheMatch = sw.match(/dailyquest-cache-v(\d+)/);
     t.ok(!!cacheMatch, `Cache-Name gefunden (v${cacheMatch ? cacheMatch[1] : '?'})`);
-    t.ok(cacheMatch && Number(cacheMatch[1]) >= 36, 'Cache-Version fuer Release 2.15.4 erhoeht');
+    t.ok(cacheMatch && Number(cacheMatch[1]) >= 39, 'Cache-Version fuer Release 2.18.0 erhoeht');
 
     const mainPath = path.join(BASE, 'main.js');
     const htmlPath = path.join(BASE, 'index.html');
@@ -28,11 +28,11 @@ function run() {
     const translationsCode = fs.readFileSync(translationsPath, 'utf8');
     const databaseCode = fs.readFileSync(databasePath, 'utf8');
     const appVersionMatch = mainCode.match(/APP_VERSION\s*=\s*'([^']+)'/);
-    t.equal(appVersionMatch && appVersionMatch[1], '2.15.4', 'APP_VERSION ist 2.15.4');
-    t.ok(htmlCode.includes('v2.15.4'), 'Settings UI zeigt v2.15.4');
-    t.ok(translationsCode.includes('Daily Quests behalten wieder alle Trainingskategorien'), 'Update-Hinweis fuer Release 2.15.4 vorhanden');
+    t.equal(appVersionMatch && appVersionMatch[1], '2.18.0', 'APP_VERSION ist 2.18.0');
+    t.ok(htmlCode.includes('v2.18.0'), 'Settings UI zeigt v2.18.0');
+    t.ok(translationsCode.includes('KI-Prompt-Import'), 'KI-Prompt-Import ist in Uebersetzungen vorhanden');
     t.ok(mainCode.includes('pageIndex += 1'), 'Update-Popup kann alle Infoseiten anzeigen');
-    t.ok(databaseCode.includes('dbVersion = 41'), 'IndexedDB-Version fuer Release 2.15.4 bleibt unveraendert');
+    t.ok(databaseCode.includes('dbVersion = 41'), 'IndexedDB-Version fuer Release 2.18.0 bleibt unveraendert');
     t.ok(!databaseCode.includes("deleteObjectStore('custom_user_exercises')"), 'Migration loescht keine alten eigenen Uebungen');
 
     // skipWaiting
@@ -66,6 +66,7 @@ function run() {
 
         t.ok(urls.length >= 30, `Precache-URLs (${urls.length})`);
         t.ok(urls.includes('/data/daily-quest-catalog.js'), 'Daily-Quest-Katalog wird offline gecached');
+        t.ok(urls.includes('/js/ai-plan-import.js'), 'KI-Plan-Import wird offline gecached');
 
         let missingCount = 0;
         for (const url of urls) {

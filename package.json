@@ -1,6 +1,6 @@
 {
   "name": "dailyquest",
-  "version": "2.15.4",
+  "version": "2.18.0",
   "private": true,
   "type": "module",
   "scripts": {

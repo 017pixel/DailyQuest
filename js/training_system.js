@@ -759,7 +759,25 @@ const DQ_TRAINING_SYSTEM = {
         const settings = DQ_CONFIG.userSettings || {};
 
         if (settings.planType === 'custom' && settings.customPlanId && typeof DQ_MANUAL_PLAN !== 'undefined') {
-            return;
+            const plan = await DQ_MANUAL_PLAN.getActivePlan(settings.customPlanId);
+            if (!plan || plan.source !== 'ai_generated' || !Array.isArray(plan.aiPhases) || plan.aiPhases.length === 0) {
+                return;
+            }
+            const state = await DQ_MANUAL_PLAN.getState(plan.id);
+            const phaseContext = DQ_MANUAL_PLAN.getAiPhaseForState(plan, state);
+
+            if (action === 'skip') {
+                state.manualWeekShift = (state.manualWeekShift || 0) + Math.max(1, phaseContext.phaseWeeks);
+            } else if (action === 'repeat') {
+                state.manualWeekShift = (state.manualWeekShift || 0) - Math.max(1, phaseContext.phaseWeeks);
+            } else if (action === 'extend') {
+                state.stageExtensions = state.stageExtensions || {};
+                state.stageExtensions[phaseContext.phaseIndex] = (state.stageExtensions[phaseContext.phaseIndex] || 0) + 1;
+            }
+
+            state.updatedAt = Date.now();
+            await DQ_MANUAL_PLAN.saveState(state);
+            return state;
         }
 
         const normalized = this.normalizeGoal(goal);

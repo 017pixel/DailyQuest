@@ -4,6 +4,55 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## [2.18.0] - 2026-07-08
+
+### Erstellt
+- Vollstaendigen KI-Prompt-Import fuer eigene Trainingsplaene vorbereitet
+- Rueckfragen-Ablauf fuer externe KI-Tools vor der JSON-Ausgabe hinzugefuegt
+- JSON-konfigurierbare Restdays mit Label, Fokus und Beschreibung hinzugefuegt
+- Neue Endflow-Tests fuer Wiederholungen, Timer und Abhak-Aufgaben hinzugefuegt
+- Aktualisiertes Update-Popup fuer das KI-JSON-Feature erstellt
+
+### Verändert
+- KI-Prompt erklaert ChatGPT, Gemini und Claude als externe Erstellungswege
+- JSON-Pruefung erkennt Restdays als feste Tage im 7-Tage-Zyklus
+- KI-Plaene uebernehmen Restday-Metadaten in die Daily-Quest-Anzeige
+- Phasen-Skalierung fuer KI-Plaene wurde in der Verifikation abgesichert
+- App-Version von 2.17.0 auf 2.18.0 aktualisiert
+
+### Gelöscht
+- Unklare Restday-Kommunikation aus dem KI-Import entfernt
+- Veralteten schemaVersion-1-Placeholder im JSON-Feld entfernt
+- Missverstaendliche Update-Hinweise der vorherigen Version ersetzt
+- Unsichere Annahme entfernt, dass Restdays nur App-Einstellungen sind
+- Luecke in der Testabdeckung fuer KI-Check-Aufgaben entfernt
+
+---
+
+## [2.17.0] - 2026-07-07
+
+### Erstellt
+- KI-JSON-Schema v2 mit Phasen-Unterstuetzung eingefuehrt
+- Phasen-State fuer KI-Plaene mit Wiederholen/Ueberspringen/Verlaengern hinzugefuegt
+- Phasen-Skalierung fuer Wiederholungen, Timer und Belohnungen bei KI-Plaenen implementiert
+- Eigenes Popup fuer die Standard-Plaene-Auswahl hinzugefuegt
+- Neue Tests fuer Schema v2, Phasen und Kompatibilitaet hinzugefuegt
+
+### Verändert
+- KI-Prompt nutzt jetzt schemaVersion 2 und enthaelt Phasen-Definitionen
+- `buildQuest()` verwendet importierte Sets/Wiederholungen aus JSON statt festem Wert
+- `applyPhaseAction()` arbeitet jetzt auch fuer KI-Plaene mit Phasen
+- Standard-Plaene oeffnen sich in separatem Bottom-Sheet statt im Haupt-Popup
+- App-Version von 2.16.0 auf 2.17.0 aktualisiert
+
+### Gelöscht
+- Inline-Preset-Auswahl aus dem Trainingsziel-Popup entfernt
+- Veraltete training-setup-presets Container-Referenzen aus main.js entfernt
+- Alte schemaVersion-1-Only-Logik durch v1/v2-Kompatibilitaet ersetzt
+- Feste `sets=3` fuer Custom-Plan-Uebungen durch importierte Sets ersetzt
+
+---
+
 ## [2.15.4] - 2026-07-07
 
 ### Erstellt

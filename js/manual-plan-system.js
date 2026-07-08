@@ -11,6 +11,7 @@ const DQ_MANUAL_PLAN = {
     STORE_NAME: 'custom_plans',
     STATE_STORE: 'training_plan_state',
     MAX_EXERCISES: 30,
+    AI_MAX_EXERCISES: 42,
     DAILY_QUEST_COUNT: 6,
     RESTDAY_QUEST_COUNT: 5,
     RECENT_HISTORY_SIZE: 10,
@@ -148,7 +149,7 @@ const DQ_MANUAL_PLAN = {
         return new Promise(resolve => {
             const tx = DQ_DB.db.transaction(['custom_user_exercises'], 'readonly');
             const request = tx.objectStore('custom_user_exercises').getAll();
-            request.onsuccess = () => resolve((request.result || []).map(ex => this.normalizeLegacyExercise(ex, 'user_created')));
+            request.onsuccess = () => resolve((request.result || []).map(ex => this.normalizeLegacyExercise(ex, ex.source === 'ai_generated' ? (ex.category || 'ai_generated') : 'user_created')));
             request.onerror = () => resolve([]);
         });
     },
@@ -188,13 +189,15 @@ const DQ_MANUAL_PLAN = {
         return settings.hasEquipment !== false || !exercise?.needsEquipment;
     },
 
-    async savePlan(name, exerciseIds) {
+    async savePlan(name, exerciseIds, metadata = {}) {
         return new Promise((resolve, reject) => {
             const tx = DQ_DB.db.transaction([this.STORE_NAME], 'readwrite');
             const store = tx.objectStore(this.STORE_NAME);
+            const maxExercises = metadata?.source === 'ai_generated' ? this.AI_MAX_EXERCISES : this.MAX_EXERCISES;
             const record = {
                 planName: name || 'Mein Plan',
-                exerciseIds: exerciseIds.slice(0, this.MAX_EXERCISES),
+                exerciseIds: exerciseIds.slice(0, maxExercises),
+                ...metadata,
                 createdAt: Date.now(),
                 isActive: false
             };
@@ -253,6 +256,39 @@ const DQ_MANUAL_PLAN = {
         });
     },
 
+    getAiPhaseForState(plan, state) {
+        const phases = Array.isArray(plan?.aiPhases) ? plan.aiPhases : [];
+        if (phases.length === 0) return { phaseIndex: 0, phase: null, phaseWeek: 0, phaseWeeks: 1, progress: 1 };
+
+        const startedAt = state?.startedAt || DQ_CONFIG.getTodayString();
+        const start = new Date(String(startedAt).slice(0, 10) + 'T00:00:00');
+        const now = new Date();
+        const diffDays = Math.max(0, Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+        const baseWeek = Math.floor(diffDays / 7);
+        const shiftedWeek = Math.max(0, baseWeek + (state.manualWeekShift || 0));
+
+        let remaining = shiftedWeek;
+        let phaseIndex = phases.length - 1;
+        let phaseWeek = 0;
+
+        for (let i = 0; i < phases.length; i++) {
+            const ext = state?.stageExtensions?.[i] || 0;
+            const weeks = Math.max(1, phases[i].weeks + ext);
+            if (remaining < weeks) {
+                phaseIndex = i;
+                phaseWeek = remaining;
+                break;
+            }
+            remaining -= weeks;
+        }
+
+        const phase = phases[Math.min(phaseIndex, phases.length - 1)] || null;
+        const phaseWeeks = phase ? Math.max(1, (phase.weeks || 1) + (state?.stageExtensions?.[phaseIndex] || 0)) : 1;
+        const progress = phaseWeeks > 0 ? Math.min(1, phaseWeek / phaseWeeks) : 1;
+
+        return { phaseIndex, phase, phaseWeek, phaseWeeks, progress, shiftedWeek };
+    },
+
     async getState(planId) {
         return new Promise((resolve, reject) => {
             const key = 'manual_' + planId;
@@ -266,6 +302,8 @@ const DQ_MANUAL_PLAN = {
                         startedAt: new Date().toISOString(),
                         lastGeneratedDate: null,
                         recentExercises: [],
+                        manualWeekShift: 0,
+                        stageExtensions: {},
                         updatedAt: Date.now()
                     };
                     store.add(newState);
@@ -361,18 +399,107 @@ const DQ_MANUAL_PLAN = {
         return selected;
     },
 
+    getCycleDayIndex(state, todayStr, cycleLength = 7) {
+        const startRaw = String(state?.startedAt || todayStr).slice(0, 10);
+        const start = new Date(`${startRaw}T00:00:00`);
+        const today = new Date(`${todayStr}T00:00:00`);
+        const diffDays = Math.max(0, Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+        return diffDays % Math.max(1, cycleLength || 7);
+    },
+
+    async getAiScheduledQuestSet(customPlan, settings, state, todayStr, difficulty, hasEquipment, customExercises) {
+        const schedule = customPlan.aiSchedule || {};
+        const days = Array.isArray(schedule.days) ? schedule.days : [];
+        const cycleLength = Math.max(1, Math.min(7, Number(schedule.cycleLength) || 7));
+        const dayIndex = this.getCycleDayIndex(state, todayStr, cycleLength);
+        const scheduledDay = days.find(day => Number(day.day) === dayIndex + 1) || days[dayIndex] || null;
+
+        const phaseContext = this.getAiPhaseForState(customPlan, state);
+        const hasPhases = !!(phaseContext.phase);
+
+        if (!scheduledDay || scheduledDay.kind === 'rest') {
+            const restSet = await this.buildRestDayQuestSet(todayStr, difficulty, scheduledDay);
+            state.lastGeneratedDate = todayStr;
+            state.lastAiCycleDay = scheduledDay?.day || dayIndex + 1;
+            if (hasPhases) {
+                state.lastPhaseIndex = phaseContext.phaseIndex;
+                state.lastPhaseWeek = phaseContext.phaseWeek;
+            }
+            await this.saveState(state);
+            return {
+                ...restSet,
+                goal: 'custom_restday',
+                state,
+                plan: customPlan,
+                scheduledDay
+            };
+        }
+
+        let exerciseIds = Array.isArray(scheduledDay.exerciseIds) ? scheduledDay.exerciseIds.slice(0, this.DAILY_QUEST_COUNT) : [];
+        if (exerciseIds.length !== this.DAILY_QUEST_COUNT) {
+            exerciseIds = (customPlan.exerciseIds || []).slice(0, this.DAILY_QUEST_COUNT);
+        }
+
+        let pool = (await Promise.all(exerciseIds.map(id => this.resolveExerciseById(id, customExercises)))).filter(Boolean);
+        if (pool.length < this.DAILY_QUEST_COUNT) {
+            const fallback = (await Promise.all((customPlan.exerciseIds || []).map(id => this.resolveExerciseById(id, customExercises))))
+                .filter(ex => !!ex && !pool.some(item => item.id === ex.id));
+            pool = pool.concat(fallback).slice(0, this.DAILY_QUEST_COUNT);
+        }
+
+        const quests = pool.slice(0, this.DAILY_QUEST_COUNT).map((template, index) => {
+            const quest = this.buildQuest(template, todayStr, index, difficulty, hasEquipment, phaseContext);
+            quest.slotKey = `ai_day_${scheduledDay.day || dayIndex + 1}`;
+            if (hasPhases) {
+                const tLabel = this.t(phaseContext.phase.labelDe ? undefined : undefined, phaseContext.phase.labelDe || 'Phase');
+                quest.phaseIndex = phaseContext.phaseIndex;
+                quest.phaseLabel = `Phase ${phaseContext.phaseIndex + 1} · ${phaseContext.phase.labelDe}`;
+                quest.phaseName = phaseContext.phase.labelDe;
+                quest.phaseSummary = `${phaseContext.phase.summaryDe || ''}`;
+            } else {
+                quest.phaseLabel = scheduledDay.label || '';
+                quest.phaseName = scheduledDay.label || '';
+                quest.phaseSummary = '7-Tage KI-Zyklus';
+            }
+            return quest;
+        });
+
+        state.recentExercises = quests.map(quest => quest.nameKey).concat(state.recentExercises || []).slice(-this.RECENT_HISTORY_SIZE);
+        state.lastGeneratedDate = todayStr;
+        state.lastAiCycleDay = scheduledDay.day || dayIndex + 1;
+        if (hasPhases) {
+            state.lastPhaseIndex = phaseContext.phaseIndex;
+            state.lastPhaseWeek = phaseContext.phaseWeek;
+        }
+        await this.saveState(state);
+
+        return {
+            goal: 'custom',
+            quests,
+            state,
+            plan: customPlan,
+            scheduledDay,
+            phaseContext
+        };
+    },
+
     async getTodayQuestSet(customPlan, settings, skipRestDay = false) {
         const todayStr = DQ_CONFIG.getTodayString();
-        const isRestDay = skipRestDay ? false : this.checkRestDay(settings.restDays);
         const difficulty = settings.difficulty || 3;
         const hasEquipment = settings.hasEquipment !== false;
+        const customExercises = await this.getAllCustomExercises();
+        const state = await this.getState(customPlan.id);
+
+        if (customPlan?.source === 'ai_generated' && customPlan.aiSchedule?.cycleLength === 7) {
+            return await this.getAiScheduledQuestSet(customPlan, settings, state, todayStr, difficulty, hasEquipment, customExercises);
+        }
+
+        const isRestDay = skipRestDay ? false : this.checkRestDay(settings.restDays);
 
         if (isRestDay) {
             return await this.buildRestDayQuestSet(todayStr, difficulty);
         }
 
-        const customExercises = await this.getAllCustomExercises();
-        const state = await this.getState(customPlan.id);
         const recent = Array.isArray(state.recentExercises) ? state.recentExercises.slice(-this.RECENT_HISTORY_SIZE) : [];
 
         let pool = (await Promise.all((customPlan.exerciseIds || [])
@@ -404,7 +531,7 @@ const DQ_MANUAL_PLAN = {
         };
     },
 
-    async buildRestDayQuestSet(todayStr, difficulty) {
+    async buildRestDayQuestSet(todayStr, difficulty, scheduledDay = null) {
         const restdayPool = (DQ_DATA.exercisePool.restday || []).slice();
         const blocked = (typeof DQ_TRAINING_SYSTEM !== 'undefined' && Array.isArray(DQ_TRAINING_SYSTEM.blockedQuestNameKeys)) ? DQ_TRAINING_SYSTEM.blockedQuestNameKeys : [];
         const blockedSet = new Set(blocked);
@@ -414,6 +541,9 @@ const DQ_MANUAL_PLAN = {
         const questCount = Math.min(this.RESTDAY_QUEST_COUNT, pool.length);
         const exercises = pool.slice(0, questCount);
 
+        const isAiRestday = !!scheduledDay;
+        const restLabel = scheduledDay?.label || 'Restday';
+        const restSummary = scheduledDay?.summaryDe || scheduledDay?.summaryEn || 'Geplanter Restday aus dem KI-Plan.';
         const quests = exercises.map((template, index) => {
             let targetValue = template.baseValue;
             if (template.type !== 'check' && template.type !== 'link' && template.type !== 'focus') {
@@ -421,11 +551,15 @@ const DQ_MANUAL_PLAN = {
             }
             return {
                 date: todayStr,
-                goal: 'restday',
-                slotKey: 'rest',
+                goal: isAiRestday ? 'custom_restday' : 'restday',
+                slotKey: isAiRestday ? `ai_rest_day_${scheduledDay.day || ''}` : 'rest',
                 nameKey: template.nameKey,
                 type: template.type,
                 target: targetValue,
+                phaseLabel: isAiRestday ? restLabel : '',
+                phaseName: isAiRestday ? restLabel : '',
+                phaseSummary: isAiRestday ? restSummary : '',
+                restFocus: isAiRestday ? (scheduledDay.restFocus || '') : '',
                 manaReward: Math.ceil(template.mana * (1 + 0.2 * (difficulty - 1))),
                 goldReward: Math.ceil(template.gold * (1 + 0.15 * (difficulty - 1))),
                 completed: false,
@@ -441,27 +575,34 @@ const DQ_MANUAL_PLAN = {
         });
 
         return {
-            goal: 'restday',
+            goal: isAiRestday ? 'custom_restday' : 'restday',
             quests,
             state: null,
-            plan: null
+            plan: null,
+            scheduledDay: scheduledDay || null
         };
     },
 
-    buildQuest(template, todayStr, index, difficulty, hasEquipment) {
+    buildQuest(template, todayStr, index, difficulty, hasEquipment, phaseContext) {
         const diffMultiplier = (typeof DQ_TRAINING_SYSTEM !== 'undefined')
             ? DQ_TRAINING_SYSTEM.getDifficultyMultiplier(difficulty)
             : { 1: 0.8, 2: 0.9, 3: 1, 4: 1.15, 5: 1.3 }[difficulty] || 1;
 
+        const phase = phaseContext?.phase || null;
+        const repsMul = phase?.repsMultiplier || 1;
+        const timeMul = phase?.timeMultiplier || 1;
+        const rewardMul = phase?.rewardMultiplier || 1;
+        const setsAdd = phase?.setsAdd || 0;
+
         let target = template.baseValue;
         if (template.type === 'reps') {
-            target = Math.max(1, Math.round(template.baseValue * diffMultiplier));
+            target = Math.max(1, Math.round(template.baseValue * diffMultiplier * repsMul));
         } else if (template.type === 'time') {
-            target = Math.max(10, Math.round(template.baseValue * diffMultiplier));
+            target = Math.max(10, Math.round(template.baseValue * diffMultiplier * timeMul));
         }
 
-        const manaReward = Math.max(5, Math.round((template.mana ?? template.manaReward ?? 1) * (1 + 0.2 * (difficulty - 1))));
-        const goldReward = Math.max(3, Math.round((template.gold ?? template.goldReward ?? 1) * (1 + 0.15 * (difficulty - 1))));
+        const manaReward = Math.max(5, Math.round((template.mana ?? template.manaReward ?? 1) * (1 + 0.2 * (difficulty - 1)) * rewardMul));
+        const goldReward = Math.max(3, Math.round((template.gold ?? template.goldReward ?? 1) * (1 + 0.15 * (difficulty - 1)) * rewardMul));
 
         let completionMode = 'tap';
         let setPlan = null;
@@ -469,7 +610,8 @@ const DQ_MANUAL_PLAN = {
 
         if (template.type === 'reps') {
             completionMode = 'sets';
-            const sets = 3;
+            const importedSets = Number.isInteger(template.sets) ? template.sets : null;
+            const sets = Math.max(1, (importedSets || 3) + setsAdd);
             setPlan = { sets: sets, reps: target };
             setProgress = new Array(sets).fill(false);
         } else if (template.type === 'time') {
@@ -494,7 +636,7 @@ const DQ_MANUAL_PLAN = {
             targetLabel: null,
             setPlan: setPlan,
             setProgress: setProgress,
-            phaseIndex: 0,
+            phaseIndex: phaseContext?.phaseIndex || 0,
             phaseLabel: '',
             phaseName: '',
             phaseSummary: '',
@@ -540,18 +682,26 @@ const DQ_MANUAL_PLAN = {
         const difficulty = opts.difficulty || settings.difficulty || 3;
         const hasEquipment = settings.hasEquipment !== false;
         const customExercises = await this.getAllCustomExercises();
+        const state = await this.getState(plan.id);
+        const phaseContext = plan.source === 'ai_generated' ? this.getAiPhaseForState(plan, state) : null;
 
         for (const quest of openQuests) {
             if (!quest.isCustom && quest.goal !== 'custom') continue;
             const template = await this.resolveExerciseByNameKey(quest.nameKey, customExercises);
             if (!template) continue;
 
-            const rebuilt = this.buildQuest(template, todayStr, 0, difficulty, hasEquipment);
+            const rebuilt = this.buildQuest(template, todayStr, 0, difficulty, hasEquipment, phaseContext);
             quest.target = rebuilt.target;
             quest.setPlan = rebuilt.setPlan;
             quest.manaReward = rebuilt.manaReward;
             quest.goldReward = rebuilt.goldReward;
             quest.equipmentHint = rebuilt.equipmentHint;
+            if (phaseContext) {
+                quest.phaseIndex = phaseContext.phaseIndex;
+                quest.phaseLabel = phaseContext.phase ? `Phase ${phaseContext.phaseIndex + 1} · ${phaseContext.phase.labelDe}` : '';
+                quest.phaseName = phaseContext.phase ? phaseContext.phase.labelDe : '';
+                quest.phaseSummary = phaseContext.phase ? (phaseContext.phase.summaryDe || '') : '';
+            }
 
             if (quest.completionMode === 'sets' && rebuilt.setPlan) {
                 const oldLen = quest.setProgress ? quest.setProgress.length : 0;

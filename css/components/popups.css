@@ -471,11 +471,11 @@ input:checked + .slider:before {
 .active-plan-card {
     display: flex;
     flex-direction: column;
-    gap: 7px;
-    padding: 16px;
-    border: 1px solid rgba(var(--primary-color-rgb), 0.35);
-    border-radius: 18px;
-    background: rgba(var(--primary-color-rgb), 0.08);
+    gap: 6px;
+    padding: 14px;
+    border: 1px solid var(--outline-color);
+    border-radius: 16px;
+    background: var(--surface-container-high);
 }
 
 .active-plan-card strong {
@@ -552,6 +552,7 @@ input:checked + .slider:before {
 }
 
 .training-primary-action:disabled,
+.training-secondary-action:disabled,
 .training-preset-card:disabled {
     opacity: 0.48;
     cursor: not-allowed;
@@ -1377,5 +1378,151 @@ html[data-theme='light'] .settings-overlay.show .settings-sheet {
 .settings-subpage-actions .settings-action-btn,
 .settings-subpage-actions .settings-danger-btn {
     margin: 0;
+}
+
+/* --- NEUE SETTINGS UND METHODEN-AUSWAHL STYLES --- */
+.training-setup-methods-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.setup-method-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    border: 1px solid var(--outline-color);
+    border-radius: 18px;
+    background: var(--surface-container-high);
+    color: var(--on-surface-color);
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    transition: transform 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
+}
+
+.setup-method-card:hover {
+    border-color: var(--primary-color);
+    background: var(--surface-container-highest);
+}
+
+.setup-method-card:active {
+    transform: scale(0.985);
+}
+
+.setup-method-card .method-icon {
+    font-size: 24px;
+    color: var(--primary-color);
+    background: rgba(var(--primary-color-rgb), 0.1);
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.setup-method-card .method-text {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.setup-method-card .method-text strong {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--on-surface-color);
+}
+
+.setup-method-card .method-text span {
+    font-size: 12px;
+    color: var(--on-surface-color);
+    opacity: 0.6;
+}
+
+.setup-method-card .method-arrow {
+    font-size: 20px;
+    color: var(--on-surface-color);
+    opacity: 0.4;
+    flex-shrink: 0;
+}
+
+/* Presets Container & Back Button */
+.training-setup-presets-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.preset-back-row {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 2px;
+}
+
+.preset-back-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 6px 0;
+    transition: opacity 0.2s;
+}
+
+.preset-back-btn:active {
+    opacity: 0.7;
+}
+
+.preset-back-btn .material-symbols-rounded {
+    font-size: 18px;
+}
+
+/* Standard-Plaene Overlay (eigenes Popup) */
+#preset-plan-overlay .preset-plan-sheet {
+    display: flex;
+    flex-direction: column;
+}
+
+#preset-plan-overlay .preset-plan-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px 4px;
+}
+
+#preset-plan-overlay .preset-plan-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--on-surface-color);
+}
+
+#preset-plan-overlay .preset-plan-body {
+    padding: 8px 16px max(16px, env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+}
+
+/* Animierte Kopier-Aktionen */
+.training-primary-action.copied-success,
+.training-secondary-action.copied-success {
+    background-color: var(--primary-color) !important;
+    color: var(--on-primary-color) !important;
+    border-color: var(--primary-color) !important;
+    animation: button-pulse-copied 0.4s ease;
+}
+
+@keyframes button-pulse-copied {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
 }
 

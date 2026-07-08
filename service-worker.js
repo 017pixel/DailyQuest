@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dailyquest-cache-v36';
+const CACHE_NAME = 'dailyquest-cache-v39';
 const WGER_IMAGE_CACHE = 'dailyquest-wger-images-v1';
 const WGER_IMAGE_LIMIT = 200;
 
@@ -52,6 +52,7 @@ const urlsToCache = [
   '/js/supabase-config.js',
   '/js/supabase-client.js',
   '/js/manual-plan-system.js',
+  '/js/ai-plan-import.js',
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',
   '/tutorial/js/tutorial_state.js',
   '/tutorial/js/tutorial_main.js',

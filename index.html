@@ -654,68 +654,160 @@
         <div class="popup-content training-plan-sheet">
             <header class="training-plan-sheet-header">
                 <span class="training-plan-kicker" data-lang-key="settings_training">Training</span>
-                <h3 data-lang-key="goal_setup_title">Trainingsziel einrichten</h3>
-                <p data-lang-key="goal_setup_hint">Waehle einen Preset oder konfiguriere deinen eigenen Plan.</p>
+                <h3 id="goal-setup-title-text" data-lang-key="goal_setup_title">Trainingsziel einrichten</h3>
+                <p id="goal-setup-hint-text" data-lang-key="goal_setup_hint">Waehle einen Preset oder konfiguriere deinen eigenen Plan.</p>
             </header>
+            
+            <!-- Aktueller Plan Status (Clean Card) -->
             <section id="current-plan-display" class="active-plan-card" aria-live="polite">
                 <span class="active-plan-label" data-lang-key="goal_setup_current">Dein aktueller Plan:</span>
                 <strong id="current-plan-title">Muskelaufbau (Standard)</strong>
                 <p id="current-plan-desc" class="active-plan-description"></p>
                 <p id="current-plan-stats" class="active-plan-stats"></p>
             </section>
-            <div class="training-plan-actions">
-                <button id="goal-regenerate-button" class="training-primary-action">
-                    <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
-                    <span data-lang-key="goal_regenerate">Plan aendern</span>
+
+            <!-- Schritt 1: Auswahl der 3 Methoden -->
+            <div id="training-setup-methods" class="training-setup-methods-grid">
+                <!-- Methode 1: Presets -->
+                <button type="button" class="setup-method-card" id="setup-method-presets">
+                    <span class="material-symbols-rounded method-icon" aria-hidden="true">fitness_center</span>
+                    <div class="method-text">
+                        <strong data-lang-key="setup_method_presets_title">Standard-Plaene</strong>
+                        <span data-lang-key="setup_method_presets_desc">Waehle einen vordefinierten Trainingsplan.</span>
+                    </div>
+                    <span class="material-symbols-rounded method-arrow" aria-hidden="true">chevron_right</span>
+                </button>
+
+                <!-- Methode 2: Manuell -->
+                <button type="button" class="setup-method-card" id="setup-method-manual">
+                    <span class="material-symbols-rounded method-icon" aria-hidden="true">edit</span>
+                    <div class="method-text">
+                        <strong data-lang-key="setup_method_manual_title">Manuell erstellen</strong>
+                        <span data-lang-key="setup_method_manual_desc">Stelle deine Uebungen selbst zusammen.</span>
+                    </div>
+                    <span class="material-symbols-rounded method-arrow" aria-hidden="true">chevron_right</span>
+                </button>
+
+                <!-- Methode 3: KI -->
+                <button type="button" class="setup-method-card" id="setup-method-ai">
+                    <span class="material-symbols-rounded method-icon" aria-hidden="true">smart_toy</span>
+                    <div class="method-text">
+                        <strong data-lang-key="setup_method_ai_title">KI-Prompt-Import</strong>
+                        <span data-lang-key="setup_method_ai_desc">Generiere einen Plan per KI und JSON-Code.</span>
+                    </div>
+                    <span class="material-symbols-rounded method-arrow" aria-hidden="true">chevron_right</span>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Popup: Neuen Plan waehlen (Presets + Custom) -->
-    <div id="goal-generate-popup" class="popup popup-large training-plan-popup">
-        <div class="popup-drag-handle"></div>
-        <div class="popup-content training-plan-sheet">
-            <header class="training-plan-sheet-header">
-                <span class="training-plan-kicker" data-lang-key="goal_generate_kicker">Plan konfigurieren</span>
-                <h3 data-lang-key="goal_generate_title">Trainingsplan waehlen</h3>
-                <p data-lang-key="goal_generate_hint">Waehle einen Preset oder stell dir deinen eigenen Plan zusammen.</p>
-            </header>
-            <div class="training-plan-section-title" data-lang-key="goal_presets">Schnellwahl</div>
-            <section class="training-preset-grid" aria-label="Schnellwahl">
-                <button class="training-preset-card" data-preset="muscle">
-                    <span class="material-symbols-rounded" aria-hidden="true">fitness_center</span>
-                    <span class="training-preset-copy">
-                        <strong data-lang-key="goal_preset_kraft">Kraft &amp; Muskelaufbau</strong>
-                        <small data-lang-key="goal_preset_kraft_hint">Progressiv, stark, strukturiert.</small>
-                    </span>
+    <!-- Overlay: Standard-Plaene (eigenes Popup) -->
+    <div id="preset-plan-overlay" class="settings-overlay">
+        <div class="settings-overlay-bg"></div>
+        <div class="settings-sheet preset-plan-sheet">
+            <div class="settings-swipe-handle"></div>
+            <div class="preset-plan-header">
+                <button id="preset-plan-back-btn" class="manual-plan-back-btn">
+                    <span class="material-symbols-rounded">arrow_back</span>
                 </button>
-                <button class="training-preset-card" data-preset="endurance">
-                    <span class="material-symbols-rounded" aria-hidden="true">directions_run</span>
-                    <span class="training-preset-copy">
-                        <strong data-lang-key="goal_preset_ausdauer">Ausdauer &amp; Cardio</strong>
-                        <small data-lang-key="goal_preset_ausdauer_hint">Kondition und Belastbarkeit.</small>
-                    </span>
+                <h3 data-lang-key="setup_method_presets_title">Standard-Plaene</h3>
+            </div>
+            <div class="preset-plan-body">
+                <section class="training-preset-grid" aria-label="Schnellwahl">
+                    <button class="training-preset-card" data-preset="muscle">
+                        <span class="material-symbols-rounded" aria-hidden="true">fitness_center</span>
+                        <span class="training-preset-copy">
+                            <strong data-lang-key="goal_preset_kraft">Kraft &amp; Muskelaufbau</strong>
+                            <small data-lang-key="goal_preset_kraft_hint">Progressiv, stark, strukturiert.</small>
+                        </span>
+                    </button>
+                    <button class="training-preset-card" data-preset="endurance">
+                        <span class="material-symbols-rounded" aria-hidden="true">directions_run</span>
+                        <span class="training-preset-copy">
+                            <strong data-lang-key="goal_preset_ausdauer">Ausdauer &amp; Cardio</strong>
+                            <small data-lang-key="goal_preset_ausdauer_hint">Kondition und Belastbarkeit.</small>
+                        </span>
+                    </button>
+                    <button class="training-preset-card" data-preset="fatloss">
+                        <span class="material-symbols-rounded" aria-hidden="true">local_fire_department</span>
+                        <span class="training-preset-copy">
+                            <strong data-lang-key="goal_preset_abnehmen">Gewicht verlieren</strong>
+                            <small data-lang-key="goal_preset_abnehmen_hint">Kraft und Cardio kombiniert.</small>
+                        </span>
+                    </button>
+                    <button class="training-preset-card" data-preset="calisthenics">
+                        <span class="material-symbols-rounded" aria-hidden="true">self_improvement</span>
+                        <span class="training-preset-copy">
+                            <strong data-lang-key="goal_preset_calisthenics">Calisthenics</strong>
+                            <small data-lang-key="goal_preset_calisthenics_hint">Koerpergewicht, Skill, Kontrolle.</small>
+                        </span>
+                    </button>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popup: Externer KI-Plan Import -->
+    <div id="ai-plan-import-overlay" class="settings-overlay">
+        <div class="settings-overlay-bg"></div>
+        <div class="settings-sheet ai-plan-sheet">
+            <div class="settings-swipe-handle"></div>
+            <div class="ai-plan-header">
+                <button id="ai-plan-back-btn" class="manual-plan-back-btn">
+                    <span class="material-symbols-rounded">arrow_back</span>
                 </button>
-                <button class="training-preset-card" data-preset="fatloss">
-                    <span class="material-symbols-rounded" aria-hidden="true">local_fire_department</span>
-                    <span class="training-preset-copy">
-                        <strong data-lang-key="goal_preset_abnehmen">Gewicht verlieren</strong>
-                        <small data-lang-key="goal_preset_abnehmen_hint">Kraft und Cardio kombiniert.</small>
-                    </span>
+                <div>
+                    <span class="training-plan-kicker" data-lang-key="ai_plan_kicker">Externe KI</span>
+                    <h3 data-lang-key="ai_plan_import_title">KI-Plan importieren</h3>
+                </div>
+            </div>
+            <div class="ai-plan-body">
+                <section class="ai-plan-step-card">
+                    <span class="ai-plan-step-number">1</span>
+                    <div>
+                        <strong data-lang-key="ai_plan_step_prompt_title">Prompt in deine KI einfuegen</strong>
+                        <p data-lang-key="ai_plan_step_prompt_hint">DailyQuest nutzt keine integrierte KI. Kopiere den Prompt in ChatGPT, Gemini oder Claude.</p>
+                        <ul class="ai-plan-guidance-list">
+                            <li data-lang-key="ai_plan_guidance_1">Sag der KI, welchen Plan du willst: Kraft, Ausdauer, Mobility, Fettabbau oder eine Mischung.</li>
+                            <li data-lang-key="ai_plan_guidance_2">Restdays werden im JSON geplant, z.B. 3 Restdays pro Woche an festen oder sinnvoll verteilten Tagen.</li>
+                            <li data-lang-key="ai_plan_guidance_3">Du kannst Vorgaben machen wie Oberkoerper, Beine und Core, Timer-Uebungen oder keine Sprunguebungen.</li>
+                        </ul>
+                        <button id="ai-plan-copy-prompt-btn" class="training-primary-action" type="button">
+                            <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>
+                            <span data-lang-key="ai_plan_copy_prompt">Prompt kopieren</span>
+                        </button>
+                    </div>
+                </section>
+                <section class="ai-plan-step-card">
+                    <span class="ai-plan-step-number">2</span>
+                    <div>
+                        <strong data-lang-key="ai_plan_step_json_title">JSON hier einsetzen</strong>
+                        <p data-lang-key="ai_plan_step_json_hint">Der Plan ist strikt auf 7 Tage begrenzt. Trainingstage brauchen exakt 6 Uebungen.</p>
+                        <textarea id="ai-plan-json-input" class="ai-plan-json-input" spellcheck="false" placeholder="{ &quot;schemaVersion&quot;: 2, &quot;planName&quot;: ... }"></textarea>
+                    </div>
+                </section>
+                <div id="ai-plan-validation-result" class="ai-plan-validation-result" aria-live="polite"></div>
+                <section id="ai-plan-followup-card" class="ai-plan-step-card ai-plan-followup-card" hidden>
+                    <span class="ai-plan-step-number">3</span>
+                    <div>
+                        <strong data-lang-key="ai_plan_followup_title">Follow-up Prompt</strong>
+                        <p data-lang-key="ai_plan_followup_hint">Kopiere diese Korrektur zurueck in deine KI.</p>
+                        <textarea id="ai-plan-followup-output" class="ai-plan-json-input" readonly></textarea>
+                        <button id="ai-plan-copy-followup-btn" class="training-secondary-action" type="button">
+                            <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>
+                            <span data-lang-key="ai_plan_copy_followup">Follow-up kopieren</span>
+                        </button>
+                    </div>
+                </section>
+            </div>
+            <div class="ai-plan-actions">
+                <button id="ai-plan-validate-btn" class="training-secondary-action" type="button">
+                    <span class="material-symbols-rounded" aria-hidden="true">rule</span>
+                    <span data-lang-key="ai_plan_validate">JSON pruefen</span>
                 </button>
-                <button class="training-preset-card" data-preset="calisthenics">
-                    <span class="material-symbols-rounded" aria-hidden="true">self_improvement</span>
-                    <span class="training-preset-copy">
-                        <strong data-lang-key="goal_preset_calisthenics">Calisthenics</strong>
-                        <small data-lang-key="goal_preset_calisthenics_hint">Koerpergewicht, Skill, Kontrolle.</small>
-                    </span>
-                </button>
-            </section>
-            <div class="training-plan-actions">
-                <button id="custom-plan-generate-button" class="training-primary-action">
-                    <span class="material-symbols-rounded" aria-hidden="true">edit</span>
-                    <span data-lang-key="manual_plan_title">Eigenen Plan konfigurieren</span>
+                <button id="ai-plan-import-btn" class="training-primary-action" type="button" disabled>
+                    <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                    <span data-lang-key="ai_plan_create">Plan erstellen</span>
                 </button>
             </div>
         </div>
@@ -979,7 +1071,7 @@
                         <div class="qr-code-wrapper"><div id="qr-code-canvas"></div></div>
                         <button class="settings-action-btn share-copy-btn" id="copy-url-btn" data-lang-key="share_copy">Link kopieren</button>
                         <a href="https://github.com/017pixel/DailyQuest" target="_blank" class="share-github-link"><span class="material-symbols-rounded">code</span><span data-lang-key="share_github">Zum Code</span></a>
-                        <div class="share-version">v2.15.4</div>
+                        <div class="share-version">v2.18.0</div>
                     </div>
                 </div>
             </div>
@@ -1276,6 +1368,7 @@
 
     <!-- Manuelles Trainingsplan-System -->
     <script src="js/manual-plan-system.js"></script>
+    <script src="js/ai-plan-import.js"></script>
 
     <script src="main.js"></script>
     <script src="js/fallback-check.js"></script>

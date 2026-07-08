@@ -277,7 +277,7 @@ const DQ_CONFIG = {
     }
 };
 
-const APP_VERSION = '2.15.4';
+const APP_VERSION = '2.18.0';
 const APP_UPDATE_FLAG_KEY = 'dq_seen_app_version';
 
 async function initializeApp() {
@@ -316,13 +316,10 @@ async function initializeApp() {
             // Plan wird ueber goal-setup-button konfiguriert (manuelles System).
             goalSetupButton: document.getElementById('goal-setup-button'),
             goalSetupPopup: document.getElementById('goal-setup-popup'),
-            goalRegenerateButton: document.getElementById('goal-regenerate-button'),
             currentPlanName: document.getElementById('current-plan-name'),
             currentPlanTitle: document.getElementById('current-plan-title'),
             currentPlanDesc: document.getElementById('current-plan-desc'),
             currentPlanStats: document.getElementById('current-plan-stats'),
-            goalGeneratePopup: document.getElementById('goal-generate-popup'),
-            customPlanGenerateButton: document.getElementById('custom-plan-generate-button'),
             restdaysSelect: document.getElementById('restdays-select'),
             characterNameInput: document.getElementById('character-name-input'),
             characterAgeInput: document.getElementById('character-age-input'),
@@ -929,21 +926,72 @@ function addSettingsListeners(elements) {
             DQ_UI.showPopup(elements.goalSetupPopup);
         });
     }
-    if (elements.goalRegenerateButton) {
-        elements.goalRegenerateButton.addEventListener('click', () => {
-            DQ_UI.hideTopPopup();
-            DQ_UI.showPopup(elements.goalGeneratePopup);
+    const setupMethodPresets = document.getElementById('setup-method-presets');
+    if (setupMethodPresets) {
+        setupMethodPresets.addEventListener('click', () => {
+            DQ_UI.hideAllPopups();
+            openPresetPlanOverlay();
         });
     }
-    document.querySelectorAll('#goal-generate-popup [data-preset]').forEach(btn => {
+    const setupMethodManual = document.getElementById('setup-method-manual');
+    if (setupMethodManual) {
+        setupMethodManual.addEventListener('click', () => {
+            DQ_UI.hideAllPopups();
+            openManualPlanOverlay();
+        });
+    }
+    const setupMethodAi = document.getElementById('setup-method-ai');
+    if (setupMethodAi) {
+        setupMethodAi.addEventListener('click', () => {
+            DQ_UI.hideAllPopups();
+            openAiPlanImportOverlay();
+        });
+    }
+    document.querySelectorAll('[data-preset]').forEach(btn => {
         btn.addEventListener('click', async () => {
             await handlePresetSelection(btn.dataset.preset);
         });
     });
-    if (elements.customPlanGenerateButton) {
-        elements.customPlanGenerateButton.addEventListener('click', () => {
-            DQ_UI.hideAllPopups();
-            openManualPlanOverlay();
+    const presetPlanBackBtn = document.getElementById('preset-plan-back-btn');
+    if (presetPlanBackBtn) {
+        presetPlanBackBtn.addEventListener('click', () => {
+            closePresetPlanOverlay();
+        });
+    }
+    const presetPlanOverlayBg = document.querySelector('#preset-plan-overlay .settings-overlay-bg');
+    if (presetPlanOverlayBg) {
+        presetPlanOverlayBg.addEventListener('click', () => {
+            closePresetPlanOverlay();
+        });
+    }
+
+    const aiPlanBackBtn = document.getElementById('ai-plan-back-btn');
+    if (aiPlanBackBtn) {
+        aiPlanBackBtn.addEventListener('click', () => {
+            closeAiPlanImportOverlay();
+            DQ_UI.showPopup(elements.goalSetupPopup);
+        });
+    }
+    const aiPlanCopyPromptBtn = document.getElementById('ai-plan-copy-prompt-btn');
+    if (aiPlanCopyPromptBtn) {
+        aiPlanCopyPromptBtn.addEventListener('click', copyAiPlanPrompt);
+    }
+    const aiPlanValidateBtn = document.getElementById('ai-plan-validate-btn');
+    if (aiPlanValidateBtn) {
+        aiPlanValidateBtn.addEventListener('click', validateAiPlanInput);
+    }
+    const aiPlanImportBtn = document.getElementById('ai-plan-import-btn');
+    if (aiPlanImportBtn) {
+        aiPlanImportBtn.addEventListener('click', importValidatedAiPlan);
+    }
+    const aiPlanCopyFollowupBtn = document.getElementById('ai-plan-copy-followup-btn');
+    if (aiPlanCopyFollowupBtn) {
+        aiPlanCopyFollowupBtn.addEventListener('click', copyAiPlanFollowUp);
+    }
+    const aiPlanOverlayBg = document.querySelector('#ai-plan-import-overlay .settings-overlay-bg');
+    if (aiPlanOverlayBg) {
+        aiPlanOverlayBg.addEventListener('click', () => {
+            closeAiPlanImportOverlay();
         });
     }
 
@@ -952,7 +1000,7 @@ function addSettingsListeners(elements) {
         manualPlanBackBtn.addEventListener('click', () => {
             closeManualPlanOverlay();
             manualPlanSelected.clear();
-            DQ_UI.showPopup(elements.goalGeneratePopup);
+            DQ_UI.showPopup(elements.goalSetupPopup);
         });
     }
     document.querySelectorAll('.manual-plan-tab').forEach(tab => {
@@ -1198,20 +1246,20 @@ function getUpdateNoticePages(trans) {
             title: trans.update_notice_title || 'DailyQuest wurde aktualisiert',
             body: trans.update_notice_intro || 'Das ist neu in dieser Version:',
             points: [
-                trans.update_point_1 || 'Daily Quests behalten wieder alle Trainingskategorien',
-                trans.update_point_2 || 'Equipment-Aufgaben werden nur mit passender Ausruestung erstellt',
-                trans.update_point_3 || 'Fallback-Quests bleiben auch ohne Equipment abschliessbar',
-                trans.update_point_4 || 'Englische Statistik-Karten zeigen keine deutschen Texte mehr',
+                trans.update_point_1 || 'KI-Prompt-Import fuer eigene Trainingsplaene ist bereit',
+                trans.update_point_2 || 'Der kopierte Prompt wird in ChatGPT, Gemini oder Claude genutzt',
+                trans.update_point_3 || 'Die externe KI stellt zuerst Rueckfragen zu Ziel, Fokus und Restdays',
+                trans.update_point_4 || 'Das finale JSON wird direkt in DailyQuest eingefuegt und geprueft',
             ]
         },
         {
             title: trans.update_notice_title || 'DailyQuest wurde aktualisiert',
             body: trans.update_notice_intro || 'Das ist neu in dieser Version:',
             points: [
-                trans.update_point_5 || 'Doppelte Uebungsnamen wurden aufgeraeumt',
-                trans.update_point_6 || 'Der Extra-Quest-Bereich zeigt wieder eine saubere Ueberschrift',
-                trans.update_point_7 || 'Erfolgsanzeigen nutzen jetzt die passende Theme-Farbe',
-                trans.update_point_8 || 'Neue Tests schuetzen diese Fehler dauerhaft',
+                trans.update_point_5 || 'Restdays werden im JSON geplant und von DailyQuest erkannt',
+                trans.update_point_6 || 'Timer-, Abhak- und Wiederholungsuebungen funktionieren im KI-Plan',
+                trans.update_point_7 || 'Phasen koennen Wiederholungen, Zeiten, Sets und Belohnungen steigern',
+                trans.update_point_8 || 'Follow-up Prompts helfen beim Korrigieren ungueltiger JSON-Plaene',
             ]
         }
     ];
@@ -1466,7 +1514,9 @@ function updateSettingsUI() {
         }
     };
 
-    const isPhaseGoal = !['sick', 'restday'].includes(DQ_CONFIG.userSettings.goal || 'muscle');
+    const isPredefinedPhaseGoal = !['sick', 'restday'].includes(DQ_CONFIG.userSettings.goal || 'muscle');
+    const isCustomPhaseGoal = DQ_CONFIG.userSettings.planType === 'custom' && DQ_CONFIG.userSettings.customPlanId ? true : false;
+    const isPhaseGoal = isPredefinedPhaseGoal || isCustomPhaseGoal;
     if (elements.phaseRepeatButton) elements.phaseRepeatButton.disabled = !isPhaseGoal;
     if (elements.phaseSkipButton) elements.phaseSkipButton.disabled = !isPhaseGoal;
     if (elements.phaseExtendButton) elements.phaseExtendButton.disabled = !isPhaseGoal;
@@ -1485,9 +1535,15 @@ async function updateCurrentPlanInfo() {
             const plan = await DQ_MANUAL_PLAN.getActivePlan(DQ_CONFIG.userSettings.customPlanId);
             if (plan) {
                 const exerciseCount = (plan.exerciseIds || []).length;
-                const phaseInfo = `${exerciseCount} Uebungen ausgewaehlt`;
-                elements.currentPlanName.textContent = `Custom: ${plan.planName}`;
-                if (elements.currentPlanTitle) elements.currentPlanTitle.textContent = `Custom: ${plan.planName}`;
+                const isAiPlan = plan.source === 'ai_generated' && plan.aiSchedule?.cycleLength === 7;
+                const trainingDays = isAiPlan ? (plan.aiSchedule.days || []).filter(day => day.kind === 'training').length : 0;
+                const restDays = isAiPlan ? (plan.aiSchedule.days || []).filter(day => day.kind === 'rest').length : 0;
+                const phaseInfo = isAiPlan
+                    ? `7-Tage KI-Zyklus · ${trainingDays} Trainingstage · ${restDays} Restdays`
+                    : `${exerciseCount} Uebungen ausgewaehlt`;
+                const prefix = isAiPlan ? 'KI-Plan' : 'Custom';
+                elements.currentPlanName.textContent = `${prefix}: ${plan.planName}`;
+                if (elements.currentPlanTitle) elements.currentPlanTitle.textContent = `${prefix}: ${plan.planName}`;
                 if (elements.currentPlanDesc) elements.currentPlanDesc.textContent = '';
                 if (elements.currentPlanStats) elements.currentPlanStats.textContent = phaseInfo;
                 return;
@@ -1589,6 +1645,8 @@ function closeManualPlanOverlay() {
 }
 
 let manualPlanSelected = new Set();
+let aiPlanValidatedPayload = null;
+let aiPlanFollowUpPrompt = '';
 
 async function renderManualPlanList(category) {
     const listEl = document.getElementById('manual-plan-list');
@@ -1758,6 +1816,220 @@ async function saveManualPlan() {
     }
 }
 
+function openAiPlanImportOverlay() {
+    const overlay = document.getElementById('ai-plan-import-overlay');
+    if (!overlay) return;
+    aiPlanValidatedPayload = null;
+    aiPlanFollowUpPrompt = '';
+    renderAiPlanValidationResult('', 'idle');
+    const importBtn = document.getElementById('ai-plan-import-btn');
+    if (importBtn) importBtn.disabled = true;
+    const followupCard = document.getElementById('ai-plan-followup-card');
+    if (followupCard) followupCard.hidden = true;
+    overlay.classList.add('open');
+}
+
+function closeAiPlanImportOverlay() {
+    const overlay = document.getElementById('ai-plan-import-overlay');
+    if (!overlay) return;
+    const sheet = overlay.querySelector('.settings-sheet');
+    overlay.style.opacity = '0';
+    if (sheet) sheet.style.transform = 'translateY(100%)';
+    setTimeout(() => {
+        overlay.classList.remove('open');
+        overlay.style.opacity = '';
+        if (sheet) sheet.style.transform = '';
+    }, 300);
+}
+
+function animateButtonSuccess(btn, successText, originalIcon = 'content_copy') {
+    if (!btn) return;
+    const labelSpan = btn.querySelector('[data-lang-key]');
+    const iconSpan = btn.querySelector('.material-symbols-rounded');
+    const originalText = labelSpan ? labelSpan.textContent : '';
+    
+    btn.classList.add('copied-success');
+    if (iconSpan) iconSpan.textContent = 'check_circle';
+    
+    if (labelSpan) {
+        const langKey = labelSpan.getAttribute('data-lang-key');
+        labelSpan.textContent = successText;
+        if (langKey) labelSpan.removeAttribute('data-lang-key');
+        
+        setTimeout(() => {
+            btn.classList.remove('copied-success');
+            if (iconSpan) iconSpan.textContent = originalIcon;
+            if (langKey) labelSpan.setAttribute('data-lang-key', langKey);
+            labelSpan.textContent = originalText;
+        }, 1500);
+    } else {
+        setTimeout(() => {
+            btn.classList.remove('copied-success');
+            if (iconSpan) iconSpan.textContent = originalIcon;
+        }, 1500);
+    }
+}
+
+function openPresetPlanOverlay() {
+    const overlay = document.getElementById('preset-plan-overlay');
+    if (!overlay) return;
+    overlay.classList.add('open');
+}
+
+function closePresetPlanOverlay() {
+    const overlay = document.getElementById('preset-plan-overlay');
+    if (!overlay) return;
+    const sheet = overlay.querySelector('.settings-sheet');
+    overlay.style.opacity = '0';
+    if (sheet) sheet.style.transform = 'translateY(100%)';
+    setTimeout(() => {
+        overlay.classList.remove('open');
+        overlay.style.opacity = '';
+        if (sheet) sheet.style.transform = '';
+    }, 300);
+}
+
+async function copyAiPlanPrompt() {
+    if (typeof DQ_AI_PLAN_IMPORT === 'undefined') return;
+    const lang = DQ_CONFIG.userSettings.language || 'de';
+    const trans = DQ_DATA.translations[lang] || DQ_DATA.translations.de;
+    try {
+        await DQ_AI_PLAN_IMPORT.copyText(DQ_AI_PLAN_IMPORT.buildPrompt());
+        const btn = document.getElementById('ai-plan-copy-prompt-btn');
+        const successText = lang === 'de' ? 'Kopiert!' : 'Copied!';
+        animateButtonSuccess(btn, successText);
+    } catch (error) {
+        DQ_UI.showCustomPopup(`<h3>Fehler</h3><p>${trans.ai_plan_copy_failed || 'Kopieren fehlgeschlagen.'}</p>`, 'penalty');
+    }
+}
+
+function renderAiPlanValidationResult(content, type = 'idle') {
+    const target = document.getElementById('ai-plan-validation-result');
+    if (!target) return;
+    target.className = `ai-plan-validation-result ${type}`;
+    target.innerHTML = content;
+}
+
+function validateAiPlanInput() {
+    if (typeof DQ_AI_PLAN_IMPORT === 'undefined') return null;
+    const lang = DQ_CONFIG.userSettings.language || 'de';
+    const trans = DQ_DATA.translations[lang] || DQ_DATA.translations.de;
+    const raw = document.getElementById('ai-plan-json-input')?.value || '';
+    const importBtn = document.getElementById('ai-plan-import-btn');
+    const followupCard = document.getElementById('ai-plan-followup-card');
+    const followupOutput = document.getElementById('ai-plan-followup-output');
+
+    aiPlanValidatedPayload = null;
+    aiPlanFollowUpPrompt = '';
+    if (importBtn) importBtn.disabled = true;
+
+    try {
+        const parsed = DQ_AI_PLAN_IMPORT.parseJsonInput(raw);
+        const result = DQ_AI_PLAN_IMPORT.validatePayload(parsed);
+        if (!result.valid) {
+            aiPlanFollowUpPrompt = DQ_AI_PLAN_IMPORT.buildFollowUpPrompt(result.errors, raw);
+            const items = result.errors
+                .slice(0, 12)
+                .map(error => `<li><strong>${DQ_AI_PLAN_IMPORT.escapeHtml(error.path)}</strong>: ${DQ_AI_PLAN_IMPORT.escapeHtml(error.message)}</li>`)
+                .join('');
+            renderAiPlanValidationResult(
+                `<div class="ai-plan-error-box"><strong>${trans.ai_plan_invalid_title || 'JSON braucht Korrektur'}</strong><ul>${items}</ul></div>`,
+                'error'
+            );
+            if (followupOutput) followupOutput.value = aiPlanFollowUpPrompt;
+            if (followupCard) followupCard.hidden = false;
+            return result;
+        }
+
+        aiPlanValidatedPayload = result.normalized;
+        const trainingDays = result.normalized.days.filter(day => day.kind === 'training').length;
+        const restDays = result.normalized.days.filter(day => day.kind === 'rest').length;
+        const exerciseCount = result.normalized.exercises.length;
+        renderAiPlanValidationResult(
+            `<div class="ai-plan-success-box"><strong>${trans.ai_plan_valid_title || 'JSON ist bereit'}</strong><p>${DQ_AI_PLAN_IMPORT.escapeHtml(result.normalized.planName)} · ${trainingDays} Trainingstage · ${restDays} Restdays · ${exerciseCount} Uebungen</p></div>`,
+            'success'
+        );
+        if (followupCard) followupCard.hidden = true;
+        if (importBtn) importBtn.disabled = false;
+        return result;
+    } catch (error) {
+        aiPlanFollowUpPrompt = DQ_AI_PLAN_IMPORT.buildFollowUpPrompt([{ path: 'json', message: error.message }], raw);
+        renderAiPlanValidationResult(
+            `<div class="ai-plan-error-box"><strong>${trans.ai_plan_invalid_title || 'JSON braucht Korrektur'}</strong><p>${DQ_AI_PLAN_IMPORT.escapeHtml(error.message)}</p></div>`,
+            'error'
+        );
+        if (followupOutput) followupOutput.value = aiPlanFollowUpPrompt;
+        if (followupCard) followupCard.hidden = false;
+        return null;
+    }
+}
+
+async function copyAiPlanFollowUp() {
+    if (!aiPlanFollowUpPrompt || typeof DQ_AI_PLAN_IMPORT === 'undefined') return;
+    const lang = DQ_CONFIG.userSettings.language || 'de';
+    const trans = DQ_DATA.translations[lang] || DQ_DATA.translations.de;
+    try {
+        await DQ_AI_PLAN_IMPORT.copyText(aiPlanFollowUpPrompt);
+        const btn = document.getElementById('ai-plan-copy-followup-btn');
+        const successText = lang === 'de' ? 'Kopiert!' : 'Copied!';
+        animateButtonSuccess(btn, successText);
+    } catch (error) {
+        DQ_UI.showCustomPopup(`<h3>Fehler</h3><p>${trans.ai_plan_copy_failed || 'Kopieren fehlgeschlagen.'}</p>`, 'penalty');
+    }
+}
+
+async function importValidatedAiPlan() {
+    const lang = DQ_CONFIG.userSettings.language || 'de';
+    const trans = DQ_DATA.translations[lang] || DQ_DATA.translations.de;
+    const importBtn = document.getElementById('ai-plan-import-btn');
+    const previousDisabled = importBtn?.disabled;
+    if (!aiPlanValidatedPayload) {
+        const result = validateAiPlanInput();
+        if (!result?.valid) return;
+    }
+
+    try {
+        if (importBtn) importBtn.disabled = true;
+        const planId = await DQ_AI_PLAN_IMPORT.saveAsCustomPlan(aiPlanValidatedPayload);
+        await DQ_MANUAL_PLAN.setActivePlan(planId);
+        closeAiPlanImportOverlay();
+
+        const planName = aiPlanValidatedPayload.planName;
+        const startTodayBtn = `<button type="button" id="plan-start-today" class="card-button">${trans.manual_plan_start_today || 'Heute starten'}</button>`;
+        const startTomorrowBtn = `<button type="button" id="plan-start-tomorrow" class="card-button secondary-button">${trans.manual_plan_start_tomorrow || 'Ab morgen'}</button>`;
+        DQ_UI.showCustomPopup(
+            `<h3>${trans.plan_created_title || 'Plan erstellt!'}</h3><p>${DQ_AI_PLAN_IMPORT.escapeHtml(planName)}</p><p style="font-size:12px;opacity:0.7;margin-bottom:12px;">${trans.manual_plan_start_question || 'Moechtest du sofort mit deinem neuen Plan beginnen oder ab morgen?'}</p><div class="popup-actions">${startTodayBtn}${startTomorrowBtn}</div>`,
+            'info'
+        );
+
+        setTimeout(() => {
+            const todayBtn = document.querySelector('#plan-start-today');
+            const tomorrowBtn = document.querySelector('#plan-start-tomorrow');
+            if (todayBtn) {
+                todayBtn.addEventListener('click', async () => {
+                    DQ_UI.hideAllPopups();
+                    await saveSetting('planType', 'custom');
+                    await saveSetting('customPlanId', planId);
+                    await regenerateTodayDailyQuestsManually(true);
+                    await updateCurrentPlanInfo();
+                }, { once: true });
+            }
+            if (tomorrowBtn) {
+                tomorrowBtn.addEventListener('click', async () => {
+                    DQ_UI.hideAllPopups();
+                    await saveSetting('planType', 'custom');
+                    await saveSetting('customPlanId', planId);
+                    await updateCurrentPlanInfo();
+                }, { once: true });
+            }
+        }, 100);
+    } catch (error) {
+        console.error('importValidatedAiPlan error:', error);
+        DQ_UI.showCustomPopup(`<h3>Fehler</h3><p>${DQ_AI_PLAN_IMPORT.escapeHtml(error.message || 'Plan konnte nicht gespeichert werden.')}</p>`, 'penalty');
+        if (importBtn) importBtn.disabled = previousDisabled ?? false;
+    }
+}
+
 function updateExtraQuestVisibility() {
     const extraQuestNav = document.querySelector('.nav-button[data-page="page-extra-quest"]');
     const extraQuestPage = document.getElementById('page-extra-quest');
@@ -1793,11 +2065,14 @@ function isRestOrRecoveryDayForQuestTopUp(goal, questsToday) {
         q.goal !== 'restday' && q.goal !== 'sick' && q.slotKey !== 'rest'
     );
     if (hasTrainingQuest) return false;
+    if (Array.isArray(questsToday) && questsToday.length > 0 &&
+        questsToday.every(q => q.goal === 'restday' || q.goal === 'sick' || q.slotKey === 'rest')) {
+        return true;
+    }
     if (typeof DQ_MANUAL_PLAN !== 'undefined' && typeof DQ_MANUAL_PLAN.checkRestDay === 'function') {
         return DQ_MANUAL_PLAN.checkRestDay(DQ_CONFIG.userSettings.restDays || 0);
     }
-    return Array.isArray(questsToday) && questsToday.length > 0 &&
-        questsToday.every(q => q.goal === 'restday' || q.goal === 'sick' || q.slotKey === 'rest');
+    return false;
 }
 
 function buildFreeChoiceQuest(todayStr, index, goal) {

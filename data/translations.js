@@ -55,7 +55,15 @@ DQ_DATA.translations = {
         goal_setup_btn: "Einrichten",
         goal_setup_title: "Trainingsziel einrichten",
         goal_setup_current: "Dein aktueller Plan:",
-        goal_setup_hint: "Pruefe deinen aktiven Plan oder erstelle einen neuen.",
+        goal_setup_hint: "Waehle eine Methode, um deinen Trainingsplan einzurichten.",
+        setup_method_presets_title: "Standard-Plaene",
+        setup_method_presets_desc: "Schnelle Auswahl vordefinierter Trainingsplaene.",
+        setup_method_manual_title: "Manuell erstellen",
+        setup_method_manual_desc: "Stelle deine Uebungen Schritt fuer Schritt selbst zusammen.",
+        setup_method_ai_title: "KI-Prompt-Import",
+        setup_method_ai_desc: "Kopiere einen Prompt in ChatGPT, Gemini oder Claude und importiere danach das JSON.",
+        ai_plan_import_title: "KI-Plan importieren",
+        back: "Zurueck",
         goal_regenerate: "Plan aendern",
         goal_generate_kicker: "Plan konfigurieren",
         goal_generate_title: "Trainingsplan waehlen",
@@ -80,6 +88,28 @@ DQ_DATA.translations = {
         plan_created_title: "Plan erstellt!",
         manual_plan_applied_today: "Deine heutigen Daily Quests werden mit deinem neuen Plan ersetzt.",
         manual_plan_applied_tomorrow: "Dein neuer Plan startet ab morgen. Heute bleiben deine aktuellen Daily Quests unveraendert.",
+        ai_plan_kicker: "Externe KI",
+        ai_plan_prompt_title: "KI-Prompt kopieren",
+        ai_plan_step_prompt_title: "Prompt in deine KI einfuegen",
+        ai_plan_step_prompt_hint: "DailyQuest nutzt keine integrierte KI. Kopiere den Prompt in ChatGPT, Gemini oder Claude. Die KI soll dir zuerst Fragen zu Ziel, Uebungsart, Equipment, Restdays und Fokus stellen.",
+        ai_plan_guidance_1: "Sag der KI, welchen Plan du willst: Kraft, Ausdauer, Mobility, Fettabbau oder eine Mischung.",
+        ai_plan_guidance_2: "Restdays werden im JSON geplant, z.B. 3 Restdays pro Woche an festen oder sinnvoll verteilten Tagen.",
+        ai_plan_guidance_3: "Du kannst Vorgaben machen wie Oberkoerper, Beine und Core, Timer-Uebungen oder keine Sprunguebungen.",
+        ai_plan_copy_prompt: "Prompt kopieren",
+        ai_plan_prompt_copied: "Prompt kopiert.",
+        ai_plan_step_json_title: "JSON hier einsetzen",
+        ai_plan_step_json_hint: "Der Plan ist strikt auf 7 Tage begrenzt. Trainingstage brauchen exakt 6 Uebungen, Restdays stehen als kind: rest mit exercises: [] im JSON.",
+        ai_plan_validate: "JSON pruefen",
+        ai_plan_create: "Plan erstellen",
+        ai_plan_valid_title: "JSON ist bereit",
+        ai_plan_invalid_title: "JSON braucht Korrektur",
+        ai_plan_followup_title: "Follow-up Prompt",
+        ai_plan_followup_hint: "Kopiere diese Korrektur zurueck in deine KI.",
+        ai_plan_copy_followup: "Follow-up kopieren",
+        ai_plan_followup_copied: "Follow-up kopiert.",
+        ai_plan_copy_failed: "Kopieren fehlgeschlagen.",
+        ai_plan_error_empty: "Bitte fuege zuerst das JSON der KI ein.",
+        ai_plan_error_invalid_json: "Das eingefuegte JSON ist nicht gueltig.",
         custom_exercise_create: "Eigene Uebung erstellen",
         custom_exercise_name: "Name",
         custom_exercise_desc: "Beschreibung",
@@ -145,29 +175,29 @@ DQ_DATA.translations = {
 
         update_notice_intro: "Das ist neu in dieser Version:",
 
-        update_notice_page1_point1: "Daily Quests bleiben auch im Fallback stabil",
+        update_notice_page1_point1: "KI-Prompt-Import fuer eigene Trainingsplaene ist bereit",
 
-        update_notice_page1_point2: "Equipment-Auswahl erkennt unpassende Aufgaben genauer",
+        update_notice_page1_point2: "Der Prompt wird in ChatGPT, Gemini oder Claude genutzt",
 
-        update_notice_page2_point1: "Englische Texte und Extra-Quest-Titel wurden bereinigt",
+        update_notice_page2_point1: "JSON-Restdays, Timer, Abhaken und Wiederholungen werden erkannt",
 
-        update_notice_page2_point2: "Offline-Cache und Tests wurden fuer dieses Update erneuert",
+        update_notice_page2_point2: "Follow-up Prompts helfen beim Korrigieren ungueltiger Plaene",
 
-        update_point_1: "Daily Quests behalten wieder alle Trainingskategorien",
+        update_point_1: "KI-Prompt-Import fuer eigene Trainingsplaene ist bereit",
 
-        update_point_2: "Equipment-Aufgaben werden nur mit passender Ausruestung erstellt",
+        update_point_2: "Der kopierte Prompt wird in ChatGPT, Gemini oder Claude genutzt",
 
-        update_point_3: "Fallback-Quests bleiben auch ohne Equipment abschliessbar",
+        update_point_3: "Die externe KI stellt zuerst Rueckfragen zu Ziel, Fokus und Restdays",
 
-        update_point_4: "Englische Statistik-Karten zeigen keine deutschen Texte mehr",
+        update_point_4: "Das finale JSON wird direkt in DailyQuest eingefuegt und geprueft",
 
-        update_point_5: "Doppelte Uebungsnamen wurden aufgeraeumt",
+        update_point_5: "Restdays werden im JSON geplant und von DailyQuest erkannt",
 
-        update_point_6: "Der Extra-Quest-Bereich zeigt wieder eine saubere Ueberschrift",
+        update_point_6: "Timer-, Abhak- und Wiederholungsuebungen funktionieren im KI-Plan",
 
-        update_point_7: "Erfolgsanzeigen nutzen jetzt die passende Theme-Farbe",
+        update_point_7: "Phasen koennen Wiederholungen, Zeiten, Sets und Belohnungen steigern",
 
-        update_point_8: "Neue Tests schuetzen diese Fehler dauerhaft",
+        update_point_8: "Follow-up Prompts helfen beim Korrigieren ungueltiger JSON-Plaene",
 
         update_notice_step_label: "Seite",
 
@@ -438,7 +468,15 @@ DQ_DATA.translations = {
         goal_setup_btn: "Configure",
         goal_setup_title: "Configure Training Goal",
         goal_setup_current: "Your current plan:",
-        goal_setup_hint: "Review your active plan or create a new one.",
+        goal_setup_hint: "Choose a method to set up your training plan.",
+        setup_method_presets_title: "Standard Plans",
+        setup_method_presets_desc: "Quick selection of predefined training plans.",
+        setup_method_manual_title: "Create Manually",
+        setup_method_manual_desc: "Select your own exercises step-by-step.",
+        setup_method_ai_title: "AI Prompt Import",
+        setup_method_ai_desc: "Copy a prompt into ChatGPT, Gemini, or Claude and then import the JSON.",
+        ai_plan_import_title: "Import AI Plan",
+        back: "Back",
         goal_regenerate: "Change plan",
         goal_generate_kicker: "Configure plan",
         goal_generate_title: "Choose training plan",
@@ -463,6 +501,28 @@ DQ_DATA.translations = {
         plan_created_title: "Plan created!",
         manual_plan_applied_today: "Today's Daily Quests will be replaced with your new plan.",
         manual_plan_applied_tomorrow: "Your new plan starts tomorrow. Today's Daily Quests remain unchanged.",
+        ai_plan_kicker: "External AI",
+        ai_plan_prompt_title: "Copy AI prompt",
+        ai_plan_step_prompt_title: "Paste the prompt into your AI",
+        ai_plan_step_prompt_hint: "DailyQuest does not use built-in AI. Copy the prompt into ChatGPT, Gemini, or Claude. The AI should first ask about goal, exercise type, equipment, rest days, and focus.",
+        ai_plan_guidance_1: "Tell the AI what kind of plan you want: strength, endurance, mobility, fat loss, or a mix.",
+        ai_plan_guidance_2: "Rest days are planned inside the JSON, e.g. 3 rest days per week on fixed or sensibly distributed days.",
+        ai_plan_guidance_3: "You can request upper body, legs and core, timer exercises, or avoiding jumps.",
+        ai_plan_copy_prompt: "Copy prompt",
+        ai_plan_prompt_copied: "Prompt copied.",
+        ai_plan_step_json_title: "Paste JSON here",
+        ai_plan_step_json_hint: "The plan is strictly limited to 7 days. Training days need exactly 6 exercises; rest days appear as kind: rest with exercises: [] in the JSON.",
+        ai_plan_validate: "Check JSON",
+        ai_plan_create: "Create plan",
+        ai_plan_valid_title: "JSON is ready",
+        ai_plan_invalid_title: "JSON needs corrections",
+        ai_plan_followup_title: "Follow-up prompt",
+        ai_plan_followup_hint: "Copy this correction back into your AI.",
+        ai_plan_copy_followup: "Copy follow-up",
+        ai_plan_followup_copied: "Follow-up copied.",
+        ai_plan_copy_failed: "Copy failed.",
+        ai_plan_error_empty: "Please paste the AI JSON first.",
+        ai_plan_error_invalid_json: "The pasted JSON is not valid.",
         custom_exercise_create: "Create custom exercise",
         custom_exercise_name: "Name",
         custom_exercise_desc: "Description",
@@ -528,29 +588,29 @@ DQ_DATA.translations = {
 
         update_notice_intro: "What's new in this version:",
 
-        update_notice_page1_point1: "Daily Quests stay stable in fallback mode",
+        update_notice_page1_point1: "AI prompt import for custom training plans is ready",
 
-        update_notice_page1_point2: "Equipment selection detects unavailable tasks more reliably",
+        update_notice_page1_point2: "The prompt is used in ChatGPT, Gemini, or Claude",
 
-        update_notice_page2_point1: "English labels and the Extra Quest title were cleaned up",
+        update_notice_page2_point1: "JSON rest days, timers, taps, and reps are recognized",
 
-        update_notice_page2_point2: "Offline cache and tests were refreshed for this update",
+        update_notice_page2_point2: "Follow-up prompts help fix invalid plans",
 
-        update_point_1: "Daily Quests keep all training categories again",
+        update_point_1: "AI prompt import for custom training plans is ready",
 
-        update_point_2: "Equipment tasks are only created with matching equipment",
+        update_point_2: "The copied prompt is used in ChatGPT, Gemini, or Claude",
 
-        update_point_3: "Fallback quests stay completable without equipment",
+        update_point_3: "The external AI first asks about goals, focus, and rest days",
 
-        update_point_4: "English stats cards no longer show German text",
+        update_point_4: "The final JSON is pasted into DailyQuest and checked",
 
-        update_point_5: "Duplicate exercise names were cleaned up",
+        update_point_5: "Rest days are planned in JSON and recognized by DailyQuest",
 
-        update_point_6: "The Extra Quest area shows a clean heading again",
+        update_point_6: "Timer, tap, and repetition exercises work in AI plans",
 
-        update_point_7: "Success states now use the right theme color",
+        update_point_7: "Phases can increase reps, time, sets, and rewards",
 
-        update_point_8: "New tests protect these fixes permanently",
+        update_point_8: "Follow-up prompts help fix invalid JSON plans",
 
         update_notice_step_label: "Page",
 
