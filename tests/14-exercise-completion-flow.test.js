@@ -21,8 +21,9 @@ function run() {
     // Daily Quest Abschluss muss den neuen Character fuer Achievement-Pruefungen zurueckgeben.
     t.ok(main.includes("return await navigator.locks.request('quest-completion-lock', runCompletion);"), 'Daily-Quest-Abschluss gibt Character auch mit Web Locks zurueck');
     t.ok(main.includes('return await runCompletion();'), 'Daily-Quest-Abschluss gibt Character ohne Web Locks zurueck');
-    t.ok(main.includes('char.mana += quest.manaReward;') && main.includes('char.gold += quest.goldReward;'), 'Daily-Quest-Abschluss vergibt Mana und Gold');
+    t.ok(main.includes('char.mana += manaReward;') && main.includes('char.gold += goldReward;'), 'Daily-Quest-Abschluss vergibt Mana und Gold');
     t.ok(main.includes('quest.completed = true;'), 'Daily-Quest-Abschluss markiert Quest als erledigt');
+    t.ok(main.includes('normalizeCharacterNumbers(char);') && main.includes("localStorage.setItem('dq_last_local_update'"), 'Daily-Quest-Abschluss normalisiert Werte und markiert lokale Sync-Aenderungen');
     t.ok(main.includes("quest.completionMode === 'sets'") && main.includes('setProgress.every(Boolean)'), 'Set-Quest kann erst nach allen Saetzen final abgeschlossen werden');
 
     // Freies Training darf keine offene Readwrite-Transaktion ueber await DQ_WGER.getById halten.
@@ -32,6 +33,7 @@ function run() {
     t.ok(exerciseLoad !== -1 && firstWriteTx !== -1 && exerciseLoad < firstWriteTx, 'Freies Training laedt Uebung vor der Write-Transaktion');
     t.ok(exercises.includes("DQ_DB.db.transaction(['character'], 'readonly')"), 'Freies Training liest Character in separater Readonly-Transaktion');
     t.ok(exercises.includes('char.mana += scaledMana;') && exercises.includes('char.gold += scaledGold;'), 'Freies Training vergibt skalierte Belohnungen');
+    t.ok(exercises.includes('return { ok: true, mana: scaledMana, gold: scaledGold, char };'), 'Freies Training meldet Abschluss-Erfolg an Timer-Flows zurueck');
     t.ok(exercises.includes('DQ_ACHIEVEMENTS.checkAllAchievements(char);'), 'Freies Training prueft Achievements mit aktualisiertem Character');
 
     return t;

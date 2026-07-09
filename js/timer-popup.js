@@ -183,15 +183,71 @@ function showResumeState() {
 
 let isCompleting = false;
 
-function completeExercise() {
+function closeTimerPopupOnly() {
+    const timerPopup = document.getElementById('timer-popup');
+    if (!timerPopup || !DQ_UI.popupStack) {
+        DQ_UI.hideAllPopups();
+        return;
+    }
+
+    const stackIndex = DQ_UI.popupStack.indexOf(timerPopup);
+    if (stackIndex !== -1) {
+        DQ_UI.popupStack.splice(stackIndex, 1);
+    }
+    timerPopup.classList.remove('show');
+
+    if (DQ_UI.popupStack.length === 0 && DQ_UI.elements?.popupOverlay) {
+        setTimeout(() => {
+            if (DQ_UI.popupStack.length === 0) {
+                DQ_UI.elements.popupOverlay.classList.remove('show');
+            }
+        }, 400);
+    }
+}
+
+async function completeExercise() {
     if (isCompleting) return;
     isCompleting = true;
-    if (currentQuestId) {
-        DQ_EXERCISES.finalizeQuestCompletion(currentQuestId);
-    } else if (currentExercise && currentExercise.id) {
-        DQ_EXERCISES.completeFreeExercise(currentExercise.id);
+    const doneButton = document.getElementById('timer-done-button');
+    const previousText = doneButton ? doneButton.textContent : '';
+    if (doneButton) {
+        const lang = DQ_CONFIG.userSettings?.language || 'de';
+        doneButton.disabled = true;
+        doneButton.textContent = DQ_DATA.translations[lang]?.timer_saving || 'Speichere...';
     }
-    DQ_UI.hideAllPopups();
+
+    try {
+        let result = { ok: false };
+        if (currentQuestId !== null && currentQuestId !== undefined) {
+            result = await DQ_EXERCISES.finalizeQuestCompletion(currentQuestId, { showReward: false });
+            if (result?.ok) {
+                closeTimerPopupOnly();
+                DQ_EXERCISES.showQuestCompletionReward(result.quest);
+            }
+        } else if (currentExercise && currentExercise.id) {
+            result = await DQ_EXERCISES.completeFreeExercise(currentExercise.id, { showReward: false });
+            if (result?.ok) {
+                closeTimerPopupOnly();
+                DQ_UI.showCustomPopup(`Sehr gut! <span class=\"material-symbols-rounded icon-accent\">thumb_up</span><br>+${result.mana} Mana <span class=\"material-symbols-rounded icon-mana\">auto_awesome</span> | +${result.gold} Gold <span class=\"material-symbols-rounded icon-gold\">paid</span>`);
+            }
+        }
+
+        if (!result?.ok) {
+            isCompleting = false;
+            if (doneButton) {
+                doneButton.disabled = false;
+                doneButton.textContent = previousText || 'Geschafft!';
+            }
+        }
+    } catch (error) {
+        console.error('Timer-Abschluss fehlgeschlagen:', error);
+        isCompleting = false;
+        if (doneButton) {
+            doneButton.disabled = false;
+            doneButton.textContent = previousText || 'Geschafft!';
+        }
+        DQ_UI.showCustomPopup('Speichern fehlgeschlagen. Bitte versuche es erneut.', 'penalty');
+    }
 }
 
 function confirmLeave() {

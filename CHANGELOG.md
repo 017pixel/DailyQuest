@@ -4,6 +4,31 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## [2.18.2] - 2026-07-09
+
+### Erstellt
+- Absicherung fuer kaputte Belohnungswerte bei Daily Quests hinzugefuegt
+- Rueckmeldung waehrend des Timer-Speicherns hinzugefuegt
+- Folgesync fuer laufende Cloud-Synchronisationen vorbereitet
+- Aktualisierte DailyQuest-Next-Hinweise fuer Einstellungen erstellt
+- Neue Testabdeckung fuer robuste Abschlussablaeufe ergaenzt
+
+### Verändert
+- App-Version von 2.18.1 auf 2.18.2 aktualisiert
+- Timer-Aufgaben warten jetzt auf den erfolgreichen Abschluss
+- Daily-Quest-Abschluesse markieren lokale Aenderungen zuverlaessiger
+- Extras-Karte in den Einstellungen zentriert und vereinfacht
+- Offline-Cache fuer die aktuelle PWA-Version erneuert
+
+### Gelöscht
+- Fehlerquelle durch ungueltige Zahlenwerte beim Quest-Speichern entfernt
+- Fruehes Schliessen des Timer-Popups vor Abschluss entfernt
+- Verlorene Sync-Anstosse waehrend laufender Synchronisationen entfernt
+- Alte DailyQuest-V2-Bezeichnung aus der App entfernt
+- Unruhige Schattenwirkung der Next-Hinweiskarte entfernt
+
+---
+
 ## [2.18.1] - 2026-07-08
 
 ### Erstellt

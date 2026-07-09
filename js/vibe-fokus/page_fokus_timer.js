@@ -252,6 +252,9 @@ const DQ_FOKUS_TIMER = {
         const char = await new Promise(res => store.get(1).onsuccess = e => res(e.target.result));
         
         if (char) {
+            if (typeof DQ_CONFIG.normalizeCharacterNumbers === 'function') {
+                DQ_CONFIG.normalizeCharacterNumbers(char);
+            }
             char.gold += goldEarned;
             char.mana += manaEarned;
             char.totalGoldEarned += goldEarned;
@@ -261,11 +264,15 @@ const DQ_FOKUS_TIMER = {
             }
             
             DQ_CONFIG.levelUpCheck(char);
+            if (typeof DQ_CONFIG.normalizeCharacterNumbers === 'function') {
+                DQ_CONFIG.normalizeCharacterNumbers(char);
+            }
             store.put(char);
         }
 
         await DQ_VIBE_STATE.saveState();
         await new Promise(res => tx.oncomplete = res);
+        localStorage.setItem('dq_last_local_update', String(Date.now()));
         if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
 
         DQ_UI.showFocusRewardPopup({
@@ -360,4 +367,3 @@ const DQ_FOKUS_TIMER = {
         DQ_UI.showPopup(popup);
     }
 };
-

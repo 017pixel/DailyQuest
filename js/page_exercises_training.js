@@ -332,7 +332,15 @@ Object.assign(DQ_EXERCISES, {
         }
     },
 
-    async finalizeQuestCompletion(questId) {
+    showQuestCompletionReward(quest) {
+        if (!quest) return;
+        const manaReward = DQ_CONFIG.toFiniteNumber ? DQ_CONFIG.toFiniteNumber(quest.manaReward, 0) : (Number(quest.manaReward) || 0);
+        const goldReward = DQ_CONFIG.toFiniteNumber ? DQ_CONFIG.toFiniteNumber(quest.goldReward, 0) : (Number(quest.goldReward) || 0);
+        DQ_UI.showCustomPopup(`Sehr gut! <span class="material-symbols-rounded icon-accent">thumb_up</span><br>+${manaReward} Mana <span class="material-symbols-rounded icon-mana">auto_awesome</span> | +${goldReward} Gold <span class="material-symbols-rounded icon-gold">paid</span>`);
+    },
+
+    async finalizeQuestCompletion(questId, options = {}) {
+        const showReward = options.showReward !== false;
         try {
             const updatedChar = await DQ_CONFIG.performQuestCompletion(questId);
 
@@ -340,17 +348,19 @@ Object.assign(DQ_EXERCISES, {
                 DQ_DB.db.transaction('daily_quests', 'readonly').objectStore('daily_quests').get(questId).onsuccess = e => resolve(e.target.result);
             });
 
-            if (quest) {
-                DQ_UI.showCustomPopup(`Sehr gut! <span class="material-symbols-rounded icon-accent">thumb_up</span><br>+${quest.manaReward} Mana <span class="material-symbols-rounded icon-mana">auto_awesome</span> | +${quest.goldReward} Gold <span class="material-symbols-rounded icon-gold">paid</span>`);
+            if (quest && showReward) {
+                this.showQuestCompletionReward(quest);
             }
 
             DQ_CONFIG.checkStreakCompletion();
             this.renderQuests();
             DQ_CHARACTER_MAIN.renderPage();
             DQ_ACHIEVEMENTS.checkAllAchievements(updatedChar);
+            return { ok: true, quest, char: updatedChar };
         } catch (error) {
             console.error('Quest-Abschluss fehlgeschlagen (UI-Ebene):', error);
             DQ_UI.showCustomPopup('Speichern fehlgeschlagen. Bitte versuche es erneut.', 'penalty');
+            return { ok: false, error };
         }
     },
 
@@ -800,7 +810,8 @@ Object.assign(DQ_EXERCISES, {
         this.freeTrainingLoading = false;
     },
 
-    async completeFreeExercise(exerciseId) {
+    async completeFreeExercise(exerciseId, options = {}) {
+        const showReward = options.showReward !== false;
         // --- ANTI-SPAM: Max 3 Abschluesse in 30 Sekunden ---
         if (!this._freeTrainingCompletions) {
             this._freeTrainingCompletions = [];
@@ -838,6 +849,9 @@ Object.assign(DQ_EXERCISES, {
             const scaledMana = Math.ceil(baseMana * (1 + 0.2 * (difficulty - 1)));
             const scaledGold = Math.ceil(baseGold * (1 + 0.15 * (difficulty - 1)));
 
+            if (typeof DQ_CONFIG.normalizeCharacterNumbers === 'function') {
+                DQ_CONFIG.normalizeCharacterNumbers(char);
+            }
             char.mana += scaledMana;
             char.gold += scaledGold;
             char.totalGoldEarned += scaledGold;
@@ -845,6 +859,9 @@ Object.assign(DQ_EXERCISES, {
             const exerciseTemplate = exercise;
             char = DQ_CONFIG.processStatGains(char, exerciseTemplate);
             char = DQ_CONFIG.levelUpCheck(char);
+            if (typeof DQ_CONFIG.normalizeCharacterNumbers === 'function') {
+                DQ_CONFIG.normalizeCharacterNumbers(char);
+            }
 
             if (typeof DQ_ANALYTICS !== 'undefined' && exerciseTemplate) {
                 DQ_ANALYTICS.logFreeTraining(exerciseTemplate.nameKey, scaledMana, scaledGold);
@@ -858,15 +875,20 @@ Object.assign(DQ_EXERCISES, {
                 tx.oncomplete = resolve;
                 tx.onerror = (event) => reject(event.target.error);
             });
+            localStorage.setItem('dq_last_local_update', String(Date.now()));
             if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
 
-            DQ_UI.showCustomPopup(`Sehr gut! <span class=\"material-symbols-rounded icon-accent\">thumb_up</span><br>+${scaledMana} Mana <span class=\"material-symbols-rounded icon-mana\">auto_awesome</span> | +${scaledGold} Gold <span class=\"material-symbols-rounded icon-gold\">paid</span>`);
+            if (showReward) {
+                DQ_UI.showCustomPopup(`Sehr gut! <span class=\"material-symbols-rounded icon-accent\">thumb_up</span><br>+${scaledMana} Mana <span class=\"material-symbols-rounded icon-mana\">auto_awesome</span> | +${scaledGold} Gold <span class=\"material-symbols-rounded icon-gold\">paid</span>`);
+            }
             DQ_CHARACTER_MAIN.renderPage();
             DQ_ACHIEVEMENTS.checkAllAchievements(char);
+            return { ok: true, mana: scaledMana, gold: scaledGold, char };
             
         } catch (error) {
             console.error("Speichern des freien Trainings fehlgeschlagen:", error);
             DQ_UI.showCustomPopup("Speichern fehlgeschlagen. Bitte versuche es erneut.", 'penalty');
+            return { ok: false, error };
         }
     },
 

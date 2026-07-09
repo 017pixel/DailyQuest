@@ -21,6 +21,7 @@ const DQ_SUPABASE = {
     currentUser: null,
     syncTimeout: null,
     isSyncing: false,
+    pendingSync: false,
     lastSyncAt: 0,
     _authDecisionResolver: null,
     _authScreenMode: 'intro', // 'intro' oder 'migration'
@@ -556,7 +557,10 @@ const DQ_SUPABASE = {
     // ==========================================
     async syncToSupabase(options = {}) {
         if (!this.client || !this.currentUser) return;
-        if (this.isSyncing) return;
+        if (this.isSyncing) {
+            this.pendingSync = true;
+            return;
+        }
 
         if (localStorage.getItem('dq_sync_conflict') === 'true' && !options.forceLocal) {
             console.warn('Sync pausiert: Cloud-Konflikt aktiv. Bitte Cloud laden oder lokal hochladen waehlen.');
@@ -595,14 +599,21 @@ const DQ_SUPABASE = {
 
             if (error) {
                 console.error('Supabase Sync Fehler:', error.message);
+                return { ok: false, error };
             } else {
                 this.lastSyncAt = Date.now();
                 console.log('Sync zu Supabase erfolgreich.');
+                return { ok: true };
             }
         } catch (err) {
             console.error('Unerwarteter Sync-Fehler:', err);
+            return { ok: false, error: err };
         } finally {
             this.isSyncing = false;
+            if (this.pendingSync) {
+                this.pendingSync = false;
+                this.triggerSync({ delay: 250, forceLocal: options.forceLocal });
+            }
         }
     },
 
@@ -789,12 +800,13 @@ const DQ_SUPABASE = {
     // ==========================================
     // SYNC TRIGGER
     // ==========================================
-    triggerSync() {
+    triggerSync(options = {}) {
         if (!this.client || !this.currentUser) return;
         if (this.syncTimeout) clearTimeout(this.syncTimeout);
+        const delay = Number.isFinite(options.delay) ? options.delay : 5000;
         this.syncTimeout = setTimeout(() => {
-            this.syncToSupabase();
-        }, 5000);
+            this.syncToSupabase(options);
+        }, delay);
     },
 
     startPeriodicSync() {

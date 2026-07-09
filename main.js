@@ -88,6 +88,7 @@ const DQ_CONFIG = {
     },
 
     levelUpCheck(char) {
+        this.normalizeCharacterNumbers(char);
         // Level 20 beim Mana-Cap – ab Level 20 bleibt das Mana-Requirement konstant
         const MAX_MANA_LEVEL_CAP = 20;
         const getManaForLevel = (level) => Math.floor(100 * Math.pow(1.5, Math.min(level, MAX_MANA_LEVEL_CAP) - 1));
@@ -111,6 +112,31 @@ const DQ_CONFIG = {
             }
         }
 
+        return char;
+    },
+
+    toFiniteNumber(value, fallback = 0) {
+        const number = Number(value);
+        return Number.isFinite(number) ? number : fallback;
+    },
+
+    normalizeCharacterNumbers(char) {
+        if (!char) return char;
+        char.level = this.toFiniteNumber(char.level, 1);
+        char.mana = this.toFiniteNumber(char.mana, 0);
+        char.manaToNextLevel = this.toFiniteNumber(char.manaToNextLevel, 100);
+        char.gold = this.toFiniteNumber(char.gold, 0);
+        char.totalGoldEarned = this.toFiniteNumber(char.totalGoldEarned, 0);
+        char.totalQuestsCompleted = this.toFiniteNumber(char.totalQuestsCompleted, 0);
+        char.totalItemsPurchased = this.toFiniteNumber(char.totalItemsPurchased, 0);
+
+        const statKeys = ['kraft', 'ausdauer', 'beweglichkeit', 'durchhaltevermoegen', 'willenskraft'];
+        if (!char.stats || typeof char.stats !== 'object') char.stats = {};
+        if (!char.statProgress || typeof char.statProgress !== 'object') char.statProgress = {};
+        statKeys.forEach(stat => {
+            char.stats[stat] = this.toFiniteNumber(char.stats[stat], 0);
+            char.statProgress[stat] = this.toFiniteNumber(char.statProgress[stat], 0);
+        });
         return char;
     },
 
@@ -209,6 +235,7 @@ const DQ_CONFIG = {
 
                 tx.oncomplete = () => {
                     console.log('Transaktion erfolgreich abgeschlossen. Quest & Charakter gespeichert.');
+                    localStorage.setItem('dq_last_local_update', String(Date.now()));
                     if (typeof DQ_TRAINING_SYSTEM !== 'undefined' && quest) {
                         DQ_TRAINING_SYSTEM.recordQuestActivity(quest, { age: finalCharState?.age ?? null }).catch(() => { });
                     }
@@ -243,6 +270,12 @@ const DQ_CONFIG = {
                             tx.abort();
                             return reject(new Error("Charakter nicht gefunden."));
                         }
+                        this.normalizeCharacterNumbers(char);
+
+                        const manaReward = this.toFiniteNumber(quest.manaReward ?? quest.mana, 0);
+                        const goldReward = this.toFiniteNumber(quest.goldReward ?? quest.gold, 0);
+                        quest.manaReward = manaReward;
+                        quest.goldReward = goldReward;
 
                         const exerciseTemplate = Object.values(DQ_DATA.exercisePool).flat().find(ex => ex.nameKey === quest.nameKey) || quest;
                         const effectiveExerciseTemplate = exerciseTemplate ? {
@@ -251,13 +284,14 @@ const DQ_CONFIG = {
                         } : null;
 
                         quest.completed = true;
-                        char.mana += quest.manaReward;
-                        char.gold += quest.goldReward;
-                        char.totalGoldEarned += quest.goldReward;
-                        char.totalQuestsCompleted++;
+                        char.mana += manaReward;
+                        char.gold += goldReward;
+                        char.totalGoldEarned += goldReward;
+                        char.totalQuestsCompleted += 1;
 
                         char = this.processStatGains(char, effectiveExerciseTemplate);
                         char = this.levelUpCheck(char);
+                        this.normalizeCharacterNumbers(char);
 
                         finalCharState = char;
 
@@ -277,7 +311,7 @@ const DQ_CONFIG = {
     }
 };
 
-const APP_VERSION = '2.18.1';
+const APP_VERSION = '2.18.2';
 const APP_UPDATE_FLAG_KEY = 'dq_seen_app_version';
 
 async function initializeApp() {
