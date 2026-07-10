@@ -62,7 +62,14 @@ function resetTimerUI() {
     document.getElementById('timer-start-button').classList.remove('hidden');
     document.getElementById('timer-pause-button').classList.add('hidden');
     document.getElementById('timer-resume-button').classList.add('hidden');
-    document.getElementById('timer-done-button').classList.add('hidden');
+    const doneButton = document.getElementById('timer-done-button');
+    doneButton.classList.add('hidden');
+    doneButton.disabled = false;
+    const doneLabel = doneButton.querySelector('[data-lang-key="timer_done"]');
+    if (doneLabel) {
+        const lang = DQ_CONFIG.userSettings?.language || 'de';
+        doneLabel.textContent = DQ_DATA.translations[lang]?.timer_done || 'Geschafft!';
+    }
     document.getElementById('timer-countdown-overlay').classList.add('hidden');
 }
 
@@ -209,20 +216,21 @@ async function completeExercise() {
     if (isCompleting) return;
     isCompleting = true;
     const doneButton = document.getElementById('timer-done-button');
-    const previousText = doneButton ? doneButton.textContent : '';
+    const doneLabel = doneButton?.querySelector('[data-lang-key="timer_done"]');
+    const previousText = doneLabel?.textContent || '';
     if (doneButton) {
         const lang = DQ_CONFIG.userSettings?.language || 'de';
         doneButton.disabled = true;
-        doneButton.textContent = DQ_DATA.translations[lang]?.timer_saving || 'Speichere...';
+        if (doneLabel) doneLabel.textContent = DQ_DATA.translations[lang]?.timer_saving || 'Speichere...';
     }
 
     try {
         let result = { ok: false };
         if (currentQuestId !== null && currentQuestId !== undefined) {
-            result = await DQ_EXERCISES.finalizeQuestCompletion(currentQuestId, { showReward: false });
+            result = await DQ_EXERCISES.completeQuest(currentQuestId, { showReward: false });
             if (result?.ok) {
                 closeTimerPopupOnly();
-                DQ_EXERCISES.showQuestCompletionReward(result.quest);
+                if (result.completed) DQ_EXERCISES.showQuestCompletionReward(result.quest);
             }
         } else if (currentExercise && currentExercise.id) {
             result = await DQ_EXERCISES.completeFreeExercise(currentExercise.id, { showReward: false });
@@ -236,7 +244,7 @@ async function completeExercise() {
             isCompleting = false;
             if (doneButton) {
                 doneButton.disabled = false;
-                doneButton.textContent = previousText || 'Geschafft!';
+                if (doneLabel) doneLabel.textContent = previousText || 'Geschafft!';
             }
         }
     } catch (error) {
@@ -244,7 +252,7 @@ async function completeExercise() {
         isCompleting = false;
         if (doneButton) {
             doneButton.disabled = false;
-            doneButton.textContent = previousText || 'Geschafft!';
+            if (doneLabel) doneLabel.textContent = previousText || 'Geschafft!';
         }
         DQ_UI.showCustomPopup('Speichern fehlgeschlagen. Bitte versuche es erneut.', 'penalty');
     }

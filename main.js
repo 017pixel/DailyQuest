@@ -249,8 +249,10 @@ const DQ_CONFIG = {
                     console.error("Transaktion zum Quest-Abschluss fehlgeschlagen:", event.target.error);
                     reject(event.target.error);
                 };
+                tx.onabort = () => reject(tx.error || new Error('Quest-Abschluss wurde abgebrochen.'));
 
                 const questRequest = questStore.get(questId);
+                questRequest.onerror = () => reject(questRequest.error || new Error('Quest konnte nicht geladen werden.'));
                 questRequest.onsuccess = () => {
                     quest = questRequest.result;
                     if (!quest || quest.completed) {
@@ -264,6 +266,7 @@ const DQ_CONFIG = {
                     }
 
                     const charRequest = charStore.get(1);
+                    charRequest.onerror = () => reject(charRequest.error || new Error('Charakter konnte nicht geladen werden.'));
                     charRequest.onsuccess = () => {
                         let char = charRequest.result;
                         if (!char) {
@@ -311,7 +314,7 @@ const DQ_CONFIG = {
     }
 };
 
-const APP_VERSION = '2.18.2';
+const APP_VERSION = '2.18.3';
 const APP_UPDATE_FLAG_KEY = 'dq_seen_app_version';
 
 async function initializeApp() {
@@ -990,6 +993,7 @@ function addSettingsListeners(elements) {
     if (presetPlanBackBtn) {
         presetPlanBackBtn.addEventListener('click', () => {
             closePresetPlanOverlay();
+            DQ_UI.showPopup(elements.goalSetupPopup);
         });
     }
     const presetPlanOverlayBg = document.querySelector('#preset-plan-overlay .settings-overlay-bg');
@@ -1614,6 +1618,7 @@ async function handlePresetSelection(presetKey) {
     };
     const goal = goalMap[presetKey] || 'muscle';
 
+    closePresetPlanOverlay();
     DQ_UI.hideAllPopups();
     const lang = DQ_CONFIG.userSettings.language || 'de';
     const trans = DQ_DATA.translations[lang] || DQ_DATA.translations.de;
@@ -2190,9 +2195,6 @@ async function repairTodayTrainingQuestCount() {
     });
 
     const changed = await ensureMinimumTrainingQuestCount(todayStr, goal, questsToday);
-    if (changed && typeof DQ_EXERCISES !== 'undefined') {
-        DQ_EXERCISES.renderQuests();
-    }
     return changed;
 }
 
@@ -2225,6 +2227,7 @@ async function regenerateTodayDailyQuestsManually(forceTraining = false) {
                 tx.oncomplete = resolve;
                 tx.onerror = resolve;
             });
+            await repairTodayTrainingQuestCount();
             localStorage.setItem('dq_last_local_update', String(Date.now()));
             if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
             if (typeof DQ_EXERCISES !== 'undefined') DQ_EXERCISES.renderQuests();
@@ -2257,6 +2260,7 @@ async function regenerateTodayDailyQuestsManually(forceTraining = false) {
             tx.oncomplete = resolve;
             tx.onerror = resolve;
         });
+        await repairTodayTrainingQuestCount();
         localStorage.setItem('dq_last_local_update', String(Date.now()));
         if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
         if (typeof DQ_EXERCISES !== 'undefined') DQ_EXERCISES.renderQuests();
@@ -2645,22 +2649,10 @@ async function checkForPenaltyAndReset() {
 async function exportData() {
     if (!DQ_DB.db) return;
     try {
-        const dataToExport = {};
-        const storeNames = Array.from(DQ_DB.db.objectStoreNames);
-        const tx = DQ_DB.db.transaction(storeNames, 'readonly');
-        const promises = storeNames.map(storeName => new Promise((resolve, reject) => {
-            const request = tx.objectStore(storeName).getAll();
-            request.onsuccess = () => resolve({ name: storeName, data: request.result });
-            request.onerror = (event) => reject(new Error(`Error exporting ${storeName}: ${event.target.error}`));
-        }));
-        const results = await Promise.all(promises);
-        results.forEach(result => dataToExport[result.name] = result.data);
-        dataToExport.streakData = DQ_CONFIG.getStreakData();
-
-        // Zusaetzliche localStorage-Keys exportieren fuer vollstaendige Wiederherstellung
-        ['lastPenaltyCheck', 'dq_seen_app_version'].forEach(key => {
-            const val = localStorage.getItem(key);
-            if (val !== null) dataToExport[key] = val;
+        const storeData = await DQ_BACKUP.exportIndexedDB(DQ_DB.db);
+        const dataToExport = DQ_BACKUP.createExport(storeData, {
+            appVersion: APP_VERSION,
+            streakData: DQ_CONFIG.getStreakData()
         });
 
         const jsonString = JSON.stringify(dataToExport, null, 2);
@@ -2668,7 +2660,7 @@ async function exportData() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `dailyquest-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        a.download = `dailyquest-backup-${DQ_CONFIG.getTodayString()}.json`;
         document.body.appendChild(a);
         a.click();
         setTimeout(() => {
@@ -2701,52 +2693,16 @@ function importData(event) {
     reader.onload = async (e) => {
         try {
             const data = JSON.parse(e.target.result);
-            if (!data.character || !data.settings) throw new Error("Ungültige Backup-Datei.");
-
-            if (data.streakData) {
-                let { streak, lastDate } = data.streakData;
-                if (streak > 0 && !lastDate) lastDate = DQ_CONFIG.getYesterdayString();
-                DQ_CONFIG.setStreakData(streak, lastDate);
-            } else {
-                localStorage.removeItem('streakData');
-            }
-
-            // Zusaetzliche localStorage-Keys aus Backup wiederherstellen
-            ['lastPenaltyCheck', 'dq_seen_app_version'].forEach(key => {
-                if (data[key] !== undefined) {
-                    localStorage.setItem(key, data[key]);
-                }
+            const prepared = DQ_BACKUP.prepareRestore(data, {
+                today: DQ_CONFIG.getTodayString(),
+                yesterday: DQ_CONFIG.getYesterdayString()
             });
+            await DQ_BACKUP.restoreIndexedDB(DQ_DB.db, prepared.stores);
+            DQ_BACKUP.applyLocalState(prepared, APP_VERSION);
 
-            const storeNames = Array.from(DQ_DB.db.objectStoreNames);
-
-            // WICHTIG: IndexedDB Transaktionen mit await in Schleifen sind unsicher,
-            // da die Transaktion vorzeitig schliessen kann.
-            // Wir verarbeiten jeden Store in einer EIGENEN Transaktion.
-            for (const storeName of storeNames) {
-                await new Promise((resolve, reject) => {
-                    const tx = DQ_DB.db.transaction(storeName, 'readwrite');
-                    const store = tx.objectStore(storeName);
-
-                    const clearReq = store.clear();
-                    clearReq.onsuccess = () => {
-                        if (data[storeName] && Array.isArray(data[storeName])) {
-                            for (const item of data[storeName]) {
-                                store.put(item);
-                            }
-                        }
-                    };
-                    clearReq.onerror = () => reject(clearReq.error);
-
-                    tx.oncomplete = resolve;
-                    tx.onerror = (event) => reject(event.target.error);
-                });
-            }
-
-            localStorage.setItem('dq_last_local_update', String(Date.now()));
             if (typeof DQ_SUPABASE !== 'undefined') {
-                await DQ_SUPABASE.syncToSupabase();
-                DQ_SUPABASE.markActivity('import');
+                await DQ_SUPABASE.syncToSupabase({ forceLocal: true });
+                await DQ_SUPABASE.markActivity('import');
             }
 
             DQ_UI.showCustomPopup('<h3>Import abgeschlossen</h3><p>Deine Daten wurden erfolgreich wiederhergestellt. Die App wird neu geladen.</p>', 'info');

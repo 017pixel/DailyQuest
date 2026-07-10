@@ -437,11 +437,6 @@ const DQ_SUPABASE = {
             // 1. Aktuelle Daten sichern (vorheriger Snapshot)
             const appData = await this.exportIndexedDB();
             const streakData = DQ_CONFIG.getStreakData();
-            const extraLocal = {};
-            ['dq_seen_app_version', 'lastPenaltyCheck'].forEach(key => {
-                const val = localStorage.getItem(key);
-                if (val !== null) extraLocal[key] = val;
-            });
 
             // 2. Aktuelle Cloud-Daten laden um reset_count und previous_data zu erhalten
             const { data: existingData, error: fetchError } = await this.client
@@ -472,7 +467,7 @@ const DQ_SUPABASE = {
                 reset_number: newResetCount,
                 reset_at: new Date().toISOString(),
                 app_data: appData,
-                streak_data: { ...streakData, ...extraLocal }
+                streak_data: streakData
             });
 
             // Maximal 10 Reset-Historie behalten (Speicherplatz sparen)
@@ -580,16 +575,10 @@ const DQ_SUPABASE = {
             const appData = await this.exportIndexedDB();
             const streakData = DQ_CONFIG.getStreakData();
 
-            const extraLocal = {};
-            ['dq_seen_app_version', 'lastPenaltyCheck'].forEach(key => {
-                const val = localStorage.getItem(key);
-                if (val !== null) extraLocal[key] = val;
-            });
-
             const payload = {
                 user_id: this.currentUser.id,
                 app_data: appData,
-                streak_data: { ...streakData, ...extraLocal },
+                streak_data: streakData,
                 updated_at: new Date().toISOString()
             };
 
@@ -684,18 +673,7 @@ const DQ_SUPABASE = {
 
             if (!hasLocalData) {
                 console.log('Keine lokalen Daten. Uebernehme Cloud-Daten...');
-                await this.importIndexedDB(data.app_data);
-                if (data.streak_data) {
-                    const { streak, lastDate } = data.streak_data;
-                    if (typeof streak === 'number') {
-                        DQ_CONFIG.setStreakData(streak, lastDate || null);
-                    }
-                    ['dq_seen_app_version', 'lastPenaltyCheck'].forEach(key => {
-                        if (data.streak_data[key] !== undefined) {
-                            localStorage.setItem(key, data.streak_data[key]);
-                        }
-                    });
-                }
+                await this.restoreSnapshot(data.app_data, data.streak_data);
                 localStorage.removeItem('dq_sync_conflict');
                 window.location.reload();
             } else {
@@ -705,18 +683,7 @@ const DQ_SUPABASE = {
                 // Force-Cloud: manueller Cloud-Load aus Settings (ueberschreibt lokale Daten)
                 if (options.forceCloud) {
                     console.log('Manueller Cloud-Import: Ueberschreibe lokale Daten mit Cloud-Daten.');
-                    await this.importIndexedDB(data.app_data);
-                    if (data.streak_data) {
-                        const { streak, lastDate } = data.streak_data;
-                        if (typeof streak === 'number') {
-                            DQ_CONFIG.setStreakData(streak, lastDate || null);
-                        }
-                        ['dq_seen_app_version', 'lastPenaltyCheck'].forEach(key => {
-                            if (data.streak_data[key] !== undefined) {
-                                localStorage.setItem(key, data.streak_data[key]);
-                            }
-                        });
-                    }
+                    await this.restoreSnapshot(data.app_data, data.streak_data);
                     localStorage.removeItem('dq_sync_conflict');
                     window.location.reload();
                     return;
@@ -743,58 +710,22 @@ const DQ_SUPABASE = {
     // INDEXEDDB EXPORT / IMPORT
     // ==========================================
     async exportIndexedDB() {
-        if (!DQ_DB.db) return {};
-
-        const data = {};
-        const storeNames = Array.from(DQ_DB.db.objectStoreNames);
-
-        const tx = DQ_DB.db.transaction(storeNames, 'readonly');
-        const promises = storeNames.map(storeName => {
-            return new Promise((resolve, reject) => {
-                const request = tx.objectStore(storeName).getAll();
-                request.onsuccess = () => resolve({ name: storeName, data: request.result });
-                request.onerror = (event) => reject(new Error(`Error exporting ${storeName}: ${event.target.error}`));
-            });
-        });
-
-        const results = await Promise.all(promises);
-        results.forEach(result => {
-            data[result.name] = result.data;
-        });
-
-        return data;
+        return DQ_BACKUP.exportIndexedDB(DQ_DB.db);
     },
 
     async importIndexedDB(data) {
-        if (!DQ_DB.db || !data) return;
+        return DQ_BACKUP.restoreIndexedDB(DQ_DB.db, data);
+    },
 
-        const storeNames = Array.from(DQ_DB.db.objectStoreNames);
-
-        for (const storeName of storeNames) {
-            if (!data[storeName] || !Array.isArray(data[storeName])) continue;
-            try {
-                await new Promise((resolve, reject) => {
-                    const tx = DQ_DB.db.transaction(storeName, 'readwrite');
-                    const store = tx.objectStore(storeName);
-
-                    const clearReq = store.clear();
-                    clearReq.onsuccess = () => {
-                        for (const item of data[storeName]) {
-                            store.put(item);
-                        }
-                    };
-                    clearReq.onerror = () => reject(clearReq.error);
-
-                    tx.oncomplete = () => {
-                        console.log(`Store '${storeName}' aus Supabase importiert.`);
-                        resolve();
-                    };
-                    tx.onerror = (event) => reject(event.target.error);
-                });
-            } catch (e) {
-                console.warn(`Fehler beim Importieren von Store '${storeName}':`, e);
-            }
-        }
+    async restoreSnapshot(appData, streakData) {
+        const prepared = DQ_BACKUP.prepareRestore(appData, {
+            streakData,
+            today: DQ_CONFIG.getTodayString(),
+            yesterday: DQ_CONFIG.getYesterdayString()
+        });
+        await this.importIndexedDB(prepared.stores);
+        const currentVersion = typeof APP_VERSION !== 'undefined' ? APP_VERSION : null;
+        DQ_BACKUP.applyLocalState(prepared, currentVersion);
     },
 
     // ==========================================

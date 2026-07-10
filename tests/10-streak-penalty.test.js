@@ -146,6 +146,10 @@ function run() {
     t.ok(mainCode.includes('isRestOrRecoveryDayForQuestTopUp'), 'Restdays/Krankheitstage werden vom Top-up ausgenommen');
     t.ok(mainCode.includes('hasTrainingQuest') && mainCode.includes('return false;'), 'Bestehende Trainingsquests verhindern falsches Restday-Blocking beim Top-up');
     t.ok(mainCode.includes('repairTodayTrainingQuestCount') && mainCode.includes('await repairTodayTrainingQuestCount();'), 'App-Start repariert zu wenige heutige Trainingsquests auch nach erledigten Quests');
+    const regenerationStart = mainCode.indexOf('async function regenerateTodayDailyQuestsManually');
+    const regenerationEnd = mainCode.indexOf('async function generateDailyQuestsIfNeeded', regenerationStart);
+    const regenerationCode = mainCode.slice(regenerationStart, regenerationEnd);
+    t.equal((regenerationCode.match(/await repairTodayTrainingQuestCount\(\);/g) || []).length, 3, 'Custom-, Standard- und allgemeine Neugenerierung fuellen sofort auf 6 Quests auf');
     t.ok(mainCode.includes('regenerateTodayDailyQuestsManually') && mainCode.includes('dailyQuestRegenerateButton'), 'Manueller Heute-Regenerieren-Button ist verdrahtet');
     t.ok(mainCode.includes('hiddenUnavailable') && mainCode.includes('store.delete(quest.questId)'), 'Unsichtbare unmachbare Quests werden ersetzt statt Streak zu blockieren');
 

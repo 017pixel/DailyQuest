@@ -4,6 +4,31 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## [2.18.3] - 2026-07-10
+
+### Erstellt
+- Funktionale Tests fuer alle Daily-Quest-Abschlussarten hinzugefuegt
+- Timer-Tests fuer jeden Satz und den finalen Quest-Abschluss ergaenzt
+- Zentrale Backup- und Restore-Pruefung fuer lokale und Cloud-Daten erstellt
+- Backup-Metadaten mit Version und lokalem Exportdatum hinzugefuegt
+- Regressionstest fuer die sichere Fortsetzung importierter Streaks erstellt
+
+### Verändert
+- Zeitbasierte Satz-Quests zaehlen nach jedem Timer genau einen Satz
+- Timer-Quests schliessen zuverlaessig ab und neue Tagesplaene werden sofort aufgefuellt
+- Importierte Streaks werden ohne rueckwirkende Tagesstrafe fortgesetzt
+- Abgelaufene offene Extra-Quests werden beim Restore ohne Strafe entfernt
+- DailyQuest-Next-Hinweis, Raketen-Ausrichtung und Standardplan-Auswahl verbessert
+
+### Gelöscht
+- Vorzeitigen Komplettabschluss zeitbasierter Satz-Quests entfernt
+- Verdeckte Fehler-Popups hinter dem Timer entfernt
+- Wiederherstellung veralteter Penalty-Zeitmarken entfernt
+- Unsichere Einzeltransaktionen beim Backup-Import entfernt
+- Zerstoerung des Timer-Button-Markups im Fehlerfall entfernt
+
+---
+
 ## [2.18.2] - 2026-07-09
 
 ### Erstellt

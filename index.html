@@ -1051,13 +1051,13 @@
                 <div class="settings-section-body">
                     <div class="dailyquest-v2-card">
                         <div class="dailyquest-v2-header">
-                            <span class="material-symbols-rounded dailyquest-v2-icon">rocket_launch</span>
+                            <span class="dailyquest-v2-icon" aria-hidden="true"><span class="material-symbols-rounded">rocket_launch</span></span>
                             <div>
                                 <span class="dailyquest-v2-kicker" data-lang-key="dailyquest_v2_badge">Neu</span>
                                 <h4 data-lang-key="dailyquest_v2_title">DailyQuest-Next ist verfuegbar</h4>
                             </div>
                         </div>
-                        <p data-lang-key="dailyquest_v2_description">DailyQuest-Next bringt ein ruhigeres Dashboard, Admin-Bereich, moderne Datenbank und mehr.</p>
+                        <p data-lang-key="dailyquest_v2_description">Neue Features erscheinen künftig ausschließlich in DailyQuest-Next. DailyQuest bleibt ohne Einschränkungen nutzbar, wird aber nicht mehr aktiv weiterentwickelt. Die gepflegte Version ist DailyQuest-Next.</p>
                         <a class="dailyquest-v2-link" href="https://dailyquest-next.vercel.app" target="_blank" rel="noopener" data-lang-key="dailyquest_v2_button">Zur neuen Version</a>
                     </div>
                     <div class="settings-subpage-section-title" data-lang-key="settings_tutorial">Tutorial</div>
@@ -1065,7 +1065,7 @@
                     <div class="settings-subpage-section-title" data-lang-key="settings_data_prompt">Daten</div>
                     <button id="export-data-button" class="settings-action-btn" data-lang-key="export_data_short">Exportieren</button>
                     <label for="import-data-input" class="settings-action-btn" data-lang-key="import_data_short">Importieren</label>
-                    <input type="file" id="import-data-input" accept="*/*" style="display:none;">
+                    <input type="file" id="import-data-input" accept="application/json,.json" style="display:none;">
                 </div>
             </div>
 
@@ -1082,7 +1082,7 @@
                         <div class="qr-code-wrapper"><div id="qr-code-canvas"></div></div>
                         <button class="settings-action-btn share-copy-btn" id="copy-url-btn" data-lang-key="share_copy">Link kopieren</button>
                         <a href="https://github.com/017pixel/DailyQuest" target="_blank" class="share-github-link"><span class="material-symbols-rounded">code</span><span data-lang-key="share_github">Zum Code</span></a>
-                        <div class="share-version">v2.18.2</div>
+                        <div class="share-version">v2.18.3</div>
                     </div>
                 </div>
             </div>
@@ -1349,6 +1349,7 @@
     <script src="data/dungeons.js"></script>
     <script src="js/dungeons/dungeon_combat.js"></script>
     <script src="js/database.js"></script>
+    <script src="js/backup.js"></script>
     <script src="js/wger-import.js"></script>
     <script src="js/analytics.js"></script>
     <script src="js/training_system.js"></script>

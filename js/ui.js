@@ -153,6 +153,7 @@ const DQ_UI = {
         }
 
         this.elements.popupOverlay.classList.add('show');
+        popupElement.style.zIndex = String(41 + this.popupStack.length);
         
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
@@ -356,6 +357,7 @@ const DQ_UI = {
         const popupToHide = this.popupStack.pop();
         
         popupToHide.classList.remove('show');
+        popupToHide.style.removeProperty('z-index');
 
         if (this.popupStack.length === 0) {
             if (this._overlayHideTimeout) {
@@ -596,4 +598,3 @@ const DQ_UI = {
         try { localStorage.setItem('dq_dungeon_spawn_prob', String(prob)); } catch { }
     }
 };
-

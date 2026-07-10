@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dailyquest-cache-v41';
+const CACHE_NAME = 'dailyquest-cache-v42';
 const WGER_IMAGE_CACHE = 'dailyquest-wger-images-v1';
 const WGER_IMAGE_LIMIT = 200;
 
@@ -26,6 +26,7 @@ const urlsToCache = [
   '/data/dungeons.js',
   '/data/training_plans.js',
   '/js/database.js',
+  '/js/backup.js',
   '/js/wger-import.js',
   '/js/analytics.js',
   '/js/ui.js',

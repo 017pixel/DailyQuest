@@ -1041,40 +1041,47 @@ html[data-theme='light'] .muscle-zone.is-secondary {
     margin-top: 8px;
 }
 
-#manual-plan-overlay {
+#manual-plan-overlay,
+#preset-plan-overlay {
     z-index: 10000;
     display: none;
     opacity: 0;
     transition: opacity 0.35s ease;
 }
-#manual-plan-overlay.open {
+#manual-plan-overlay.open,
+#preset-plan-overlay.open {
     display: block;
     opacity: 1;
     pointer-events: auto;
 }
 
-#manual-plan-overlay .settings-overlay-bg {
+#manual-plan-overlay .settings-overlay-bg,
+#preset-plan-overlay .settings-overlay-bg {
     opacity: 0;
     transition: opacity 0.3s;
 }
 
-#manual-plan-overlay.open .settings-overlay-bg {
+#manual-plan-overlay.open .settings-overlay-bg,
+#preset-plan-overlay.open .settings-overlay-bg {
     opacity: 1;
 }
 
-#manual-plan-overlay .settings-sheet {
+#manual-plan-overlay .settings-sheet,
+#preset-plan-overlay .settings-sheet {
     transform: translateY(100%);
     transition: transform 0.3s ease-out;
     background-color: transparent;
 }
 
-#manual-plan-overlay.open .settings-sheet {
+#manual-plan-overlay.open .settings-sheet,
+#preset-plan-overlay.open .settings-sheet {
     transform: translateY(0);
     background-color: var(--popup-bg-dark);
     box-shadow: var(--popup-glow-dark);
 }
 
-html[data-theme='light'] #manual-plan-overlay.open .settings-sheet {
+html[data-theme='light'] #manual-plan-overlay.open .settings-sheet,
+html[data-theme='light'] #preset-plan-overlay.open .settings-sheet {
     background-color: var(--popup-bg-light);
     box-shadow: var(--popup-glow-light);
 }

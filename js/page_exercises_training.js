@@ -245,9 +245,9 @@ Object.assign(DQ_EXERCISES, {
                 const fallbackActionLabel = typeof DQ_TRAINING_SYSTEM !== 'undefined' ? DQ_TRAINING_SYSTEM.getQuestActionLabel(quest) : 'OK';
                 const buttonText = isFocusQuest
                     ? (DQ_DATA.translations[lang].start_task_button || 'Los')
-                    : (isTimerQuest
-                        ? (DQ_DATA.translations[lang].timer_start_button || 'Los')
-                        : (isSetQuest ? progressText : fallbackActionLabel));
+                    : (isSetQuest
+                        ? progressText
+                        : (isTimerQuest ? (DQ_DATA.translations[lang].timer_start_button || 'Los') : fallbackActionLabel));
                 const buttonDisabled = quest.completed;
 
                 card.innerHTML = `
@@ -364,29 +364,29 @@ Object.assign(DQ_EXERCISES, {
         }
     },
 
-    async completeQuest(questId) {
+    async completeQuest(questId, options = {}) {
         const quest = await new Promise(resolve => {
             DQ_DB.db.transaction('daily_quests', 'readonly').objectStore('daily_quests').get(questId).onsuccess = e => resolve(e.target.result);
         });
-        if (!quest) return;
+        if (!quest) return { ok: false, completed: false, error: new Error('Quest nicht gefunden.') };
 
         if (quest.completionMode === 'sets') {
             const card = document.querySelector(`[data-quest-id="${questId}"]`);
             const button = card?.querySelector('.complete-button-small');
-            if (!button) return;
 
             const updatedQuest = await DQ_TRAINING_SYSTEM.advanceSetProgress(questId);
-            if (!updatedQuest) return;
+            if (!updatedQuest) return { ok: false, completed: false, error: new Error('Satzfortschritt konnte nicht gespeichert werden.') };
+
+            const doneSets = updatedQuest.setProgress.filter(Boolean).length;
+            const totalSets = updatedQuest.setPlan?.sets || updatedQuest.setProgress?.length || 1;
 
             if (updatedQuest.canComplete) {
-                await this.finalizeQuestCompletion(questId);
-                return;
+                const result = await this.finalizeQuestCompletion(questId, options);
+                return { ...result, completed: result.ok === true, doneSets, totalSets };
             }
 
             // Direkte Animation statt komplettem Re-render
-            const doneSets = updatedQuest.setProgress.filter(Boolean).length;
-            const totalSets = updatedQuest.setPlan?.sets || updatedQuest.setProgress?.length || 1;
-            const counterEl = button.querySelector('.set-counter');
+            const counterEl = button?.querySelector('.set-counter');
 
             if (counterEl) {
                 counterEl.classList.add('slide-out');
@@ -396,18 +396,19 @@ Object.assign(DQ_EXERCISES, {
                     counterEl.classList.add('slide-in');
                     setTimeout(() => counterEl.classList.remove('slide-in'), 350);
                 }, 300);
-            } else {
+            } else if (button) {
                 button.innerHTML = `<span class="set-counter slide-in">${doneSets}</span>/${totalSets}`;
             }
 
             // Button-Status aktualisieren
-            if (doneSets === totalSets) {
+            if (button && doneSets === totalSets) {
                 button.classList.add('set-completed');
             }
-            return;
+            return { ok: true, completed: false, quest: updatedQuest, doneSets, totalSets };
         }
 
-        await this.finalizeQuestCompletion(questId);
+        const result = await this.finalizeQuestCompletion(questId, options);
+        return { ...result, completed: result.ok === true };
     },
 
     showQuestInfo(questId) {

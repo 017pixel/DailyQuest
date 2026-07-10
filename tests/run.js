@@ -1,6 +1,6 @@
 /**
  * DailyQuest Test Runner
- * Fuehrt alle 10 Tests aus und gibt eine Zusammenfassung aus.
+ * Fuehrt alle Tests aus und gibt eine Zusammenfassung aus.
  * Usage: node tests/run.js
  */
 const fs = require('fs');

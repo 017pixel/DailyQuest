@@ -101,7 +101,7 @@ Detaillierte Informationen zur Architektur, zum Design und zur Theorie hinter Da
 
 ## Tests
 
-Das Projekt enthaelt eine Test-Suite mit 14 spezialisierten Modultests. Alle Tests werden mit Node.js ausgefuehrt:
+Das Projekt enthaelt eine Test-Suite mit 18 spezialisierten Modultests. Alle Tests werden mit Node.js ausgefuehrt:
 
 ```bash
 node tests/run.js
@@ -119,8 +119,16 @@ node tests/run.js
 | 08 | `training-plans` | Daten | Validiert Trainingsplaene, Slots, Stages und Goal-Aliases |
 | 09 | `service-worker` | PWA | Cache-Name, Precache-URLs auf Existenz, Manifest-Validierung |
 | 10 | `streak-penalty` | Spiellogik | Streak-Berechnung, Penalty-Reset, Level-Up-Progression, Stat-Gains |
+| 11 | `onboarding-equipment` | Einrichtung | Onboarding-Daten und Equipment-Auswahl |
+| 12 | `endurance-no-log` | Spiellogik | Direkter Abschluss von Ausdauer-Quests ohne Pflichtprotokoll |
+| 13 | `update-safety` | Migration | Schutz bestehender Plaene und Daten bei Updates |
+| 14 | `exercise-completion-flow` | Spiellogik | Persistenz, Belohnungen und Character-Aktualisierung beim Abschluss |
+| 15 | `ai-plan-import` | Daten | Validierung und Normalisierung importierter KI-JSON-Plaene |
+| 16 | `daily-quest-completion-flow` | Spiellogik | Funktionale Abschlussmatrix fuer Tap-, Fokus-, Ausdauer-, Satz- und Timer-Quests |
+| 17 | `backup-restore` | Daten | Legacy-Import, Streak-Fortsetzung, Extra-Quest-Bereinigung und atomarer Restore |
+| 18 | `preset-plan-overlay` | UI | Oeffnen, Schliessen, Zuruecknavigation und Auswahl von Standardplaenen |
 
-Die Tests decken Syntax, Datenintegritaet, Spiellogik, UI-Konsistenz und PWA-Infrastruktur ab.
+Die Tests decken Syntax, Datenintegritaet, alle Daily-Quest-Abschlussarten, Backup-Restores, UI-Konsistenz und PWA-Infrastruktur ab.
 
 ---
 
