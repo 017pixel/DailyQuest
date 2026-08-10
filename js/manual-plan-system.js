@@ -400,11 +400,9 @@ const DQ_MANUAL_PLAN = {
     },
 
     getCycleDayIndex(state, todayStr, cycleLength = 7) {
-        const startRaw = String(state?.startedAt || todayStr).slice(0, 10);
-        const start = new Date(`${startRaw}T00:00:00`);
-        const today = new Date(`${todayStr}T00:00:00`);
-        const diffDays = Math.max(0, Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
-        return diffDays % Math.max(1, cycleLength || 7);
+        const today = new Date(`${todayStr}T12:00:00`);
+        const mondayBasedDayIndex = (today.getDay() + 6) % 7;
+        return mondayBasedDayIndex % Math.max(1, cycleLength || 7);
     },
 
     async getAiScheduledQuestSet(customPlan, settings, state, todayStr, difficulty, hasEquipment, customExercises) {
