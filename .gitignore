@@ -3,3 +3,9 @@ dist/
 .DS_Store
 _site/
 desktop.ini
+
+# Lokale Backups (niemals committen)
+backups/
+roles.sql
+schema.sql
+data.sql
