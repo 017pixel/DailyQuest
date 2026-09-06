@@ -149,6 +149,18 @@
         });
     },
 
+    async showNextVersionNotice() {
+        const isEnglish = this.selectedLanguage === 'en';
+        this.showText(isEnglish
+            ? 'There is a new version: DailyQuest-Next. It is actively maintained, with better animations, new features and a new design. This app is the original project. It stays online and fully usable, but it will no longer be updated and bugs will no longer be fixed. Tip: switch to DailyQuest-Next.'
+            : 'Es gibt eine neue Version: DailyQuest-Next. Sie wird aktiv gepflegt, mit besseren Animationen, neuen Features und neuem Design. Diese App ist das Originalprojekt. Sie bleibt online und voll nutzbar, wird aber nicht mehr aktualisiert und Fehler werden nicht mehr behoben. Tipp: Wechsle zu DailyQuest-Next.');
+        this.showContinueButton('Weiter');
+        await this.waitForContinue();
+        this.hideContinueButton();
+        await this.hideText();
+        await this.delay(250);
+    },
+
     async showInstallInstructions() {
         const textContainer = document.getElementById('tutorial-text-container');
         if (!textContainer) return;
@@ -206,40 +218,8 @@
     },
 
     async showAuthDuringTutorial() {
-        // Auth-Screen anzeigen wenn noch keine Entscheidung getroffen wurde
-        if (typeof DQ_SUPABASE !== 'undefined' && !localStorage.getItem('dq_auth_decision_made')) {
-            console.log('Zeige Auth-Screen waehrend Tutorial...');
-
-            // WICHTIG: Speichere Intro-Zustand fuer E-Mail-Redirect-Fall
-            // Wenn sich der User registriert und E-Mail bestaetigen muss,
-            // gehen die Intro-Daten sonst beim Reload verloren
-            // Bug L Fix: trainingPlanType + customPlanId mit-sichern,
-            // damit nach E-Mail-Bestaetigung der Trainingsplan wieder aktiviert wird.
-            try {
-                const introState = {
-                    playerName: this.playerName,
-                    age: this.age,
-                    hasEquipment: this.hasEquipment,
-                    trainingEquipment: this.trainingEquipment,
-                    trainingGoal: this.trainingGoal,
-                    trainingPlanType: this.trainingPlanType || 'predefined',
-                    customPlanId: (typeof this.customPlanId === 'number') ? this.customPlanId : null,
-                    seniorMode: this.seniorMode,
-                    seniorModeOptOut: this.seniorModeOptOut,
-                    selectedLanguage: this.selectedLanguage || 'de',
-                    savedAt: Date.now()
-                };
-                localStorage.setItem('dq_intro_state', JSON.stringify(introState));
-            } catch (e) {
-                console.warn('Fehler beim Speichern des Intro-Zustands:', e);
-            }
-
-            DQ_SUPABASE.showAuthScreen('intro');
-            await DQ_SUPABASE.waitForAuthDecision();
-
-            // Auth-Screen wurde geschlossen, Entscheidung wurde getroffen
-            console.log('Auth-Entscheidung waehrend Tutorial getroffen.');
-        }
+        // Kein Login mehr. Alle Daten bleiben lokal in IndexedDB.
+        return;
     },
 
     async showAgeSelection() {
@@ -683,11 +663,6 @@
 
                     if (typeof DQ_CHARACTER_MAIN !== 'undefined') {
                         DQ_CHARACTER_MAIN.renderPage();
-                    }
-
-                    // NEU: Tutorial-Daten sofort zu Supabase syncen
-                    if (typeof DQ_SUPABASE !== 'undefined') {
-                        await DQ_SUPABASE.syncToSupabase();
                     }
 
                     resolve();

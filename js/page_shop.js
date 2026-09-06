@@ -111,7 +111,7 @@ const DQ_SHOP = {
             if (char) {
                 DQ_ACHIEVEMENTS.checkAchievement(char, 'shop');
             }
-            if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+            localStorage.setItem('dq_last_local_update', String(Date.now()));
         };
 
         Promise.all([

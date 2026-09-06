@@ -14,12 +14,12 @@ DailyQuest ist eine Progressive Web App (PWA), die darauf abzielt, die Motivatio
 
 Die Kernidee basiert auf dem "System"-Konzept aus dem Webtoon Solo Leveling: Alltägliche Aufgaben werden in Quests verwandelt, die Erfahrungspunkte (Mana), Gold und Charakterfortschritt bringen.
 
-### DailyQuest V2
+### DailyQuest Next
 
-DailyQuest 2 wird als neue Version mit modernisiertem Dashboard, Admin-Bereich und Convex-Datenbank vorbereitet. Die bestehende Open-Source-Version bleibt weiterhin nutzbar und behaelt Supabase-Sync fuer bestehende Nutzer bei.
+DailyQuest Next ist die gepflegte Version mit neuem Design, besseren Animationen und neuen Features. Diese App hier ist das Originalprojekt. Sie bleibt online und voll nutzbar, wird aber nicht mehr aktualisiert und Fehler werden nicht mehr behoben.
 
 - Neue Version: [dailyquest-next.vercel.app](https://dailyquest-next.vercel.app)
-- Migrationspfad: Export aus DailyQuest 1 und Import in DailyQuest 2
+- Migrationspfad: Export in den Einstellungen und Import in DailyQuest Next
 
 ---
 
@@ -135,11 +135,11 @@ Die Tests decken Syntax, Datenintegritaet, alle Daily-Quest-Abschlussarten, Back
 ## Technologien und Sicherheit
 
 - **Frontend**: HTML5, CSS3, Vanilla JavaScript (ES6+).
-- **Datenbank**: Supabase (PostgreSQL) fuer Cloud-Synchronisation + IndexedDB fuer lokale Performance.
+- **Datenbank**: IndexedDB fuer rein lokale Datenspeicherung auf dem eigenen Geraet.
 - **PWA**: Offline-Funktionalitaet durch Service Worker und Web App Manifest.
 - **Visualisierung**: Chart.js fuer dynamische Diagramme.
-- **Cloud-Sync**: Automatische Synchronisation aller Daten ueber Supabase. Cross-Device-Zugriff mit E-Mail-Account oder anonymes Tracking.
-- **Datenschutz**: Daten werden sicher in der Cloud gespeichert. RLS (Row Level Security) stellt sicher, dass nur der jeweilige User seine eigenen Daten sehen kann.
+- **Backups**: Manueller Export und Import als JSON-Datei in den Einstellungen. Das Format laesst sich in DailyQuest Next importieren.
+- **Datenschutz**: Alle Daten bleiben lokal im Browser. Es werden keine Daten an Server gesendet.
 
 ---
 

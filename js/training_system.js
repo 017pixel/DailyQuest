@@ -894,7 +894,7 @@ const DQ_TRAINING_SYSTEM = {
                     DQ_ANALYTICS.logEnduranceEntry(payload.distance || 0, payload.duration || 0, payload.power || 0);
                 }
                 tx.oncomplete = () => {
-                    if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+                    localStorage.setItem('dq_last_local_update', String(Date.now()));
                     resolve(quest);
                 };
             };

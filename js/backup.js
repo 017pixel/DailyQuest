@@ -1,5 +1,6 @@
 /**
- * Zentrale Export-/Restore-Logik fuer lokale Backups und Cloud-Snapshots.
+ * Zentrale Export-/Restore-Logik fuer lokale Backups.
+ * Alle Daten bleiben lokal in IndexedDB. Es gibt keinen Cloud-Sync.
  * Das flache DQ1-Format bleibt fuer DailyQuest-Next kompatibel.
  */
 const DQ_BACKUP = {
@@ -94,8 +95,12 @@ const DQ_BACKUP = {
         localStorage.setItem('lastPenaltyCheck', prepared.lastPenaltyCheck);
         if (appVersion) localStorage.setItem('dq_seen_app_version', appVersion);
         localStorage.setItem('dq_last_local_update', String(Date.now()));
+        // Reste aus der entfernten Cloud-Synchronisation aufraeumen
         localStorage.removeItem('dq_sync_conflict');
         localStorage.removeItem('dq_cloud_updated_at');
+        localStorage.removeItem('dq_auth_decision_made');
+        localStorage.removeItem('dq_migrated_from_anon');
+        localStorage.removeItem('dq_intro_state');
     },
 
     async exportIndexedDB(db) {

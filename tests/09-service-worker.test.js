@@ -17,7 +17,7 @@ function run() {
     // Cache-Name
     const cacheMatch = sw.match(/dailyquest-cache-v(\d+)/);
     t.ok(!!cacheMatch, `Cache-Name gefunden (v${cacheMatch ? cacheMatch[1] : '?'})`);
-    t.ok(cacheMatch && Number(cacheMatch[1]) >= 42, 'Cache-Version fuer Release 2.18.3 erhoeht');
+    t.ok(cacheMatch && Number(cacheMatch[1]) >= 43, 'Cache-Version fuer Release 2.19.0 erhoeht');
 
     const mainPath = path.join(BASE, 'main.js');
     const htmlPath = path.join(BASE, 'index.html');
@@ -28,11 +28,11 @@ function run() {
     const translationsCode = fs.readFileSync(translationsPath, 'utf8');
     const databaseCode = fs.readFileSync(databasePath, 'utf8');
     const appVersionMatch = mainCode.match(/APP_VERSION\s*=\s*'([^']+)'/);
-    t.equal(appVersionMatch && appVersionMatch[1], '2.18.3', 'APP_VERSION ist 2.18.3');
-    t.ok(htmlCode.includes('v2.18.3'), 'Settings UI zeigt v2.18.3');
+    t.equal(appVersionMatch && appVersionMatch[1], '2.19.0', 'APP_VERSION ist 2.19.0');
+    t.ok(htmlCode.includes('v2.19.0'), 'Settings UI zeigt v2.19.0');
     t.ok(translationsCode.includes('DailyQuest-Next ist verfuegbar'), 'DailyQuest-Next Hinweis ist in Uebersetzungen vorhanden');
     t.ok(mainCode.includes('pageIndex += 1'), 'Update-Popup kann alle Infoseiten anzeigen');
-    t.ok(databaseCode.includes('dbVersion = 41'), 'IndexedDB-Version fuer Release 2.18.3 bleibt unveraendert');
+    t.ok(databaseCode.includes('dbVersion = 42'), 'IndexedDB-Version fuer Release 2.19.0 erhoeht');
     t.ok(!databaseCode.includes("deleteObjectStore('custom_user_exercises')"), 'Migration loescht keine alten eigenen Uebungen');
 
     // skipWaiting

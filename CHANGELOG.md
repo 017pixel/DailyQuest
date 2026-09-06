@@ -4,6 +4,31 @@ Hinweis: Dieser Changelog dokumentiert die wichtigsten technischen und inhaltlic
 
 ---
 
+## [2.19.0] - 2026-09-06
+
+### Erstellt
+- Hinweis auf DailyQuest-Next direkt im Intro hinzugefuegt
+- QR-Code zu DailyQuest-Next in den Extras ergaenzt
+- Letztes Update-Popup mit Migrationsweg und QR-Code erstellt
+- Export-Button direkt im Update-Popup eingebaut
+- Lokale Speicherinfo statt Account-Tab in den Einstellungen erstellt
+
+### Verändert
+- App-Version von 2.18.3 auf 2.19.0 aktualisiert
+- Extras-Karte fuer DailyQuest-Next neu gestaltet und erweitert
+- Update-Texte auf das letzte DailyQuest-Update umgestellt
+- IndexedDB-Version auf 42 und Offline-Cache auf v43 erhoeht
+- Dokumentation und Versionshinweise auf lokalen Betrieb umgestellt
+
+### Gelöscht
+- Cloud-Synchronisation ueber Supabase komplett entfernt
+- Login-, Registrierungs- und Account-Bereich entfernt
+- Supabase-Dateien, Auth-Screen und Sync-Anzeigen entfernt
+- Automatische Cloud-Sicherung und Cross-Device-Sync abgeschaltet
+- Veraltete Supabase-Konfiguration und Zugangsdaten aus dem Code entfernt
+
+---
+
 ## [2.18.3] - 2026-07-10
 
 ### Erstellt

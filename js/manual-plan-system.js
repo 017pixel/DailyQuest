@@ -775,7 +775,7 @@ const DQ_MANUAL_PLAN = {
                 const tx = DQ_DB.db.transaction(['settings'], 'readwrite');
                 tx.objectStore('settings').put(settings);
                 tx.oncomplete = () => {
-                    if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+                    localStorage.setItem('dq_last_local_update', String(Date.now()));
                     resolve(true);
                 };
                 tx.onerror = () => resolve(false);

@@ -1010,6 +1010,64 @@ html[data-theme='light'] .settings-subpage-item input[type="number"]::-webkit-ou
     height: 100% !important;
 }
 
+#next-qr-code-canvas {
+    border-radius: 6px;
+    display: block;
+    width: 200px;
+    height: 200px;
+    overflow: hidden;
+}
+
+#next-qr-code-canvas canvas,
+#next-qr-code-canvas img,
+#next-qr-code-canvas table {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+#update-notice-qr-canvas {
+    border-radius: 6px;
+    display: block;
+    width: 180px;
+    height: 180px;
+    overflow: hidden;
+}
+
+#update-notice-qr-canvas canvas,
+#update-notice-qr-canvas img,
+#update-notice-qr-canvas table {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.update-notice-qr {
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+}
+
+.update-notice-qr .qr-code-wrapper {
+    margin-bottom: 0;
+}
+
+.update-notice-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.update-notice-actions .card-button {
+    margin-top: 0;
+}
+
+.update-notice-link {
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+
 .share-github-link {
     display: inline-flex;
     align-items: center;

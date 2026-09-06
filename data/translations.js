@@ -39,10 +39,15 @@ DQ_DATA.translations = {
         settings_share: "Teilen",
         settings_weight: "Gewicht",
         settings_tutorial: "Tutorial",
-        dailyquest_v2_badge: "Neu",
+        dailyquest_v2_badge: "Empfohlen",
         dailyquest_v2_title: "DailyQuest-Next ist verfuegbar",
-        dailyquest_v2_description: "Neue Features erscheinen künftig ausschließlich in DailyQuest-Next. DailyQuest bleibt ohne Einschränkungen nutzbar, wird aber nicht mehr aktiv weiterentwickelt. Die gepflegte Version ist DailyQuest-Next.",
-        dailyquest_v2_button: "Zur neuen Version",
+        dailyquest_v2_description: "DailyQuest-Next ist die gepflegte Version mit besseren Animationen, neuen Features und neuem Design. Diese App bleibt online und voll nutzbar, wird aber nicht mehr aktualisiert und Fehler werden nicht mehr behoben.",
+        dailyquest_v2_point1: "Wird aktiv weiterentwickelt und bleibt up to date",
+        dailyquest_v2_point2: "Neues Design mit besseren Animationen",
+        dailyquest_v2_point3: "Neue Features erscheinen nur noch dort",
+        dailyquest_v2_migrate: "Wechseln ist einfach: unten auf Exportieren tippen und die Datei in DailyQuest-Next importieren.",
+        dailyquest_v2_qr_caption: "Scannen und DailyQuest-Next oeffnen",
+        dailyquest_v2_button: "DailyQuest-Next oeffnen",
         share_title: "Teile DailyQuest!",
         share_description: "Scanne den QR-Code oder teile den Link!",
         share_copy: "Kopieren",
@@ -175,33 +180,33 @@ DQ_DATA.translations = {
         endurance_entry_button: "OK",
         cancel: "Abbrechen",
         rest_days: "Rest Days / Woche",
-        update_notice_title: "DailyQuest wurde aktualisiert",
+        update_notice_title: "Letztes Update fuer DailyQuest",
 
         update_notice_intro: "Das ist neu in dieser Version:",
 
-        update_notice_page1_point1: "DailyQuest 2 wird als neue Version vorbereitet",
+        update_point_1: "Cloud-Sync ist entfernt. Alle Daten bleiben nur lokal auf diesem Geraet.",
 
-        update_notice_page1_point2: "In den Einstellungen findest du jetzt den direkten Link",
+        update_point_2: "Sichere deine Daten regelmaessig per Exportieren in den Einstellungen.",
 
-        update_notice_page2_point1: "DailyQuest 1 bleibt weiterhin voll nutzbar",
+        update_point_3: "Diese App bleibt online und voll nutzbar.",
 
-        update_notice_page2_point2: "Supabase Sync bleibt fuer bestehende Nutzer aktiv",
+        update_point_4: "Es gibt keine weiteren Updates und keine Fehlerbehebungen mehr.",
 
-        update_point_1: "DailyQuest 2 wird als neue Version vorbereitet",
+        update_notice_title_next: "Wechsle zu DailyQuest-Next",
 
-        update_point_2: "In den Einstellungen findest du jetzt den direkten Link",
+        update_notice_intro_next: "So geht es weiter:",
 
-        update_point_3: "DailyQuest 1 bleibt weiterhin voll nutzbar",
+        update_point_5: "DailyQuest-Next wird aktiv gepflegt und bleibt up to date.",
 
-        update_point_4: "Supabase Sync bleibt fuer bestehende Nutzer aktiv",
+        update_point_6: "Neues Design mit besseren Animationen und neuen Features.",
 
-        update_point_5: "Das Open-Source-Repo wurde fuer den Abschluss aufgeraeumt",
+        update_point_7: "Exportiere hier und importiere die Datei in DailyQuest-Next.",
 
-        update_point_6: "Unnoetige lokale Supabase-Dateien wurden entfernt",
+        update_point_8: "Scanne den QR-Code und oeffne DailyQuest-Next direkt.",
 
-        update_point_7: "Dokumentation und Versionshinweise wurden aktualisiert",
+        update_notice_export: "Jetzt exportieren",
 
-        update_point_8: "Der Wechsel zu DailyQuest 2 wird spaeter per Export begleitet",
+        update_notice_open_next: "DailyQuest-Next oeffnen",
 
         update_notice_step_label: "Seite",
 
@@ -457,10 +462,15 @@ DQ_DATA.translations = {
         settings_share: "Share",
         settings_weight: "Weight",
         settings_tutorial: "Tutorial",
-        dailyquest_v2_badge: "New",
+        dailyquest_v2_badge: "Recommended",
         dailyquest_v2_title: "DailyQuest-Next is available",
-        dailyquest_v2_description: "New features will be released exclusively in DailyQuest-Next. DailyQuest remains fully usable, but is no longer actively developed. DailyQuest-Next is the maintained version.",
-        dailyquest_v2_button: "Open the new version",
+        dailyquest_v2_description: "DailyQuest-Next is the maintained version with better animations, new features and a new design. This app stays online and fully usable, but it will no longer be updated and bugs will no longer be fixed.",
+        dailyquest_v2_point1: "Actively developed and kept up to date",
+        dailyquest_v2_point2: "New design with better animations",
+        dailyquest_v2_point3: "New features are released only there",
+        dailyquest_v2_migrate: "Switching is easy: tap Export below and import the file in DailyQuest-Next.",
+        dailyquest_v2_qr_caption: "Scan to open DailyQuest-Next",
+        dailyquest_v2_button: "Open DailyQuest-Next",
         share_title: "Share DailyQuest!",
         share_description: "Scan the QR code or share the link!",
         share_copy: "Copy",
@@ -593,33 +603,33 @@ DQ_DATA.translations = {
         endurance_entry_button: "OK",
         cancel: "Cancel",
         rest_days: "Rest Days / Week",
-        update_notice_title: "DailyQuest was updated",
+        update_notice_title: "Last update for DailyQuest",
 
         update_notice_intro: "What's new in this version:",
 
-        update_notice_page1_point1: "DailyQuest 2 is being prepared as the new version",
+        update_point_1: "Cloud sync is removed. All data stays only locally on this device.",
 
-        update_notice_page1_point2: "Settings now include the direct link",
+        update_point_2: "Back up your data regularly with Export in the settings.",
 
-        update_notice_page2_point1: "DailyQuest 1 remains fully usable",
+        update_point_3: "This app stays online and fully usable.",
 
-        update_notice_page2_point2: "Supabase Sync remains active for existing users",
+        update_point_4: "There will be no further updates and no more bug fixes.",
 
-        update_point_1: "DailyQuest 2 is being prepared as the new version",
+        update_notice_title_next: "Switch to DailyQuest-Next",
 
-        update_point_2: "Settings now include the direct link",
+        update_notice_intro_next: "What comes next:",
 
-        update_point_3: "DailyQuest 1 remains fully usable",
+        update_point_5: "DailyQuest-Next is actively maintained and stays up to date.",
 
-        update_point_4: "Supabase Sync remains active for existing users",
+        update_point_6: "New design with better animations and new features.",
 
-        update_point_5: "The open-source repo was cleaned up for finalization",
+        update_point_7: "Export here and import the file in DailyQuest-Next.",
 
-        update_point_6: "Unneeded local Supabase files were removed",
+        update_point_8: "Scan the QR code and open DailyQuest-Next directly.",
 
-        update_point_7: "Documentation and version notes were updated",
+        update_notice_export: "Export now",
 
-        update_point_8: "The move to DailyQuest 2 will later be guided by export",
+        update_notice_open_next: "Open DailyQuest-Next",
 
         update_notice_step_label: "Page",
 

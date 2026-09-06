@@ -177,6 +177,7 @@ const DQ_UI = {
         this._settingsSections = overlay.querySelectorAll('.settings-section');
         this._settingsItems = overlay.querySelectorAll('.settings-item');
         this._settingsShareLoaded = false;
+        this._settingsNextLoaded = false;
 
         this._settingsBg.addEventListener('click', () => this.closeSettingsOverlay());
 
@@ -297,7 +298,19 @@ const DQ_UI = {
                         body.style.maxHeight = body.scrollHeight + 'px';
                         this._syncSettingsSheetHeight();
                     }, 100);
-                });
+                }).catch(() => { /* QR bleibt leer, Link funktioniert trotzdem. */ });
+            }
+
+            const isNext = section.querySelector('#next-qr-code-canvas');
+            if (isNext && !this._settingsNextLoaded) {
+                this._settingsNextLoaded = true;
+                this.loadQRCodeLibrary().then(() => {
+                    setTimeout(() => {
+                        this.generateNextQRCode();
+                        body.style.maxHeight = body.scrollHeight + 'px';
+                        this._syncSettingsSheetHeight();
+                    }, 100);
+                }).catch(() => { /* QR bleibt leer, Link funktioniert trotzdem. */ });
             }
         } else {
             section.classList.remove('open');
@@ -318,24 +331,31 @@ const DQ_UI = {
         });
     },
 
-    generateShareQRCode() {
-        const container = document.getElementById('qr-code-canvas');
+    generateQRCodeInto(containerId, url, size) {
+        const container = document.getElementById(containerId);
         if (!container || !window.QRCode) return;
 
         container.innerHTML = '';
-        
-        const url = 'https://017pixel.github.io/DailyQuest/';
+
         const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-        
+
         new QRCode(container, {
             text: url,
-            width: 240,
-            height: 240,
+            width: size,
+            height: size,
             margin: 1,
             colorDark: isDark ? '#ffffff' : '#000000',
             colorLight: isDark ? '#1a1a1a' : '#ffffff',
             correctLevel: QRCode.CorrectLevel.H
         });
+    },
+
+    generateShareQRCode() {
+        this.generateQRCodeInto('qr-code-canvas', 'https://017pixel.github.io/DailyQuest/', 240);
+    },
+
+    generateNextQRCode() {
+        this.generateQRCodeInto('next-qr-code-canvas', 'https://dailyquest-next.vercel.app', 200);
     },
 
     copyShareUrl() {

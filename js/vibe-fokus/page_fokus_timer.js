@@ -273,7 +273,7 @@ const DQ_FOKUS_TIMER = {
         await DQ_VIBE_STATE.saveState();
         await new Promise(res => tx.oncomplete = res);
         localStorage.setItem('dq_last_local_update', String(Date.now()));
-        if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+        localStorage.setItem('dq_last_local_update', String(Date.now()));
 
         DQ_UI.showFocusRewardPopup({
             minutes: minutes,
@@ -343,7 +343,7 @@ const DQ_FOKUS_TIMER = {
     async deleteLabel(id) {
         const tx = DQ_DB.db.transaction('focus_labels', 'readwrite');
         await new Promise(res => tx.objectStore('focus_labels').delete(id).onsuccess = res);
-        if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+        localStorage.setItem('dq_last_local_update', String(Date.now()));
     },
 
     promptForNewLabel() {
@@ -357,7 +357,7 @@ const DQ_FOKUS_TIMER = {
             if (newLabelName) {
                 const tx = DQ_DB.db.transaction('focus_labels', 'readwrite');
                 await new Promise(res => tx.objectStore('focus_labels').add({ name: newLabelName }).onsuccess = res);
-                if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+                localStorage.setItem('dq_last_local_update', String(Date.now()));
                 DQ_UI.hideTopPopup();
                 this.promptForLabel();
             }

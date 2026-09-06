@@ -117,7 +117,7 @@ const DQ_EXTRA = {
         store.put(questData);
         tx.oncomplete = () => {
             this.renderExtraQuestPage();
-            if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+            localStorage.setItem('dq_last_local_update', String(Date.now()));
         };
     },
 
@@ -166,7 +166,7 @@ const DQ_EXTRA = {
             this.renderExtraQuestPage();
             // --- BUGFIX: Korrekter Aufruf ---
             DQ_CHARACTER_MAIN.renderPage();
-            if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+            localStorage.setItem('dq_last_local_update', String(Date.now()));
         };
     }
 };

@@ -118,9 +118,8 @@ const DQ_TUTORIAL_STATE = {
     },
 
     /**
-     * Bug L Fix: Stellt planType + customPlanId aus dq_intro_state wieder her,
-     * wenn der User nach E-Mail-Bestaetigung mit Redirect zurueckkommt.
-     * Wird vom Tutorial-Main bzw. supabase-client bei Session-Wechsel aufgerufen.
+     * Stellt planType + customPlanId aus einem gespeicherten Intro-Zustand wieder her,
+     * falls das Tutorial unterbrochen wurde.
      *
      * @returns {Promise<{restored: boolean, planType: string|null, customPlanId: number|null}>}
      */

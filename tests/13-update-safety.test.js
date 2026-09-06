@@ -15,7 +15,7 @@ function run() {
     const wgerImport = fs.readFileSync(path.join(BASE, 'js/wger-import.js'), 'utf8');
     const main = fs.readFileSync(path.join(BASE, 'main.js'), 'utf8');
 
-    t.ok(database.includes('dbVersion = 41'), 'IndexedDB-Migration fuer grosses Update aktiviert');
+    t.ok(database.includes('dbVersion = 42'), 'IndexedDB-Migration fuer lokales Update aktiviert');
     t.ok(database.includes('custom_user_exercises'), 'Legacy-Store fuer eigene Uebungen bleibt Teil der DB');
     t.ok(!database.includes("deleteObjectStore('custom_user_exercises')"), 'Migration loescht keine eigenen Alt-Uebungen');
 

@@ -583,7 +583,7 @@ const DQ_STATS = {
             tx.onerror = reject;
         });
 
-        if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+        localStorage.setItem('dq_last_local_update', String(Date.now()));
 
         DQ_UI.hideTopPopup();
         DQ_CHARACTER_MAIN.renderPage();

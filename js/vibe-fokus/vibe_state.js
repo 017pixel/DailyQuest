@@ -71,7 +71,7 @@ const DQ_VIBE_STATE = {
 
             const request = store.put(stateToSave);
             tx.oncomplete = () => {
-                if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+                localStorage.setItem('dq_last_local_update', String(Date.now()));
                 resolve();
             };
             tx.onerror = (e) => reject("Fehler beim Speichern des Vibe-Zustands: " + e.target.error);

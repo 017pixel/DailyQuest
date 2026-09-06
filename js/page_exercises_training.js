@@ -877,7 +877,7 @@ Object.assign(DQ_EXERCISES, {
                 tx.onerror = (event) => reject(event.target.error);
             });
             localStorage.setItem('dq_last_local_update', String(Date.now()));
-            if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+            localStorage.setItem('dq_last_local_update', String(Date.now()));
 
             if (showReward) {
                 DQ_UI.showCustomPopup(`Sehr gut! <span class=\"material-symbols-rounded icon-accent\">thumb_up</span><br>+${scaledMana} Mana <span class=\"material-symbols-rounded icon-mana\">auto_awesome</span> | +${scaledGold} Gold <span class=\"material-symbols-rounded icon-gold\">paid</span>`);

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dailyquest-cache-v42';
+const CACHE_NAME = 'dailyquest-cache-v43';
 const WGER_IMAGE_CACHE = 'dailyquest-wger-images-v1';
 const WGER_IMAGE_LIMIT = 200;
 
@@ -50,11 +50,8 @@ const urlsToCache = [
   '/js/vibe-fokus/vibe_state.js',
   '/js/vibe-fokus/page_fokus_timer.js',
   '/js/vibe-fokus/page_fokus_main.js',
-  '/js/supabase-config.js',
-  '/js/supabase-client.js',
   '/js/manual-plan-system.js',
   '/js/ai-plan-import.js',
-  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',
   '/tutorial/js/tutorial_state.js',
   '/tutorial/js/tutorial_main.js',
   '/tutorial/js/tutorial_onboarding.js',

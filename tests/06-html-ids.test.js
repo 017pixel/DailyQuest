@@ -28,6 +28,7 @@ const DYNAMIC_IDS = new Set([
     'reset-popup1-cancel', 'reset-popup1-continue',
     'reset-popup2-cancel', 'reset-popup2-confirm',
     'update-notice-prev-button', 'update-notice-next-button',
+    'update-notice-export-button', 'update-notice-qr-canvas', 'next-qr-code-canvas',
     'start-stop-btn', 'timer-warning-box',
     'free-training-container', 'daily-quest-container',
     'focus-label-list',
@@ -73,7 +74,6 @@ function run() {
     const jsFiles = [
         'main.js',
         'js/ui.js',
-        'js/supabase-client.js',
         'js/page_exercises.js',
         'js/page_exercises_training.js',
         'js/page_shop.js',

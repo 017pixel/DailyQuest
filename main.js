@@ -29,7 +29,6 @@ const DQ_CONFIG = {
     setStreakData(streak, lastDate) {
         localStorage.setItem('streakData', JSON.stringify({ streak, lastDate }));
         localStorage.setItem('dq_last_local_update', String(Date.now()));
-        if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
     },
     updateStreakDisplay() {
         const streakBox = document.getElementById('streak-value');
@@ -192,7 +191,7 @@ const DQ_CONFIG = {
                     store.put(char);
                 };
                 tx.oncomplete = () => {
-                    if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+                    localStorage.setItem('dq_last_local_update', String(Date.now()));
                     resolve();
                 };
                 tx.onerror = (ev) => reject(ev.target.error);
@@ -242,7 +241,7 @@ const DQ_CONFIG = {
                     if (typeof DQ_ANALYTICS !== 'undefined' && quest) {
                         DQ_ANALYTICS.logQuestCompletion(quest);
                     }
-                    if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+                    localStorage.setItem('dq_last_local_update', String(Date.now()));
                     resolve(finalCharState);
                 };
                 tx.onerror = (event) => {
@@ -314,8 +313,9 @@ const DQ_CONFIG = {
     }
 };
 
-const APP_VERSION = '2.18.3';
+const APP_VERSION = '2.19.0';
 const APP_UPDATE_FLAG_KEY = 'dq_seen_app_version';
+const DQ_NEXT_URL = 'https://dailyquest-next.vercel.app';
 
 async function initializeApp() {
     try {
@@ -417,32 +417,10 @@ async function initializeApp() {
 
         await DQ_DB.init();
 
-        // WICHTIG: App als bereit markieren BEVOR Auth-Screen oder Tutorial blockieren koennen.
-        // Der Watchdog prueft auf appReady - wenn der User sich im Auth-Screen Zeit laesst,
-        // soll trotzdem kein Initialisierungsfehler angezeigt werden.
         window.appReady = true;
         console.log('App-Grundinitialisierung abgeschlossen. Bereit fuer User-Interaction.');
 
-        // Supabase initialisieren (CDN-basiert fuer GitHub Pages)
-        try {
-            if (typeof DQ_SUPABASE !== 'undefined') {
-                DQ_SUPABASE.init();
-                await DQ_SUPABASE.initAuth();
-
-                // NEU: Pruefe ob Auth-Screen fuer Migration gezeigt werden muss
-                // (bestehender User mit lokalen Daten, aber noch keine Auth-Entscheidung)
-                if (!DQ_SUPABASE.currentUser && !localStorage.getItem('dq_auth_decision_made')) {
-                    const char = await DQ_CONFIG.getCharacter();
-                    if (char) {
-                        console.log('Bestehender User mit lokalen Daten erkannt. Zeige Migration-Auth-Screen...');
-                        DQ_SUPABASE.showAuthScreen('migration');
-                        await DQ_SUPABASE.waitForAuthDecision();
-                    }
-                }
-            }
-        } catch (e) {
-            console.warn('Supabase-Init fehlgeschlagen:', e);
-        }
+        // Alle Daten liegen lokal in IndexedDB. Kein Cloud-Sync, kein Login.
 
         // Woechtlichen Snapshot erstellen falls noetig
         try {
@@ -877,7 +855,6 @@ async function applyTrainingSettingChange(changeType) {
                 await generateDailyQuestsIfNeeded(true);
                 console.log('Equipment-Aenderung: Custom-Plan Quests wurden passend zum Equipment neu generiert.');
                 localStorage.setItem('dq_last_local_update', String(Date.now()));
-                if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
                 DQ_EXERCISES.renderQuests();
                 return;
             }
@@ -892,7 +869,6 @@ async function applyTrainingSettingChange(changeType) {
     }
 
     localStorage.setItem('dq_last_local_update', String(Date.now()));
-    if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
     DQ_EXERCISES.renderQuests();
 }
 
@@ -1140,11 +1116,6 @@ function addSettingsListeners(elements) {
     elements.exportDataButton.addEventListener('click', exportData);
     elements.importDataInput.addEventListener('change', importData);
     elements.resetTutorialButton.addEventListener('click', resetTutorialAndIntro);
-
-    // Supabase Account-Listener
-    if (typeof DQ_SUPABASE !== 'undefined') {
-        DQ_SUPABASE.setupSettingsListeners();
-    }
 }
 
 async function deleteWeightData() {
@@ -1161,7 +1132,6 @@ async function deleteWeightData() {
             tx.onerror = reject;
         });
         localStorage.setItem('dq_last_local_update', String(Date.now()));
-        if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
         DQ_UI.showCustomPopup("Alle Gewichtsdaten wurden gelöscht.");
         DQ_CHARACTER_MAIN.renderPage();
     } catch (error) {
@@ -1171,21 +1141,46 @@ async function deleteWeightData() {
 }
 
 async function resetAllGameData() {
-    console.log('Starte Neuanfang...');
+    console.log('Starte Neuanfang (nur lokal)...');
 
-    // NEU: Verwende DQ_SUPABASE.resetGameData() fuer Cloud-Reset
-    // Das speichert previous_data, erhoeht reset_count und behaelt die Auth-Session
-    if (typeof DQ_SUPABASE !== 'undefined' && DQ_SUPABASE.resetGameData) {
-        await DQ_SUPABASE.resetGameData();
-    } else {
-        // Fallback wenn Supabase nicht verfuegbar
-        console.log('Supabase nicht verfuegbar. Nur lokaler Reset.');
-        if (typeof DQ_SUPABASE !== 'undefined' && DQ_SUPABASE.performLocalResetOnly) {
-            await DQ_SUPABASE.performLocalResetOnly();
+    const keysToRemove = [
+        'streakData', 'dq_seen_app_version', 'lastPenaltyCheck', 'dq_last_local_update',
+        'dq_has_equipment', 'dq_training_equipment', 'dq_training_goal', 'dq_character_age', 'tutorial_reset_pending',
+        'dq_wger_custom_plans_preserved', 'dq_wger_custom_plans_migrated',
+        // Reste aus der entfernten Cloud-Synchronisation
+        'dq_auth_decision_made', 'dq_migrated_from_anon', 'dq_intro_state',
+        'dq_sync_conflict', 'dq_cloud_updated_at'
+    ];
+    keysToRemove.forEach(key => {
+        try { localStorage.removeItem(key); } catch (_) { /* ignore */ }
+    });
+
+    try {
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+            const key = localStorage.key(i);
+            if (key && (key.startsWith('dq_supabase_migrated_') || key.startsWith('sb-'))) {
+                localStorage.removeItem(key);
+            }
+        }
+    } catch (_) { /* ignore */ }
+
+    if (DQ_DB && DQ_DB.db) {
+        const stores = Array.from(DQ_DB.db.objectStoreNames);
+        for (const storeName of stores) {
+            try {
+                const tx = DQ_DB.db.transaction(storeName, 'readwrite');
+                tx.objectStore(storeName).clear();
+                await new Promise((resolve, reject) => {
+                    tx.oncomplete = resolve;
+                    tx.onerror = reject;
+                });
+            } catch (e) {
+                console.warn(`Fehler beim Leeren von ${storeName}:`, e);
+            }
         }
     }
 
-    console.log('Neuanfang abgeschlossen. Auth-Session bleibt erhalten.');
+    console.log('Neuanfang abgeschlossen. Lokale Daten wurden zurueckgesetzt.');
 }
 
 async function resetTutorialAndIntro() {
@@ -1281,24 +1276,28 @@ try {
 function getUpdateNoticePages(trans) {
     return [
         {
-            title: trans.update_notice_title || 'DailyQuest wurde aktualisiert',
+            title: trans.update_notice_title || 'Letztes Update fuer DailyQuest',
             body: trans.update_notice_intro || 'Das ist neu in dieser Version:',
             points: [
-                trans.update_point_1 || 'DailyQuest 2 wird als neue Version vorbereitet',
-                trans.update_point_2 || 'In den Einstellungen findest du jetzt den direkten Link',
-                trans.update_point_3 || 'DailyQuest 1 bleibt weiterhin voll nutzbar',
-                trans.update_point_4 || 'Supabase Sync bleibt fuer bestehende Nutzer aktiv',
-            ]
+                trans.update_point_1 || 'Cloud-Sync ist entfernt. Alle Daten bleiben nur lokal auf diesem Geraet.',
+                trans.update_point_2 || 'Sichere deine Daten regelmaessig per Exportieren in den Einstellungen.',
+                trans.update_point_3 || 'Diese App bleibt online und voll nutzbar.',
+                trans.update_point_4 || 'Es gibt keine weiteren Updates und keine Fehlerbehebungen mehr.',
+            ],
+            qr: false,
+            actions: false
         },
         {
-            title: trans.update_notice_title || 'DailyQuest wurde aktualisiert',
-            body: trans.update_notice_intro || 'Das ist neu in dieser Version:',
+            title: trans.update_notice_title_next || 'Wechsle zu DailyQuest-Next',
+            body: trans.update_notice_intro_next || 'So geht es weiter:',
             points: [
-                trans.update_point_5 || 'Das Open-Source-Repo wurde fuer den Abschluss aufgeraeumt',
-                trans.update_point_6 || 'Unnoetige lokale Supabase-Dateien wurden entfernt',
-                trans.update_point_7 || 'Dokumentation und Versionshinweise wurden aktualisiert',
-                trans.update_point_8 || 'Der Wechsel zu DailyQuest 2 wird spaeter per Export begleitet',
-            ]
+                trans.update_point_5 || 'DailyQuest-Next wird aktiv gepflegt und bleibt up to date.',
+                trans.update_point_6 || 'Neues Design mit besseren Animationen und neuen Features.',
+                trans.update_point_7 || 'Exportiere hier und importiere die Datei in DailyQuest-Next.',
+                trans.update_point_8 || 'Scanne den QR-Code und oeffne DailyQuest-Next direkt.',
+            ],
+            qr: true,
+            actions: true
         }
     ];
 }
@@ -1309,6 +1308,12 @@ async function showUpdateNotice() {
     const pages = getUpdateNoticePages(trans);
     let pageIndex = 0;
 
+    try {
+        if (typeof DQ_UI !== 'undefined' && typeof DQ_UI.loadQRCodeLibrary === 'function') {
+            await DQ_UI.loadQRCodeLibrary();
+        }
+    } catch (_) { /* QR bleibt leer, der Link funktioniert trotzdem. */ }
+
     const render = () => {
         const page = pages[pageIndex];
         const content = `
@@ -1318,6 +1323,12 @@ async function showUpdateNotice() {
                 <ul>
                     ${page.points.map(point => `<li>${point}</li>`).join('')}
                 </ul>
+                ${page.qr ? '<div class="update-notice-qr"><div class="qr-code-wrapper"><div id="update-notice-qr-canvas"></div></div></div>' : ''}
+                ${page.actions ? `
+                <div class="popup-actions update-notice-actions">
+                    <button type="button" id="update-notice-export-button" class="card-button secondary-button">${trans.update_notice_export || 'Jetzt exportieren'}</button>
+                    <a class="card-button update-notice-link" href="${DQ_NEXT_URL}" target="_blank" rel="noopener">${trans.update_notice_open_next || 'DailyQuest-Next oeffnen'}</a>
+                </div>` : ''}
                 <div class="popup-actions">
                     <button type="button" id="update-notice-next-button" class="card-button">${pageIndex < pages.length - 1 ? (trans.update_notice_next || 'Weiter') : (trans.update_notice_finish || 'Los geht\'s!')}</button>
                 </div>
@@ -1325,6 +1336,17 @@ async function showUpdateNotice() {
         `;
 
         DQ_UI.showCustomPopup(content, 'info');
+
+        if (page.qr && typeof DQ_UI.generateQRCodeInto === 'function') {
+            DQ_UI.generateQRCodeInto('update-notice-qr-canvas', DQ_NEXT_URL, 180);
+        }
+
+        const exportButton = document.getElementById('update-notice-export-button');
+        if (exportButton) {
+            exportButton.addEventListener('click', () => {
+                exportData();
+            }, { once: true });
+        }
 
         const nextButton = document.getElementById('update-notice-next-button');
         if (nextButton) {
@@ -1412,13 +1434,13 @@ function saveSetting(key, value) {
                     settingsTx.oncomplete = () => {
                         DQ_CHARACTER_MAIN.renderPage();
                         updateSettingsUI();
-                        if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+                        localStorage.setItem('dq_last_local_update', String(Date.now()));
                         resolve();
                     };
                     settingsTx.onerror = () => {
                         DQ_CHARACTER_MAIN.renderPage();
                         updateSettingsUI();
-                        if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+                        localStorage.setItem('dq_last_local_update', String(Date.now()));
                         resolve();
                     };
                     return;
@@ -1426,7 +1448,7 @@ function saveSetting(key, value) {
                 if (key === 'name' || key === 'weightTrackingEnabled') {
                     DQ_CHARACTER_MAIN.renderPage();
                 }
-                if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+                localStorage.setItem('dq_last_local_update', String(Date.now()));
                 resolve();
             };
         } else {
@@ -1455,10 +1477,8 @@ function saveSetting(key, value) {
                 updateCurrentPlanInfo();
                 DQ_EXERCISES.renderTrainingPhaseBanner();
             }
-            // Supabase Sync triggern
-            if (typeof DQ_SUPABASE !== 'undefined') {
-                DQ_SUPABASE.triggerSync();
-            }
+            // Lokale Aenderung markieren
+            localStorage.setItem('dq_last_local_update', String(Date.now()));
             resolve();
         };
         }
@@ -2178,7 +2198,6 @@ async function ensureMinimumTrainingQuestCount(todayStr, goal, questsToday) {
     });
 
     localStorage.setItem('dq_last_local_update', String(Date.now()));
-    if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
     console.warn(`Daily Quests Top-up: ${fillers.length} freie Uebung(en) ergaenzt und ${hiddenUnavailable.length} unmachbare Quest(s) ersetzt, damit heute ${MIN_TRAINING_QUESTS} Quests abschliessbar sind.`);
     return true;
 }
@@ -2229,7 +2248,6 @@ async function regenerateTodayDailyQuestsManually(forceTraining = false) {
             });
             await repairTodayTrainingQuestCount();
             localStorage.setItem('dq_last_local_update', String(Date.now()));
-            if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
             if (typeof DQ_EXERCISES !== 'undefined') DQ_EXERCISES.renderQuests();
             return;
         }
@@ -2262,7 +2280,6 @@ async function regenerateTodayDailyQuestsManually(forceTraining = false) {
         });
         await repairTodayTrainingQuestCount();
         localStorage.setItem('dq_last_local_update', String(Date.now()));
-        if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
         if (typeof DQ_EXERCISES !== 'undefined') DQ_EXERCISES.renderQuests();
         return;
     }
@@ -2286,7 +2303,6 @@ async function regenerateTodayDailyQuestsManually(forceTraining = false) {
     await generateDailyQuestsIfNeeded(true);
     await repairTodayTrainingQuestCount();
     localStorage.setItem('dq_last_local_update', String(Date.now()));
-    if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
     if (typeof DQ_EXERCISES !== 'undefined') DQ_EXERCISES.renderQuests();
 }
 
@@ -2464,7 +2480,6 @@ async function generateDailyQuestsIfNeeded(forceRegenerate = false) {
     }
 
     localStorage.setItem('dq_last_local_update', String(Date.now()));
-    if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
 
     console.log('Neue Quests erfolgreich generiert und gespeichert.');
 }
@@ -2640,7 +2655,7 @@ async function checkForPenaltyAndReset() {
         DQ_CHARACTER_MAIN.renderPage();
         DQ_EXTRA.renderExtraQuestPage();
         DQ_CONFIG.updateStreakDisplay();
-        if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+        localStorage.setItem('dq_last_local_update', String(Date.now()));
     } catch (error) {
         console.error("Fehler bei der täglichen Prüfung.", error);
     }
@@ -2668,12 +2683,7 @@ async function exportData() {
             URL.revokeObjectURL(url);
         }, 100);
         DQ_UI.showCustomPopup("Daten erfolgreich exportiert!");
-
-        // Sync und Audit-Tracking NUR bei erfolgreichem Export
-        if (typeof DQ_SUPABASE !== 'undefined') {
-            DQ_SUPABASE.triggerSync();
-            DQ_SUPABASE.markActivity('export');
-        }
+        localStorage.setItem('dq_last_local_update', String(Date.now()));
     } catch (error) {
         console.error("Export failed:", error);
         DQ_UI.showCustomPopup(`Datenexport fehlgeschlagen: ${error.message}`, 'penalty');
@@ -2699,11 +2709,6 @@ function importData(event) {
             });
             await DQ_BACKUP.restoreIndexedDB(DQ_DB.db, prepared.stores);
             DQ_BACKUP.applyLocalState(prepared, APP_VERSION);
-
-            if (typeof DQ_SUPABASE !== 'undefined') {
-                await DQ_SUPABASE.syncToSupabase({ forceLocal: true });
-                await DQ_SUPABASE.markActivity('import');
-            }
 
             DQ_UI.showCustomPopup('<h3>Import abgeschlossen</h3><p>Deine Daten wurden erfolgreich wiederhergestellt. Die App wird neu geladen.</p>', 'info');
             setTimeout(() => location.reload(), 1500);

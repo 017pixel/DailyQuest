@@ -10,7 +10,7 @@ const DQ_DB = {
     init: function () {
         return new Promise((resolve, reject) => {
             // --- VERSION ERHÖHT, UM UPDATE FÜR ALLE NUTZER ZU ERZWINGEN ---
-            const dbName = 'VibeCodenDB', dbVersion = 41;
+            const dbName = 'VibeCodenDB', dbVersion = 42;
             const request = indexedDB.open(dbName, dbVersion);
 
             request.onerror = (e) => {
@@ -156,6 +156,10 @@ const DQ_DB = {
                     if (!db.objectStoreNames.contains('custom_user_exercises')) {
                         db.createObjectStore('custom_user_exercises', { keyPath: 'id', autoIncrement: true });
                     }
+                }
+
+                if (oldVersion < 42) {
+                    console.log("Upgrade-Schritt: 2.19.0 lokale Version aktiv. Cloud-Sync ist entfernt, alle Daten bleiben lokal erhalten.");
                 }
 
                 // Sicherheits-Check: custom_plans sicherstellen

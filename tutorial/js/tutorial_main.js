@@ -58,8 +58,8 @@ const DQ_TUTORIAL_MAIN = {
 
         this.createContinueButton();
 
-        // Pruefe ob gespeicherter Intro-Zustand vorhanden ist
-        // (z.B. nach E-Mail-Bestaetigung waehrend des Intros)
+        // Pruefe ob ein gespeicherter Intro-Zustand vorhanden ist
+        // (Legacy-Pfad, wird seit der lokalen Version nicht mehr geschrieben)
         const savedState = this.loadIntroState();
         if (savedState) {
             console.log('Gespeicherter Intro-Zustand gefunden. Stelle wieder her...');
@@ -89,6 +89,7 @@ const DQ_TUTORIAL_MAIN = {
         await this.showBilingualWelcome();
         await this.showLanguageSelection();
         await this.showInstallChoice();
+        await this.showNextVersionNotice();
         await this.showNameInput();
     },
 

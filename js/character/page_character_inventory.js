@@ -177,7 +177,7 @@ const DQ_INVENTORY = {
                 DQ_CHARACTER_MAIN.renderPage();
                 DQ_SHOP.renderPage();
                 DQ_ACHIEVEMENTS.checkAchievement(char, 'gold');
-                if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+                localStorage.setItem('dq_last_local_update', String(Date.now()));
             };
         };
     },
@@ -196,7 +196,7 @@ const DQ_INVENTORY = {
         
         trans.oncomplete = () => {
             DQ_CHARACTER_MAIN.renderPage();
-            if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+            localStorage.setItem('dq_last_local_update', String(Date.now()));
         };
 
         store.get(1).onsuccess = (e) => {
@@ -224,7 +224,7 @@ const DQ_INVENTORY = {
             DQ_CHARACTER_MAIN.renderPage();
             // Update combat cache after equipment change
             this.updateCombatCache();
-            if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+            localStorage.setItem('dq_last_local_update', String(Date.now()));
         };
         store.get(1).onsuccess = (e) => {
             const char = e.target.result;
@@ -256,7 +256,7 @@ const DQ_INVENTORY = {
             DQ_CHARACTER_MAIN.renderPage();
             // Update combat cache after equipment change
             this.updateCombatCache();
-            if (typeof DQ_SUPABASE !== 'undefined') DQ_SUPABASE.triggerSync();
+            localStorage.setItem('dq_last_local_update', String(Date.now()));
         };
         store.get(1).onsuccess = (e) => {
             const char = e.target.result;
